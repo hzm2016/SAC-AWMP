@@ -1,3 +1,0 @@
-"D:\1_Softwares\Clion\CLion 2019.2\bin\cmake\win\bin\cmake.exe" -E remove -f CMakeFiles\Clion_project.dir/objects.a
-D:\1_Softwares\MinGW\mingw64\bin\ar.exe cr CMakeFiles\Clion_project.dir/objects.a @CMakeFiles\Clion_project.dir\objects1.rsp
-D:\1_Softwares\MinGW\mingw64\bin\gcc.exe -g   -Wl,--whole-archive CMakeFiles\Clion_project.dir/objects.a -Wl,--no-whole-archive  -o Clion_project.exe -Wl,--out-implib,libClion_project.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\Clion_project.dir\linklibs.rsp
