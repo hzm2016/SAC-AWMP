@@ -2,19 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9d7c869-404d-4494-9751-929efb3aedaa" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/leg/controllers/ZMP_control/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/ZMP_control_private.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ZMP_control_private.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py" beforeDir="false" afterPath="$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/leg/controllers/ZMP_control_c/Makefile" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/leg/controllers/ZMP_control_c/ZMP_control_c.c" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/leg/controllers/ZMP_control_cpp/ZMP_control_cpp.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/leg/controllers/foot_contact_force/body_cm_move.m" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/leg/controllers/foot_contact_force/dog_cfg.m" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/leg/controllers/foot_contact_force/foot_contact_force.m" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/leg/controllers/foot_contact_force/inverse_kinematic.m" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/leg/controllers/foot_contact_force/leg_swing.m" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/leg/controllers/template.pro" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/leg/worlds/.leg.wbproj" beforeDir="false" afterPath="$PROJECT_DIR$/leg/worlds/.leg.wbproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/leg/worlds/leg.wbt" beforeDir="false" afterPath="$PROJECT_DIR$/leg/worlds/leg.wbt" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -25,18 +16,46 @@
   <component name="FileEditorManager">
     <leaf>
       <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/utils.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="377">
+              <caret line="79" column="19" lean-forward="true" selection-start-line="79" selection-start-column="19" selection-end-line="79" selection-end-column="19" />
+              <folding>
+                <element signature="e#0#53#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/.PyCharm2019.1/system/python_stubs/-1003941425/PyQt5/QtCore/pyqtSignal.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="436">
+              <caret line="22" column="8" selection-start-line="22" selection-start-column="8" selection-end-line="22" selection-end-column="8" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="494">
-              <caret line="50" column="45" selection-start-line="50" selection-start-column="45" selection-end-line="50" selection-end-column="45" />
+            <state relative-caret-position="145">
+              <caret line="5" column="29" selection-start-line="5" selection-start-column="13" selection-end-line="5" selection-end-column="29" />
               <folding>
-                <element signature="e#69#97#0" expanded="true" />
+                <element signature="e#69#88#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
     </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -48,6 +67,7 @@
         <option value="$PROJECT_DIR$/devices/controllers/inverted_pendulum/inverted_pendulum.py" />
         <option value="$PROJECT_DIR$/devices/controllers/ZMP_control/ZMP_control.py" />
         <option value="$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py" />
+        <option value="$PROJECT_DIR$/leg/controllers/ZMP_control/utils.py" />
       </list>
     </option>
   </component>
@@ -87,6 +107,36 @@
               <item name="leg" type="462c0819:PsiDirectoryNode" />
               <item name="controllers" type="462c0819:PsiDirectoryNode" />
               <item name="ZMP_control" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="ZMP_control_private" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+            </path>
+            <path>
+              <item name="ZMP_control_private" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; Python 3.7 (2) &gt;" type="70bed36:NamedLibraryElementNode" />
+            </path>
+            <path>
+              <item name="ZMP_control_private" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; Python 3.7 (2) &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="-1003941425" type="70582d5e:PySkeletonsNode" />
+            </path>
+            <path>
+              <item name="ZMP_control_private" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; Python 3.7 (2) &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="-1003941425" type="70582d5e:PySkeletonsNode" />
+              <item name="PyQt5" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="ZMP_control_private" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; Python 3.7 (2) &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="-1003941425" type="70582d5e:PySkeletonsNode" />
+              <item name="PyQt5" type="462c0819:PsiDirectoryNode" />
+              <item name="QtCore" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -155,12 +205,12 @@
       <updated>1565998010458</updated>
       <workItem from="1565998011702" duration="4601000" />
       <workItem from="1566094871728" duration="618000" />
-      <workItem from="1566260559992" duration="2725000" />
+      <workItem from="1566260559992" duration="9217000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="7944000" />
+    <option name="totallyTimeSpent" value="14436000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1176" extended-state="6" />
@@ -206,12 +256,36 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/devices/controllers/ZMP_control/ZMP_control.py" />
+    <entry file="file://$USER_HOME$/.PyCharm2019.1/system/python_stubs/-1003941425/PyQt5/QtCore/pyqtSignal.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="436">
+          <caret line="22" column="8" selection-start-line="22" selection-start-column="8" selection-end-line="22" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2019.1/system/python_stubs/-1003941425/PyQt5/QtCore/QThread.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="337">
+          <caret line="131" column="8" selection-start-line="131" selection-start-column="8" selection-end-line="131" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="494">
-          <caret line="50" column="45" selection-start-line="50" selection-start-column="45" selection-end-line="50" selection-end-column="45" />
+        <state relative-caret-position="145">
+          <caret line="5" column="29" selection-start-line="5" selection-start-column="13" selection-end-line="5" selection-end-column="29" />
           <folding>
-            <element signature="e#69#97#0" expanded="true" />
+            <element signature="e#69#88#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="377">
+          <caret line="79" column="19" lean-forward="true" selection-start-line="79" selection-start-column="19" selection-end-line="79" selection-end-column="19" />
+          <folding>
+            <element signature="e#0#53#0" expanded="true" />
           </folding>
         </state>
       </provider>
