@@ -29,8 +29,8 @@ ankle_z_linear_motor.enableForceFeedback(sampling_rate)
 foot_force_sensor.enable(sampling_rate)
 
 theta_e = 0
-k = 10.00
-b = 0.9
+k = 5.00
+b = k/2.0
 g = 9.81
 theta_list = [0, 0]
 time_list = [0, 0]
@@ -47,12 +47,13 @@ while robot.step(time_step) != -1:
         continue
     angle_z_v = (theta_list[1] - theta_list[0]) / (time_list[1] - time_list[0])
     print('angle: %s, velocity: %s' % (theta_list[-1], angle_z_v))
-    tau = k * (theta_e - theta_list[-1]) - b * angle_z_v - 6 * g * 0.2 * math.sin(theta_list[-1])
+    tau = k * (theta_e - theta_list[-1]) - b * angle_z_v - 5 * g * 0.4 * math.sin(theta_list[-1])
     # tau = k * (theta_e - theta_list[-1]) - b * angle_z_v
     # if tau < 1e-3:
     #     tau = 0
     if time_list[-1] < 1:
         print('time: %s' % time_list[-1])
+        ankle_z_motor.setPosition(0.1)
         continue
     # tau = 3.0 * math.sin(5 * time)
     ankle_z_motor.setTorque(tau)

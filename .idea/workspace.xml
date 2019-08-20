@@ -2,7 +2,19 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9d7c869-404d-4494-9751-929efb3aedaa" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py" beforeDir="false" afterPath="$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/leg/controllers/ZMP_control_c/Makefile" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/leg/controllers/ZMP_control_c/ZMP_control_c.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/leg/controllers/ZMP_control_cpp/ZMP_control_cpp.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/leg/controllers/foot_contact_force/body_cm_move.m" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/leg/controllers/foot_contact_force/dog_cfg.m" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/leg/controllers/foot_contact_force/foot_contact_force.m" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/leg/controllers/foot_contact_force/inverse_kinematic.m" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/leg/controllers/foot_contact_force/leg_swing.m" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/leg/controllers/template.pro" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/leg/worlds/.leg.wbproj" beforeDir="false" afterPath="$PROJECT_DIR$/leg/worlds/.leg.wbproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/leg/worlds/leg.wbt" beforeDir="false" afterPath="$PROJECT_DIR$/leg/worlds/leg.wbt" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -11,7 +23,20 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300" />
+    <leaf>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="494">
+              <caret line="50" column="45" selection-start-line="50" selection-start-column="45" selection-end-line="50" selection-end-column="45" />
+              <folding>
+                <element signature="e#69#97#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -22,20 +47,22 @@
         <option value="$PROJECT_DIR$/Pendulum/controllers/inverted_pendulum/inverted_pendulum.py" />
         <option value="$PROJECT_DIR$/devices/controllers/inverted_pendulum/inverted_pendulum.py" />
         <option value="$PROJECT_DIR$/devices/controllers/ZMP_control/ZMP_control.py" />
+        <option value="$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="133" />
-    <option name="y" value="191" />
-    <option name="width" value="1400" />
-    <option name="height" value="1000" />
+    <option name="x" value="-8" />
+    <option name="y" value="-8" />
+    <option name="width" value="1936" />
+    <option name="height" value="1176" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -46,44 +73,29 @@
             <path>
               <item name="ZMP_control_private" type="b2602c69:ProjectViewProjectNode" />
               <item name="ZMP_control_private" type="462c0819:PsiDirectoryNode" />
-              <item name="Pendulum" type="462c0819:PsiDirectoryNode" />
+              <item name="leg" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="ZMP_control_private" type="b2602c69:ProjectViewProjectNode" />
               <item name="ZMP_control_private" type="462c0819:PsiDirectoryNode" />
-              <item name="Pendulum" type="462c0819:PsiDirectoryNode" />
+              <item name="leg" type="462c0819:PsiDirectoryNode" />
               <item name="controllers" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="ZMP_control_private" type="b2602c69:ProjectViewProjectNode" />
               <item name="ZMP_control_private" type="462c0819:PsiDirectoryNode" />
-              <item name="Pendulum" type="462c0819:PsiDirectoryNode" />
+              <item name="leg" type="462c0819:PsiDirectoryNode" />
               <item name="controllers" type="462c0819:PsiDirectoryNode" />
-              <item name="inverted_pendulum" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="ZMP_control_private" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-            </path>
-            <path>
-              <item name="ZMP_control_private" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="&lt; Python 3.7 (2) &gt;" type="70bed36:NamedLibraryElementNode" />
-            </path>
-            <path>
-              <item name="ZMP_control_private" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="&lt; Python 3.7 (2) &gt;" type="70bed36:NamedLibraryElementNode" />
-              <item name="python37" type="462c0819:PsiDirectoryNode" />
+              <item name="ZMP_control" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/../catkin_ws" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
@@ -143,16 +155,18 @@
       <updated>1565998010458</updated>
       <workItem from="1565998011702" duration="4601000" />
       <workItem from="1566094871728" duration="618000" />
+      <workItem from="1566260559992" duration="2725000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="5219000" />
+    <option name="totallyTimeSpent" value="7944000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1176" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25266525" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2553305" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -183,16 +197,7 @@
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/devices/controllers/inverted_pendulum/inverted_pendulum.py" />
-    <entry file="file://$PROJECT_DIR$/Pendulum/controllers/inverted_pendulum/inverted_pendulum.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="464">
-          <caret line="37" selection-start-line="37" selection-end-line="37" selection-end-column="33" />
-          <folding>
-            <element signature="e#69#97#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/Pendulum/controllers/inverted_pendulum/inverted_pendulum.py" />
     <entry file="file://D:/1-Official software/1-Scientific software/1-Install position/webot/Webots/lib/python37/controller.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="5907">
@@ -200,10 +205,11 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/devices/controllers/ZMP_control/ZMP_control.py">
+    <entry file="file://$PROJECT_DIR$/devices/controllers/ZMP_control/ZMP_control.py" />
+    <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="757">
-          <caret line="30" column="28" selection-start-line="30" selection-start-column="28" selection-end-line="30" selection-end-column="28" />
+        <state relative-caret-position="494">
+          <caret line="50" column="45" selection-start-line="50" selection-start-column="45" selection-end-line="50" selection-end-column="45" />
           <folding>
             <element signature="e#69#97#0" expanded="true" />
           </folding>

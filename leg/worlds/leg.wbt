@@ -118,7 +118,7 @@ DEF Leg Robot {
                                   }
                                 ]
                                 endPoint DEF SHANK Solid {
-                                  translation 2.1858099999999979e-10 0.015500000000000005 0
+                                  translation 2.1858099999999976e-10 0.015500000000000005 0
                                   rotation 0 0 1 4.2146848510894035e-08
                                   children [
                                     DEF ANKLE_SHANK Group {
