@@ -2,10 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9d7c869-404d-4494-9751-929efb3aedaa" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/leg/controllers/ZMP_control/utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/ZMP_control_private.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ZMP_control_private.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py" beforeDir="false" afterPath="$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/leg/controllers/ZMP_control/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/leg/controllers/ZMP_control/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/leg/worlds/.leg.wbproj" beforeDir="false" afterPath="$PROJECT_DIR$/leg/worlds/.leg.wbproj" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -18,8 +16,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="377">
-              <caret line="79" column="19" lean-forward="true" selection-start-line="79" selection-start-column="19" selection-end-line="79" selection-end-column="19" />
+            <state relative-caret-position="232">
+              <caret line="80" column="18" lean-forward="true" selection-start-line="80" selection-start-column="18" selection-end-line="80" selection-end-column="18" />
               <folding>
                 <element signature="e#0#53#0" expanded="true" />
               </folding>
@@ -39,8 +37,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="145">
-              <caret line="5" column="29" selection-start-line="5" selection-start-column="13" selection-end-line="5" selection-end-column="29" />
+            <state relative-caret-position="494">
+              <caret line="57" selection-start-line="57" selection-end-line="60" selection-end-column="81" />
               <folding>
                 <element signature="e#69#88#0" expanded="true" />
               </folding>
@@ -205,12 +203,12 @@
       <updated>1565998010458</updated>
       <workItem from="1565998011702" duration="4601000" />
       <workItem from="1566094871728" duration="618000" />
-      <workItem from="1566260559992" duration="9217000" />
+      <workItem from="1566260559992" duration="11217000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="14436000" />
+    <option name="totallyTimeSpent" value="16436000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1176" extended-state="6" />
@@ -256,13 +254,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/devices/controllers/ZMP_control/ZMP_control.py" />
-    <entry file="file://$USER_HOME$/.PyCharm2019.1/system/python_stubs/-1003941425/PyQt5/QtCore/pyqtSignal.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="436">
-          <caret line="22" column="8" selection-start-line="22" selection-start-column="8" selection-end-line="22" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/.PyCharm2019.1/system/python_stubs/-1003941425/PyQt5/QtCore/QThread.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="337">
@@ -272,18 +263,25 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="145">
-          <caret line="5" column="29" selection-start-line="5" selection-start-column="13" selection-end-line="5" selection-end-column="29" />
+        <state relative-caret-position="494">
+          <caret line="57" selection-start-line="57" selection-end-line="60" selection-end-column="81" />
           <folding>
             <element signature="e#69#88#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2019.1/system/python_stubs/-1003941425/PyQt5/QtCore/pyqtSignal.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="436">
+          <caret line="22" column="8" selection-start-line="22" selection-start-column="8" selection-end-line="22" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="377">
-          <caret line="79" column="19" lean-forward="true" selection-start-line="79" selection-start-column="19" selection-end-line="79" selection-end-column="19" />
+        <state relative-caret-position="232">
+          <caret line="80" column="18" lean-forward="true" selection-start-line="80" selection-start-column="18" selection-end-line="80" selection-end-column="18" />
           <folding>
             <element signature="e#0#53#0" expanded="true" />
           </folding>
