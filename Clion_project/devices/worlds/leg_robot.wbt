@@ -1,0 +1,157 @@
+#VRML_SIM R2019b utf8
+WorldInfo {
+  info [
+    "Example world for demonstrating the InertialUnit."
+  ]
+  title "Leg Robot"
+  basicTimeStep 16
+}
+Viewpoint {
+  orientation 0.8506256437718797 0.5228489709594657 -0.055362150647380655 5.783999449515244
+  position -0.49476070130697714 0.8004037325607667 2.055136842880105
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+CircleArena {
+}
+DEF Leg Robot {
+  translation -0.00102424785307164 -0.0005726471007745301 2.2380432772263935e-06
+  rotation 0.00032867719453618733 0.9602178632838939 0.2792517627550722 0.0024789994249213923
+  children [
+    DEF FOOT TouchSensor {
+      translation -3.5330921213400784e-08 -1.7030066860444716e-05 -2.3273722735134414e-11
+      rotation 0.05507058986554275 -0.006257797067976923 -0.9984628536443994 -7.862484952119903e-06
+      children [
+        DEF ANKLE TouchSensor {
+          translation -0.025 0.05 0
+          rotation 0.5775028105872387 0.5770441306003232 0.5775037446662635 2.0934763109263828
+          children [
+            DEF ANKLE Group {
+              children [
+                Transform {
+                  rotation 1 0 0 0
+                  children [
+                    Shape {
+                      appearance DEF PLASTIC_APPEARANCE PBRAppearance {
+                        baseColor 1 0.666667 0
+                        roughness 1
+                        metalness 0
+                      }
+                      geometry Cylinder {
+                        height 0.1
+                        radius 0.02
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          name "ankle touch sensor"
+          boundingObject USE ANKLE
+          physics Physics {
+            density 10000
+          }
+          type "force-3d"
+        }
+        DEF ANKLE HingeJoint {
+          jointParameters HingeJointParameters {
+            position 3.14
+            axis 0 0 1
+            anchor -0.025 0.05 0
+          }
+          device [
+            RotationalMotor {
+              name "ankle_z motor"
+              maxVelocity 1000
+              maxTorque 1000
+            }
+          ]
+          endPoint DEF SHANK Solid {
+            translation -0.025 0.05 0
+            rotation 0 0 1 1.5699983824775836
+            children [
+              DEF SHANK Group {
+                children [
+                  Transform {
+                    translation 0.16 0 0
+                    children [
+                      Shape {
+                        appearance DEF METAL_APPEARANCE PBRAppearance {
+                          baseColor 0.5 0.5 0.5
+                          roughness 1.1102230246251565e-16
+                          metalness 0
+                        }
+                        geometry Box {
+                          size 0.28 0.02 0.02
+                        }
+                      }
+                    ]
+                  }
+                  Transform {
+                    translation 0.4 0 0
+                    rotation 0 0 1 0
+                    children [
+                      Shape {
+                        appearance DEF METAL_APPEARANCE PBRAppearance {
+                          baseColor 0 0.5 0
+                          roughness 1.11022e-16
+                          metalness 0
+                        }
+                        geometry Sphere {
+                          radius 0.1
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+            name "shank solid"
+            boundingObject USE SHANK
+            physics Physics {
+            }
+          }
+        }
+        DEF Foot Group {
+          children [
+            Transform {
+              translation 0 0.015 0
+              children [
+                Shape {
+                  appearance DEF METAL_APPEARANCE PBRAppearance {
+                    baseColor 0.5 0.5 0.5
+                    roughness 1.1102230246251565e-16
+                    metalness 0
+                  }
+                  geometry Box {
+                    size 0.25 0.03 0.1
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+      name "foot touch sensor"
+      boundingObject USE Foot
+      physics Physics {
+        density 10000
+      }
+      rotationStep 0.261799
+      recognitionColors [
+        0 0 0
+      ]
+      type "force-3d"
+    }
+  ]
+  name "leg"
+  boundingObject USE Foot
+  physics Physics {
+    density 10000
+  }
+  rotationStep 0.261799
+  controller "ZMP_control"
+}

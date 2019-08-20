@@ -1,0 +1,461 @@
+#VRML_SIM R2019b utf8
+WorldInfo {
+  info [
+    "simulating the dog's adaptive straight intermittent crawl controller in slope"
+    "Albert Miao"
+    "2017.8.23"
+  ]
+  basicTimeStep 16
+  contactProperties [
+    ContactProperties {
+      coulombFriction [
+        10
+      ]
+      bounce 0.3
+      bounceVelocity 0.001
+    }
+  ]
+}
+Viewpoint {
+  orientation -0.950086156740662 -0.3113020513571209 0.02067190341035158 0.520097
+  position 1.35202 8.79702 14.5338
+}
+Background {
+  skyColor [
+    0.4 0.7 1
+  ]
+}
+DirectionalLight {
+  ambientIntensity 0.3
+  direction 0 -2 0
+  intensity 0.8
+}
+DEF FLOOR Solid {
+  translation -0.5 0 -1
+  children [
+    DEF floor Shape {
+      geometry ElevationGrid {
+        xDimension 21
+        xSpacing 0.5
+        zDimension 5
+        zSpacing 0.5
+      }
+    }
+  ]
+  name "floor"
+  boundingObject Transform {
+    children [
+      USE floor
+    ]
+  }
+}
+DEF DOG Robot {
+  translation -2.0336503651108016e-06 -0.3774746932254722 -1.522177885221575e-08
+  rotation 0.007492024625337384 1.58334458896301e-08 -0.9999719343896672 5.421621676220729e-06
+  children [
+    DEF BODY Transform {
+      translation 0 0.7 0
+      children [
+        DEF BODY_SHAPE Shape {
+          appearance Appearance {
+            material Material {
+              diffuseColor 0.666667 0.666667 0
+            }
+          }
+          geometry DEF body_box Box {
+            size 0.8 0.06 0.3
+          }
+        }
+      ]
+    }
+    DEF RF_LEG_HIP Servo {
+      translation 0.35 0.7 0.165
+      rotation 0 0 1 2.0944
+      children [
+        DEF RF_LEG_HIP_TRANS Transform {
+          rotation 1 0 0 1.5708
+          children [
+            DEF HIP_SHAPE Shape {
+              appearance Appearance {
+                material Material {
+                  diffuseColor 0 1 0.498039
+                }
+              }
+              geometry DEF hip_cylider Cylinder {
+                height 0.03
+                radius 0.04
+              }
+            }
+          ]
+        }
+        DEF RF_LEG_THIGH Transform {
+          translation 0 0.15 0
+          children [
+            DEF THIGH_SHAPE Shape {
+              appearance Appearance {
+                material Material {
+                  diffuseColor 0 0.333333 0.498039
+                }
+              }
+              geometry DEF thigh_box Box {
+                size 0.02 0.3 0.03
+              }
+            }
+          ]
+        }
+        DEF RF_LEG_KNEE Servo {
+          translation 0 0.3 0
+          rotation 0 0 1 2.0944
+          children [
+            DEF RF_LEG_KNEE_TRANS Transform {
+              rotation 1 0 0 1.5708
+              children [
+                DEF KNEE_SHAPE Shape {
+                  appearance Appearance {
+                    material Material {
+                      diffuseColor 1 0.333333 0.498039
+                    }
+                  }
+                  geometry DEF knee_cylinder Cylinder {
+                    height 0.03
+                    radius 0.04
+                  }
+                }
+              ]
+            }
+            DEF RF_LEG_SHANK Transform {
+              translation 0 0.15 0
+              children [
+                DEF SHANK_SHAPE Shape {
+                  appearance Appearance {
+                    material Material {
+                      diffuseColor 0.333333 0.333333 0.498039
+                    }
+                  }
+                  geometry Box {
+                    size 0.02 0.3 0.03
+                  }
+                }
+              ]
+            }
+            DEF RF_TOUCHSENSOR TouchSensor {
+              translation -4.319951557341106e-05 0.2999807186681356 -1.914773894995392e-12
+              rotation -8.437311638409893e-05 0.00014627787714695226 0.9999999857419799 1.2182182436648033e-07
+              children [
+                DEF RF_FOOT Transform {
+                  rotation 1 0 0 1.5708
+                  children [
+                    DEF FOOT_SHAPE Shape {
+                      geometry DEF foot_cylinder Cylinder {
+                        height 0.05
+                        radius 0.025
+                      }
+                    }
+                  ]
+                }
+              ]
+              name "rf_touch_sensor"
+              boundingObject USE RF_FOOT
+              physics Physics {
+                density -1
+                mass 0.001
+              }
+              type "force-3d"
+              lookupTable []
+              linearVelocity -1.8709897762952954e-05 -1.425208797314892e-05 2.3723515237537362e-12
+              angularVelocity 9.328228027475636e-11 2.248667460633782e-11 -0.0003443027804191661
+            }
+          ]
+          name "rf_leg_knee"
+          boundingObject USE RF_LEG_KNEE_TRANS
+          physics Physics {
+            density -1
+            mass 1.5
+          }
+          maxForce 100
+          position 7.672858998507281e-05
+        }
+      ]
+      name "rf_leg_hip"
+      boundingObject USE RF_LEG_HIP_TRANS
+      physics Physics {
+        density -1
+        mass 2
+      }
+      maxForce 100
+      position -2.5978184935659954e-05
+    }
+    DEF LF_LEG_HIP Servo {
+      translation 0.35 0.7 -0.165
+      rotation 0 0 1 2.0944
+      children [
+        DEF LF_LEG_HIP_TRANS Transform {
+          rotation 1 0 0 1.5708
+          children [
+            USE HIP_SHAPE
+          ]
+        }
+        DEF LF_LEG_THIGH Transform {
+          translation 0 0.15 0
+          children [
+            USE THIGH_SHAPE
+          ]
+        }
+        DEF LF_LEG_KNEE Servo {
+          translation 0 0.3 0
+          rotation 0 0 1 2.0944
+          children [
+            DEF LF_LEG_KNEE_TRANS Transform {
+              rotation 1 0 0 1.5708
+              children [
+                USE KNEE_SHAPE
+              ]
+            }
+            DEF LF_LEG_SHANK Transform {
+              translation 0 0.15 0
+              children [
+                USE SHANK_SHAPE
+              ]
+            }
+            DEF LF_TOUCHSENSOR TouchSensor {
+              translation -4.319929963134128e-05 0.29998071879928945 -1.907890512242716e-12
+              rotation -8.496094536316865e-05 0.0001471124776760022 0.9999999855697782 1.2182187068375885e-07
+              children [
+                DEF LF_FOOT Transform {
+                  rotation 1 0 0 1.5708
+                  children [
+                    USE FOOT_SHAPE
+                  ]
+                }
+              ]
+              name "lf_touch_sensor"
+              boundingObject USE LF_FOOT
+              physics Physics {
+                density -1
+                mass 0.001
+              }
+              type "force-3d"
+              lookupTable []
+              linearVelocity -1.8709926678489586e-05 -1.4252105708295604e-05 2.376369047126302e-12
+              angularVelocity 9.81148119221159e-11 2.0033841375358644e-11 -0.0003443028880668019
+            }
+          ]
+          name "lf_leg_knee"
+          boundingObject USE LF_LEG_KNEE_TRANS
+          physics Physics {
+            density -1
+            mass 1.5
+          }
+          maxForce 100
+          position 7.672852558018861e-05
+        }
+      ]
+      name "lf_leg_hip"
+      boundingObject USE LF_LEG_HIP_TRANS
+      physics Physics {
+        density -1
+        mass 2
+      }
+      maxForce 100
+      position -2.5978190786979383e-05
+    }
+    DEF RB_LEG_HIP Servo {
+      translation -0.35 0.7 0.165
+      rotation 0 0 1 4.1888
+      children [
+        DEF RB_LEG_HIP_TRANS Transform {
+          rotation 1 0 0 1.5708
+          children [
+            USE HIP_SHAPE
+          ]
+        }
+        DEF RB_LEG_THIGH Transform {
+          translation 0 0.15 0
+          children [
+            USE THIGH_SHAPE
+          ]
+        }
+        DEF RB_LEG_KNEE Servo {
+          translation 0 0.3 0
+          rotation 0 0 1 4.1888
+          children [
+            DEF RB_LEG_KNEE_TRANS Transform {
+              rotation 1 0 0 1.5708
+              children [
+                USE KNEE_SHAPE
+              ]
+            }
+            DEF RB_LEG_SHANK Transform {
+              translation 0 0.15 0
+              children [
+                USE SHANK_SHAPE
+              ]
+            }
+            DEF RB_TOUCHSENSOR TouchSensor {
+              translation 4.3199530489340665e-05 0.29998071764473005 -1.91027749174566e-12
+              rotation 8.241516804174982e-05 0.00014350463201675713 0.9999999863070801 -1.2182185493979546e-07
+              children [
+                DEF RB_FOOT Transform {
+                  rotation 1 0 0 1.5708
+                  children [
+                    USE FOOT_SHAPE
+                  ]
+                }
+              ]
+              name "rb_touch_sensor"
+              boundingObject USE RB_FOOT
+              physics Physics {
+                density -1
+                mass 0.001
+              }
+              type "force-3d"
+              lookupTable []
+              linearVelocity 1.871108888769346e-05 -1.4248842555880659e-05 2.5583014693803916e-12
+              angularVelocity 1.0746642412368615e-10 -1.8686167491605038e-11 0.00034425527246662025
+            }
+          ]
+          name "rb_leg_knee"
+          boundingObject USE LF_LEG_KNEE_TRANS
+          physics Physics {
+            density -1
+            mass 1.5
+          }
+          maxForce 100
+          position -7.67258696914297e-05
+        }
+      ]
+      name "rb_leg_hip"
+      boundingObject USE RB_LEG_HIP_TRANS
+      physics Physics {
+        density -1
+        mass 2
+      }
+      maxForce 100
+      position 2.5981061689661633e-05
+    }
+    DEF LB_LEG_HIP Servo {
+      translation -0.35 0.7 -0.165
+      rotation 0 0 1 4.1888
+      children [
+        DEF LB_LEG_HIP_TRANS Transform {
+          rotation 1 0 0 1.5708
+          children [
+            USE HIP_SHAPE
+          ]
+        }
+        DEF LB_LEG_THIGH Transform {
+          translation 0 0.15 0
+          children [
+            USE THIGH_SHAPE
+          ]
+        }
+        DEF LB_LEG_KNEE Servo {
+          translation 0 0.3 0
+          rotation 0 0 1 4.1888
+          children [
+            DEF LB_LEG_KNEE_TRANS Transform {
+              rotation 1 0 0 1.5708
+              children [
+                USE KNEE_SHAPE
+              ]
+            }
+            DEF LB_LEG_SHANK Transform {
+              translation 0 0.15 0
+              children [
+                USE SHANK_SHAPE
+              ]
+            }
+            DEF LB_TOUCHSENSOR TouchSensor {
+              translation 4.3162767925736256e-05 -1.9282224101496714e-05 1.1489698081845745e-12
+              rotation 8.390215694522661e-05 0.00014570683968344694 0.9999999858649723 -1.2182210990086342e-07
+              children [
+                DEF LB_FOOT Transform {
+                  translation 0 0.3 0
+                  rotation 1 0 0 1.5708
+                  children [
+                    USE FOOT_SHAPE
+                  ]
+                }
+              ]
+              name "lb_touch_sensor"
+              boundingObject USE LB_FOOT
+              physics Physics {
+                density -1
+                mass 0.001
+              }
+              type "force-3d"
+              lookupTable []
+              linearVelocity 1.8711117789019238e-05 -1.4248860802618113e-05 1.9776253688701256e-12
+              angularVelocity 5.877446176298905e-11 -1.8686372511845112e-11 0.0003442553762058003
+            }
+          ]
+          name "lb_leg_knee"
+          boundingObject USE LB_LEG_KNEE_TRANS
+          physics Physics {
+            density -1
+            mass 1.5
+          }
+          maxForce 100
+          position -7.672580529849427e-05
+        }
+      ]
+      name "lb_leg_hip"
+      boundingObject USE LB_LEG_HIP_TRANS
+      physics Physics {
+        density -1
+        mass 2
+      }
+      maxForce 100
+      position 2.5981067535735258e-05
+    }
+    DEF GPS GPS {
+      translation 0 0.7 0
+      children [
+        DEF BODY_CENTER Shape {
+          geometry DEF body_center Sphere {
+            radius 0.05
+          }
+        }
+      ]
+      name "body_gps"
+    }
+    DEF ATTITUDE_ANGLE InertialUnit {
+      translation 0 0.7 0
+      children [
+        USE BODY_CENTER
+      ]
+      name "body_imu"
+    }
+    DEF ANGULAR_VELOCITY Gyro {
+      translation 0 0.7 0
+      children [
+        USE BODY_CENTER
+      ]
+      name "body_gyro"
+    }
+    DEF ACCELEROMETER Accelerometer {
+      translation 0 0.7 0
+      children [
+        USE BODY_CENTER
+      ]
+      name "body_accelerometer"
+    }
+  ]
+  name "dog"
+  boundingObject Transform {
+    translation 0 0.7 0
+    children [
+      USE BODY_SHAPE
+    ]
+  }
+  physics Physics {
+    density -1
+    mass 10
+    centerOfMass [
+      0 0.7 0
+    ]
+  }
+  controller "foot_contact_force"
+  linearVelocity 4.342521756219992e-09 0.000171840897759906 3.975627163198879e-11
+  angularVelocity 9.562548715601047e-11 -1.3885923461112042e-13 8.577399491947029e-09
+}

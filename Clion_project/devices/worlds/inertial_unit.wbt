@@ -1,0 +1,147 @@
+#VRML_SIM R2019b utf8
+WorldInfo {
+  info [
+    "Example world for demonstrating the InertialUnit."
+  ]
+  title "Inertial Unit"
+  basicTimeStep 16
+}
+Viewpoint {
+  orientation -0.9993502356192161 -0.002565044089141347 -0.035951733152075074 0.16231401537228574
+  position 0.028166454353952063 0.44459580278746474 1.476341813137634
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+}
+DEF ROBOT Robot {
+  translation 4.23814268575573e-09 -0.010185537415535524 -3.628926882195939e-17
+  rotation -1.6169621772744595e-13 1.4159090105138733e-11 -1 -6.160757239642886e-05
+  children [
+    DEF YAW_HINGE_JOINT HingeJoint {
+      endPoint Solid {
+        rotation 0 0 1 0
+        children [
+          DEF PITCH_HINGE_JOINT HingeJoint {
+            jointParameters HingeJointParameters {
+              position 0.5827647027020347
+              axis 0 0 1
+              anchor -0.025 0.05 0
+            }
+            device [
+              RotationalMotor {
+                name "pitch motor"
+                maxPosition 3.14
+              }
+            ]
+            endPoint Solid {
+              translation -0.025 0.05 0
+              rotation 0 0 1 1.106363702702034
+              children [
+                DEF PITCH_GROUP Group {
+                  children [
+                    Transform {
+                      rotation 1 0 0 1.5708
+                      children [
+                        Shape {
+                          appearance DEF PLASTIC_APPEARANCE PBRAppearance {
+                            baseColor 1 0.666667 0
+                            roughness 1
+                            metalness 0
+                          }
+                          geometry Cylinder {
+                            height 0.1
+                            radius 0.03
+                            subdivision 16
+                          }
+                        }
+                      ]
+                    }
+                    Transform {
+                      translation 0.2 0 0
+                      children [
+                        Shape {
+                          appearance DEF METAL_APPEARANCE PBRAppearance {
+                            baseColor 0.5 0.5 0.5
+                            roughness 1.1102230246251565e-16
+                            metalness 0
+                          }
+                          geometry Box {
+                            size 0.4 0.02 0.05
+                          }
+                        }
+                      ]
+                    }
+                    Transform {
+                      translation 0.4 0 0
+                      rotation 0 0 1 1.5708
+                      children [
+                        Shape {
+                          appearance DEF METAL_APPEARANCE PBRAppearance {
+                            baseColor 0 0.5 0
+                            transparency 0.3
+                            roughness 1.11022e-16
+                            metalness 0
+                          }
+                          geometry Sphere {
+                            radius 0.1
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+              boundingObject USE PITCH_GROUP
+            }
+          }
+          DEF YAW_GROUP Group {
+            children [
+              Transform {
+                translation 0 0.025 0
+                children [
+                  Shape {
+                    appearance DEF METAL_APPEARANCE PBRAppearance {
+                      baseColor 0.5 0.5 0.5
+                      roughness 1.1102230246251565e-16
+                      metalness 0
+                    }
+                    geometry Box {
+                      size 0.25 0.03 0.1
+                    }
+                  }
+                ]
+              }
+              Transform {
+                translation -0.025 0.05 0
+                rotation 1 0 0 1.5708
+                children [
+                  Shape {
+                    appearance DEF METAL_APPEARANCE PBRAppearance {
+                      baseColor 0.5 0.5 0.5
+                      roughness 1.1102230246251565e-16
+                      metalness 0
+                    }
+                    geometry Cylinder {
+                      height 0.1
+                      radius 0.025
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+        boundingObject USE YAW_GROUP
+      }
+    }
+  ]
+  boundingObject USE YAW_GROUP
+  physics Physics {
+  }
+  controller "ZMP_control"
+  linearVelocity -1.4361164034090763e-08 -2.1440413817960676e-06 1.289954848151171e-17
+  angularVelocity 1.0437235374784212e-15 5.429663902320317e-17 7.113904866090964e-07
+}
