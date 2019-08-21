@@ -8,8 +8,8 @@ WorldInfo {
   FPS 100
 }
 Viewpoint {
-  orientation -0.9680095269861047 0.1598232979658135 0.19342716740796453 0.17978997878661898
-  position 0.83479737407051 -2.1006089739090466 1.5163861923789224
+  orientation -0.016157087726730142 -0.9998648141234672 -0.0030499170538235525 3.081002073777178
+  position 0.6528847472843976 -2.1514574580313575 -1.6676388370055728
 }
 TexturedBackground {
   texture "noon_building_overcast"
@@ -23,8 +23,8 @@ StraightStairs {
   rightRail []
 }
 DEF Leg Robot {
-  translation 0.7773860517510334 -2.5812960578719086 -2.4846326139497996e-09
-  rotation 0.0008082307240439361 0.9999996733814952 -1.968385989368622e-09 3.1415789993268093
+  translation 0.777394 -2.58092 0.37
+  rotation 0.0005058731563174979 0.9999998720461667 5.9261626531708366e-09 3.141578999311511
   children [
     DEF FOOT Solid {
       rotation 0 0 1 0
@@ -34,7 +34,7 @@ DEF Leg Robot {
           children [
             DEF ANKLE_X SliderJoint {
               jointParameters JointParameters {
-                position -1.5772624760841772e-07
+                position -2.062379590641216e-07
                 axis 1 0 0
               }
               device [
@@ -45,7 +45,7 @@ DEF Leg Robot {
                 }
               ]
               endPoint DEF ANKLE_X Solid {
-                translation -1.6202595417391176e-07 0.00046072387116100066 -5.90185618959185e-17
+                translation -2.1053766562961564e-07 0.00046072387116100066 -5.90185618959185e-17
                 rotation 2.9504199197464706e-08 -8.923450162217335e-11 -0.9999999999999996 -5.047846092305859e-07
                 children [
                   DEF ANKLE_X Shape {
@@ -58,7 +58,7 @@ DEF Leg Robot {
                   }
                   DEF ANKLE_Y SliderJoint {
                     jointParameters JointParameters {
-                      position -9.815876311548952e-05
+                      position -0.00014697467718075317
                       axis 0 1 0
                     }
                     device [
@@ -69,7 +69,7 @@ DEF Leg Robot {
                       }
                     ]
                     endPoint DEF ANKLE_Y Solid {
-                      translation 0 0.0009018608564882438 0
+                      translation 0 0.0008530449424229802 0
                       children [
                         DEF ANKLE_Y Shape {
                           appearance PBRAppearance {
@@ -81,7 +81,7 @@ DEF Leg Robot {
                         }
                         DEF ANKLE_Z SliderJoint {
                           jointParameters JointParameters {
-                            position 2.592186515914435e-12
+                            position 1.5517694464814266e-12
                           }
                           device [
                             DEF ANKLE_Z LinearMotor {
@@ -91,7 +91,7 @@ DEF Leg Robot {
                             }
                           ]
                           endPoint DEF ANKLE_Z Solid {
-                            translation 0 0.001 2.592186515914435e-12
+                            translation 0 0.001 1.5517694464814266e-12
                             children [
                               DEF ANKLE_Z_Slider Shape {
                                 appearance PBRAppearance {
@@ -103,7 +103,7 @@ DEF Leg Robot {
                               }
                               DEF ANKLE_Z HingeJoint {
                                 jointParameters HingeJointParameters {
-                                  position 4.344822151844877e-08
+                                  position 6.02988286577165e-08
                                   axis 0 0 1
                                   anchor 0 0.0155 0
                                 }
@@ -118,8 +118,8 @@ DEF Leg Robot {
                                   }
                                 ]
                                 endPoint DEF SHANK Solid {
-                                  translation 2.1858099999999976e-10 0.015500000000000005 0
-                                  rotation 0 0 1 4.2146848510894035e-08
+                                  translation 2.1858099999999924e-10 0.01550000000000001 0
+                                  rotation 0 0 1 5.960464477539063e-08
                                   children [
                                     DEF ANKLE_SHANK Group {
                                       children [
@@ -201,8 +201,8 @@ DEF Leg Robot {
           ]
         }
         DEF FOOT TouchSensor {
-          translation 3.8971943472354553e-07 0.002715976620534466 -3.5357664231628217e-12
-          rotation 5.667726831411673e-07 1.3874896403731003e-08 0.9999999999998394 -6.624313494034713e-06
+          translation 4.218669691358201e-07 0.002742975015686877 -2.9276026047853065e-12
+          rotation 4.370085543177374e-07 1.059703538883198e-08 0.9999999999999044 -7.25186483709744e-06
           name "foot touch sensor"
           boundingObject Shape {
             geometry Box {
