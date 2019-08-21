@@ -23,7 +23,7 @@ StraightStairs {
   rightRail []
 }
 DEF Leg Robot {
-  translation 0.777394 -2.58092 0.37
+  translation 0.877394 -2.58102 0.37
   rotation 0.0005058731563174979 0.9999998720461667 5.9261626531708366e-09 3.141578999311511
   children [
     DEF FOOT Solid {
@@ -118,7 +118,7 @@ DEF Leg Robot {
                                   }
                                 ]
                                 endPoint DEF SHANK Solid {
-                                  translation 2.1858099999999924e-10 0.01550000000000001 0
+                                  translation 2.1858100000000359e-10 0.01550000000000001 0
                                   rotation 0 0 1 5.960464477539063e-08
                                   children [
                                     DEF ANKLE_SHANK Group {

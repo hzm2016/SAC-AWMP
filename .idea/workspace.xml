@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9d7c869-404d-4494-9751-929efb3aedaa" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py" beforeDir="false" afterPath="$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/leg/controllers/ZMP_control/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/leg/controllers/ZMP_control/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/leg/worlds/.leg.wbproj" beforeDir="false" afterPath="$PROJECT_DIR$/leg/worlds/.leg.wbproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/leg/worlds/leg.wbt" beforeDir="false" afterPath="$PROJECT_DIR$/leg/worlds/leg.wbt" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -18,8 +18,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="474">
-              <caret line="51" column="52" lean-forward="true" selection-start-line="51" selection-start-column="52" selection-end-line="51" selection-end-column="52" />
+            <state relative-caret-position="377">
+              <caret line="55" column="12" lean-forward="true" selection-start-line="55" selection-start-column="14" selection-end-line="63" selection-end-column="77" />
               <folding>
                 <element signature="e#0#57#0" expanded="true" />
               </folding>
@@ -28,28 +28,10 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/.PyCharm2019.1/system/python_stubs/-1003941425/time.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="337">
-              <caret line="249" column="4" selection-start-line="249" selection-start-column="4" selection-end-line="249" selection-end-column="4" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://D:/1-Official software/1-Scientific software/1-Install position/webot/Webots/lib/python37/controller.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="772">
-              <caret line="1889" column="24" selection-start-line="1889" selection-start-column="8" selection-end-line="1889" selection-end-column="24" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="203">
-              <caret line="7" column="14" lean-forward="true" selection-start-line="7" selection-start-column="14" selection-end-line="7" selection-end-column="14" />
+            <state relative-caret-position="232">
+              <caret line="8" column="17" selection-start-line="8" selection-start-column="17" selection-end-line="8" selection-end-column="17" />
               <folding>
                 <element signature="e#69#88#0" expanded="true" />
               </folding>
@@ -222,12 +204,12 @@
       <workItem from="1566094871728" duration="618000" />
       <workItem from="1566260559992" duration="11217000" />
       <workItem from="1566317468195" duration="7024000" />
-      <workItem from="1566354434996" duration="1853000" />
+      <workItem from="1566354434996" duration="8948000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="25313000" />
+    <option name="totallyTimeSpent" value="32408000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1176" extended-state="6" />
@@ -280,20 +262,20 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="203">
-          <caret line="7" column="14" lean-forward="true" selection-start-line="7" selection-start-column="14" selection-end-line="7" selection-end-column="14" />
-          <folding>
-            <element signature="e#69#88#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://D:/1-Official software/1-Scientific software/1-Install position/webot/Webots/lib/python37/controller.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="772">
           <caret line="1889" column="24" selection-start-line="1889" selection-start-column="8" selection-end-line="1889" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="232">
+          <caret line="8" column="17" selection-start-line="8" selection-start-column="17" selection-end-line="8" selection-end-column="17" />
+          <folding>
+            <element signature="e#69#88#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -306,8 +288,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="474">
-          <caret line="51" column="52" lean-forward="true" selection-start-line="51" selection-start-column="52" selection-end-line="51" selection-end-column="52" />
+        <state relative-caret-position="377">
+          <caret line="55" column="12" lean-forward="true" selection-start-line="55" selection-start-column="14" selection-end-line="63" selection-end-column="77" />
           <folding>
             <element signature="e#0#57#0" expanded="true" />
           </folding>
