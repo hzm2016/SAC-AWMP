@@ -2,10 +2,17 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9d7c869-404d-4494-9751-929efb3aedaa" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py" beforeDir="false" afterPath="$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/other.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SAC/A3C.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/control_methods/dynamic_mpc_scipy.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/control_methods/lqr.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/control_methods/mpc_pytorch.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/control_methods/mpc_scipy.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/control_methods/optim.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/ZMP_control_private.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ZMP_control_private.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/leg/controllers/ZMP_control/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/leg/controllers/ZMP_control/utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/leg/worlds/.leg.wbproj" beforeDir="false" afterPath="$PROJECT_DIR$/leg/worlds/.leg.wbproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/leg/worlds/leg.wbt" beforeDir="false" afterPath="$PROJECT_DIR$/leg/worlds/leg.wbt" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -15,26 +22,53 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/utils.py">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="377">
-              <caret line="55" column="12" lean-forward="true" selection-start-line="55" selection-start-column="14" selection-end-line="63" selection-end-column="77" />
+            <state relative-caret-position="472">
+              <caret line="170" column="18" selection-start-line="170" selection-start-column="8" selection-end-line="170" selection-end-column="18" />
               <folding>
-                <element signature="e#0#57#0" expanded="true" />
+                <element signature="e#0#15#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py">
+        <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/replay_memory.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="232">
-              <caret line="8" column="17" selection-start-line="8" selection-start-column="17" selection-end-line="8" selection-end-column="17" />
+            <state relative-caret-position="87">
+              <caret line="4" column="8" selection-start-line="4" selection-start-column="8" selection-end-line="4" selection-end-column="8" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/sac.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1421">
+              <caret line="49" column="52" selection-start-line="49" selection-start-column="52" selection-end-line="49" selection-end-column="52" />
               <folding>
-                <element signature="e#69#88#0" expanded="true" />
+                <element signature="e#0#9#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/model.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="717">
+              <caret line="64" column="8" selection-start-line="64" selection-start-column="8" selection-end-line="64" selection-end-column="8" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/utils.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="316">
+              <caret line="38" column="42" lean-forward="true" selection-start-line="38" selection-start-column="42" selection-end-line="39" selection-end-column="77" />
             </state>
           </provider>
         </entry>
@@ -48,6 +82,26 @@
       </list>
     </option>
   </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>u_lower</find>
+      <find>con</find>
+      <find>minimize</find>
+      <find>lower</find>
+      <find>dx</find>
+      <find>objective</find>
+      <find>obj</find>
+      <find>cos</find>
+      <find>tqdm</find>
+      <find>trange</find>
+      <find>num_steps</find>
+      <find>start_steps</find>
+      <find>replay_size</find>
+      <find>memory</find>
+      <find>itertools</find>
+      <find>count</find>
+    </findStrings>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -58,15 +112,38 @@
         <option value="$PROJECT_DIR$/devices/controllers/inverted_pendulum/inverted_pendulum.py" />
         <option value="$PROJECT_DIR$/devices/controllers/ZMP_control/ZMP_control.py" />
         <option value="$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py" />
+        <option value="$PROJECT_DIR$/control_methods/ilqr-gym-master/env/__init__.py" />
+        <option value="$PROJECT_DIR$/control_methods/lqr.py" />
+        <option value="$PROJECT_DIR$/control_methods/optim.py" />
+        <option value="$PROJECT_DIR$/control_methods/mpc/examples/pendulum_control.py" />
+        <option value="$PROJECT_DIR$/control_methods/mpc/examples/Time_varying_LQ_control.py" />
+        <option value="$PROJECT_DIR$/control_methods/mpc_scipy.py" />
+        <option value="$PROJECT_DIR$/control_methods/mpc_pytorch.py" />
+        <option value="$PROJECT_DIR$/control_methods/dynamic_mpc_scipy.py" />
+        <option value="$PROJECT_DIR$/control_methods/mpc_lib/mpc/env_dx/leg.py" />
+        <option value="$PROJECT_DIR$/control_methods/mpc_lib/examples/leg_control.py" />
+        <option value="$PROJECT_DIR$/leg/controllers/ZMP_control/mpc_lib/mpc/env_dx/leg.py" />
+        <option value="$PROJECT_DIR$/leg/controllers/ZMP_control/mpc_lib/examples/leg_control.py" />
         <option value="$PROJECT_DIR$/leg/controllers/ZMP_control/utils.py" />
+        <option value="$PROJECT_DIR$/leg/controllers/ZMP_control/leg_control.py" />
+        <option value="$PROJECT_DIR$/leg/controllers/ZMP_control/mpc/env_dx/leg.py" />
+        <option value="$PROJECT_DIR$/SAC/A3C.py" />
+        <option value="$PROJECT_DIR$/SAC_cartpole/sac.py" />
+        <option value="$PROJECT_DIR$/SAC_cartpole/utils.py" />
+        <option value="$PROJECT_DIR$/SAC_cartpole/main.py" />
+        <option value="$PROJECT_DIR$/SAC/softac.py" />
+        <option value="$PROJECT_DIR$/SAC_cartpole/code/model.py" />
+        <option value="$PROJECT_DIR$/SAC_cartpole/code/sac.py" />
+        <option value="$PROJECT_DIR$/SAC_cartpole/code/main.py" />
+        <option value="$PROJECT_DIR$/SAC_cartpole/code/utils.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="-8" />
-    <option name="y" value="-8" />
-    <option name="width" value="1936" />
-    <option name="height" value="1176" />
+    <option name="x" value="621" />
+    <option name="y" value="59" />
+    <option name="width" value="1400" />
+    <option name="height" value="1000" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -83,20 +160,13 @@
             <path>
               <item name="ZMP_control_private" type="b2602c69:ProjectViewProjectNode" />
               <item name="ZMP_control_private" type="462c0819:PsiDirectoryNode" />
-              <item name="leg" type="462c0819:PsiDirectoryNode" />
+              <item name="SAC_cartpole" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="ZMP_control_private" type="b2602c69:ProjectViewProjectNode" />
               <item name="ZMP_control_private" type="462c0819:PsiDirectoryNode" />
-              <item name="leg" type="462c0819:PsiDirectoryNode" />
-              <item name="controllers" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="ZMP_control_private" type="b2602c69:ProjectViewProjectNode" />
-              <item name="ZMP_control_private" type="462c0819:PsiDirectoryNode" />
-              <item name="leg" type="462c0819:PsiDirectoryNode" />
-              <item name="controllers" type="462c0819:PsiDirectoryNode" />
-              <item name="ZMP_control" type="462c0819:PsiDirectoryNode" />
+              <item name="SAC_cartpole" type="462c0819:PsiDirectoryNode" />
+              <item name="code" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="ZMP_control_private" type="b2602c69:ProjectViewProjectNode" />
@@ -118,21 +188,15 @@
               <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
               <item name="&lt; Python 3.7 (2) &gt;" type="70bed36:NamedLibraryElementNode" />
               <item name="-1003941425" type="70582d5e:PySkeletonsNode" />
-              <item name="PyQt5" type="462c0819:PsiDirectoryNode" />
+              <item name="numpy" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="ZMP_control_private" type="b2602c69:ProjectViewProjectNode" />
               <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
               <item name="&lt; Python 3.7 (2) &gt;" type="70bed36:NamedLibraryElementNode" />
               <item name="-1003941425" type="70582d5e:PySkeletonsNode" />
-              <item name="PyQt5" type="462c0819:PsiDirectoryNode" />
-              <item name="QtCore" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="ZMP_control_private" type="b2602c69:ProjectViewProjectNode" />
-              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
-              <item name="&lt; Python 3.7 (2) &gt;" type="70bed36:NamedLibraryElementNode" />
-              <item name="python37" type="462c0819:PsiDirectoryNode" />
+              <item name="numpy" type="462c0819:PsiDirectoryNode" />
+              <item name="core" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -144,10 +208,15 @@
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../catkin_ws" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.selected.configurable" value="PyScientificConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\4-code\project\1-Open_Project\ZMP_control_private\leg\controllers\ZMP_control" />
+    </key>
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -162,7 +231,7 @@
     </option>
   </component>
   <component name="RunManager">
-    <configuration name="ZMP_control" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="ZMP_control_private" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -170,12 +239,12 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/devices/controllers/ZMP_control" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/SAC_cartpole/code" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/devices/controllers/ZMP_control/ZMP_control.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/SAC_cartpole/code/main.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -186,7 +255,7 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.ZMP_control" />
+        <item itemvalue="Python.main" />
       </list>
     </recent_temporary>
   </component>
@@ -204,37 +273,54 @@
       <workItem from="1566094871728" duration="618000" />
       <workItem from="1566260559992" duration="11217000" />
       <workItem from="1566317468195" duration="7024000" />
-      <workItem from="1566354434996" duration="8948000" />
+      <workItem from="1566354434996" duration="9272000" />
+      <workItem from="1566429470459" duration="680000" />
+      <workItem from="1566439066522" duration="1514000" />
+      <workItem from="1566501315776" duration="11000" />
+      <workItem from="1566517530555" duration="6415000" />
+      <workItem from="1566573812608" duration="39773000" />
+      <workItem from="1566857396973" duration="3319000" />
+      <workItem from="1566860731349" duration="11063000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="32408000" />
+    <option name="totallyTimeSpent" value="95507000" />
+  </component>
+  <component name="TodoView">
+    <todo-panel id="selected-file">
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="true" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1176" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.26066098" />
-      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4993789" visible="true" weight="0.19616205" />
+      <window_info id="Structure" order="1" sideWeight="0.50062114" side_tool="true" weight="0.19189766" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.32916266" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.32916266" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.47545716" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.20307988" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="TODO" order="6" weight="0.32916266" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Version Control" order="8" />
+      <window_info anchor="bottom" id="Version Control" order="8" weight="0.32916266" />
       <window_info anchor="bottom" id="Database Changes" order="9" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
       <window_info anchor="bottom" id="Terminal" order="11" />
-      <window_info anchor="bottom" id="Python Console" order="12" />
+      <window_info anchor="bottom" id="Python Console" order="12" weight="0.32916266" />
+      <window_info anchor="bottom" id="Jupyter" order="13" weight="0.20307988" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="right" id="SciView" order="3" />
+      <window_info anchor="right" auto_hide="true" x="653" y="223" width="614" height="713" id="SciView" order="3" show_stripe_button="false" type="FLOATING" weight="0.3272921" />
       <window_info anchor="right" id="Database" order="4" />
     </layout>
   </component>
@@ -242,7 +328,22 @@
     <option name="version" value="1" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/ZMP_control_private$leg.coverage" NAME="leg Coverage Results" MODIFIED="1566668730946" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods/mpc_lib/mpc/env_dx" />
+    <SUITE FILE_PATH="coverage/ZMP_control_private$ilqr_gym.coverage" NAME="ilqr_gym Coverage Results" MODIFIED="1566439367461" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods/ilqr-gym-master" />
+    <SUITE FILE_PATH="coverage/ZMP_control_private$softac.coverage" NAME="softac Coverage Results" MODIFIED="1566857897307" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/SAC" />
+    <SUITE FILE_PATH="coverage/ZMP_control_private$main.coverage" NAME="main Coverage Results" MODIFIED="1566881821296" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/SAC_cartpole/code" />
+    <SUITE FILE_PATH="coverage/ZMP_control_private$lqr.coverage" NAME="lqr Coverage Results" MODIFIED="1566439935916" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods" />
+    <SUITE FILE_PATH="coverage/ZMP_control_private$mpc_scipy.coverage" NAME="mpc_scipy Coverage Results" MODIFIED="1566621208804" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods" />
+    <SUITE FILE_PATH="coverage/ZMP_control_private$test_dynamics.coverage" NAME="test_dynamics Coverage Results" MODIFIED="1566577883686" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods/mpc/tests" />
+    <SUITE FILE_PATH="coverage/ZMP_control_private$leg_control.coverage" NAME="leg_control Coverage Results" MODIFIED="1566689300622" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods/mpc_lib/examples" />
     <SUITE FILE_PATH="coverage/ZMP_control_private$ZMP_control.coverage" NAME="ZMP_control Coverage Results" MODIFIED="1565999344406" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/devices/controllers/ZMP_control" />
+    <SUITE FILE_PATH="coverage/ZMP_control_private$optim.coverage" NAME="optim Coverage Results" MODIFIED="1566521913309" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods" />
+    <SUITE FILE_PATH="coverage/ZMP_control_private$leg_control__1_.coverage" NAME="leg_control (1) Coverage Results" MODIFIED="1566694136805" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/leg/controllers/ZMP_control" />
+    <SUITE FILE_PATH="coverage/ZMP_control_private$mpc_pytorch.coverage" NAME="mpc_pytorch Coverage Results" MODIFIED="1566623392977" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods" />
+    <SUITE FILE_PATH="coverage/ZMP_control_private$dynamic_mpc_scipy.coverage" NAME="dynamic_mpc_scipy Coverage Results" MODIFIED="1566686723913" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods" />
+    <SUITE FILE_PATH="coverage/ZMP_control_private$A3C.coverage" NAME="A3C Coverage Results" MODIFIED="1566752460368" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/SAC" />
+    <SUITE FILE_PATH="coverage/ZMP_control_private$pendulum_control.coverage" NAME="pendulum_control Coverage Results" MODIFIED="1566577892635" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods/mpc/examples" />
+    <SUITE FILE_PATH="coverage/ZMP_control_private$Time_varying_LQ_control.coverage" NAME="Time_varying_LQ_control Coverage Results" MODIFIED="1566620914174" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods/mpc/examples" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/devices/controllers/inverted_pendulum/inverted_pendulum.py" />
@@ -269,16 +370,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="232">
-          <caret line="8" column="17" selection-start-line="8" selection-start-column="17" selection-end-line="8" selection-end-column="17" />
-          <folding>
-            <element signature="e#69#88#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/.PyCharm2019.1/system/python_stubs/-1003941425/time.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="337">
@@ -286,13 +377,281 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/control_methods/ilqr-gym-master/env/__init__.py" />
+    <entry file="file://D:/1-Anaconda/Lib/site-packages/gym/envs/registration.py" />
+    <entry file="file://$PROJECT_DIR$/control_methods/ilqr-gym-master/ilqr_gym.py" />
+    <entry file="file://$PROJECT_DIR$/control_methods/lqr.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="232">
+          <caret line="8" selection-start-line="8" selection-end-line="8" />
+          <folding>
+            <element signature="e#331#340#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/control_methods/optim.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="203">
+          <caret line="31" column="29" selection-start-line="31" selection-start-column="20" selection-end-line="31" selection-end-column="29" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://D:/1-Anaconda/Lib/site-packages/mpc/pnqp.py" />
+    <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/mpc_lib/examples/Time Varying Linear-Quadratic Control.ipynb">
+      <provider selected="true" editor-type-id="jupyter-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/mpc_lib/examples/Time_varying_LQ_control.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="203">
+          <caret line="7" selection-start-line="7" selection-end-line="7" />
+          <folding>
+            <element signature="e#4#16#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/mpc/lqr_step.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-8171">
+          <caret line="136" column="22" selection-start-line="136" selection-start-column="21" selection-end-line="136" selection-end-column="22" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/mpc/dynamics.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/mpc_lib/examples/Pendulum Control.ipynb">
+      <provider editor-type-id="text-editor">
+        <state relative-caret-position="406">
+          <caret line="44" column="22" lean-forward="true" selection-start-line="44" selection-start-column="22" selection-end-line="44" selection-end-column="22" />
+        </state>
+      </provider>
+      <provider selected="true" editor-type-id="jupyter-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/mpc_lib/tests/test_dynamics.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="614">
+          <caret line="58" column="19" selection-start-line="58" selection-start-column="4" selection-end-line="58" selection-end-column="19" />
+          <folding>
+            <element signature="e#24#36#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/mpc/env_dx/cartpole.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1131">
+          <caret line="21" lean-forward="true" selection-start-line="21" selection-end-line="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/mpc/env_dx/pendulum.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1160">
+          <caret line="40" column="55" lean-forward="true" selection-start-line="40" selection-start-column="55" selection-end-line="40" selection-end-column="55" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/mpc/util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="305">
+          <caret line="72" column="4" selection-start-line="72" selection-start-column="4" selection-end-line="72" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/control_methods/mpc_pytorch.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="551">
+          <caret line="24" lean-forward="true" selection-start-line="24" selection-end-line="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/control_methods/differentiable-mpc/imitation_nonconvex/il_exp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="302">
+          <caret line="124" column="56" selection-start-line="124" selection-start-column="56" selection-end-line="124" selection-end-column="56" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/control_methods/dynamic_mpc_scipy.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="319">
+          <caret line="59" column="26" lean-forward="true" selection-start-line="59" selection-start-column="26" selection-end-line="59" selection-end-column="26" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/control_methods/mpc_scipy.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="352">
+          <caret line="121" column="7" selection-start-line="121" selection-start-column="4" selection-end-line="121" selection-end-column="7" />
+          <folding>
+            <element signature="e#63#98#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/mpc/mpc.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="7163">
+          <caret line="247" column="33" selection-start-line="247" selection-start-column="33" selection-end-line="247" selection-end-column="33" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/ZMP_control.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="174">
+          <caret line="6" column="10" selection-start-line="6" selection-end-line="6" selection-end-column="10" />
+          <folding>
+            <element signature="e#69#88#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/mpc/env_dx/leg.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="232">
+          <caret line="20" column="22" selection-start-line="20" selection-start-column="22" selection-end-line="20" selection-end-column="22" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SAC/gym_utils.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SAC/model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="445">
+          <caret line="209" lean-forward="true" selection-start-line="209" selection-end-line="209" />
+          <folding>
+            <element signature="e#0#34#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/mpc_lib/examples/pendulum_control.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="300">
+          <caret line="71" column="13" selection-start-line="71" selection-start-column="9" selection-end-line="71" selection-end-column="13" />
+          <folding>
+            <element signature="e#5#17#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/leg_control.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2494">
+          <caret line="86" selection-start-line="86" selection-end-line="86" />
+          <folding>
+            <element signature="e#0#19#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/leg/controllers/ZMP_control/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="377">
-          <caret line="55" column="12" lean-forward="true" selection-start-line="55" selection-start-column="14" selection-end-line="63" selection-end-column="77" />
+        <state relative-caret-position="1885">
+          <caret line="146" column="52" selection-start-line="146" selection-start-column="52" selection-end-line="146" selection-end-column="52" />
           <folding>
             <element signature="e#0#57#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://D:/1-Anaconda/Lib/site-packages/gym/core.py" />
+    <entry file="file://$PROJECT_DIR$/SAC_cartpole/model.py" />
+    <entry file="file://$PROJECT_DIR$/SAC_cartpole/sac.py" />
+    <entry file="file://$PROJECT_DIR$/SAC_cartpole/utils.py" />
+    <entry file="file://$PROJECT_DIR$/SAC_cartpole/main.py" />
+    <entry file="file://$PROJECT_DIR$/SAC/softac.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="369">
+          <caret line="154" column="32" selection-start-line="154" selection-start-column="32" selection-end-line="154" selection-end-column="32" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SAC/A3C.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2494">
+          <caret line="95" column="20" selection-start-line="95" selection-start-column="20" selection-end-line="95" selection-end-column="31" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2019.1/system/python_stubs/-1003941425/numpy/core/_multiarray_umath.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="29">
+          <caret line="393" column="4" selection-start-line="393" selection-start-column="4" selection-end-line="393" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="717">
+          <caret line="64" column="8" selection-start-line="64" selection-start-column="8" selection-end-line="64" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/sac.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1421">
+          <caret line="49" column="52" selection-start-line="49" selection-start-column="52" selection-end-line="49" selection-end-column="52" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/replay_memory.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="87">
+          <caret line="4" column="8" selection-start-line="4" selection-start-column="8" selection-end-line="4" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="472">
+          <caret line="170" column="18" selection-start-line="170" selection-start-column="8" selection-end-line="170" selection-end-column="18" />
+          <folding>
+            <element signature="e#0#15#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="316">
+          <caret line="38" column="42" lean-forward="true" selection-start-line="38" selection-start-column="42" selection-end-line="39" selection-end-column="77" />
         </state>
       </provider>
     </entry>
