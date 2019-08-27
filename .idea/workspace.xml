@@ -2,17 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9d7c869-404d-4494-9751-929efb3aedaa" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/other.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/SAC/A3C.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/control_methods/dynamic_mpc_scipy.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/control_methods/lqr.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/control_methods/mpc_pytorch.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/control_methods/mpc_scipy.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/control_methods/optim.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/ZMP_control_private.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ZMP_control_private.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/leg/controllers/ZMP_control/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/leg/controllers/ZMP_control/utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/leg/worlds/.leg.wbproj" beforeDir="false" afterPath="$PROJECT_DIR$/leg/worlds/.leg.wbproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SAC_cartpole/code/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/SAC_cartpole/code/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SAC_cartpole/code/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/SAC_cartpole/code/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SAC_cartpole/results/models/sac_actor_Pendulum-v0_" beforeDir="false" afterPath="$PROJECT_DIR$/SAC_cartpole/results/models/sac_actor_Pendulum-v0_" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SAC_cartpole/results/models/sac_critic_Pendulum-v0_" beforeDir="false" afterPath="$PROJECT_DIR$/SAC_cartpole/results/models/sac_critic_Pendulum-v0_" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -22,11 +15,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="472">
-              <caret line="170" column="18" selection-start-line="170" selection-start-column="8" selection-end-line="170" selection-end-column="18" />
+            <state relative-caret-position="493">
+              <caret line="32" column="49" lean-forward="true" selection-start-line="32" selection-start-column="49" selection-end-line="32" selection-end-column="49" />
               <folding>
                 <element signature="e#0#15#0" expanded="true" />
               </folding>
@@ -56,19 +49,25 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/model.py">
+        <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="717">
-              <caret line="64" column="8" selection-start-line="64" selection-start-column="8" selection-end-line="64" selection-end-column="8" />
+            <state relative-caret-position="588">
+              <caret line="63" column="83" selection-start-line="63" selection-start-column="83" selection-end-line="63" selection-end-column="83" />
+              <folding>
+                <element signature="e#0#11#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/utils.py">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/model.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="316">
-              <caret line="38" column="42" lean-forward="true" selection-start-line="38" selection-start-column="42" selection-end-line="39" selection-end-column="77" />
+            <state relative-caret-position="-145">
+              <caret line="88" column="31" selection-start-line="88" selection-start-column="20" selection-end-line="88" selection-end-column="31" />
+              <folding>
+                <element signature="e#0#12#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -134,8 +133,8 @@
         <option value="$PROJECT_DIR$/SAC/softac.py" />
         <option value="$PROJECT_DIR$/SAC_cartpole/code/model.py" />
         <option value="$PROJECT_DIR$/SAC_cartpole/code/sac.py" />
-        <option value="$PROJECT_DIR$/SAC_cartpole/code/main.py" />
         <option value="$PROJECT_DIR$/SAC_cartpole/code/utils.py" />
+        <option value="$PROJECT_DIR$/SAC_cartpole/code/main.py" />
       </list>
     </option>
   </component>
@@ -280,12 +279,12 @@
       <workItem from="1566517530555" duration="6415000" />
       <workItem from="1566573812608" duration="39773000" />
       <workItem from="1566857396973" duration="3319000" />
-      <workItem from="1566860731349" duration="11063000" />
+      <workItem from="1566860731349" duration="13008000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="95507000" />
+    <option name="totallyTimeSpent" value="97452000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -305,7 +304,7 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.47545716" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.20307988" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.31665063" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -331,7 +330,7 @@
     <SUITE FILE_PATH="coverage/ZMP_control_private$leg.coverage" NAME="leg Coverage Results" MODIFIED="1566668730946" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods/mpc_lib/mpc/env_dx" />
     <SUITE FILE_PATH="coverage/ZMP_control_private$ilqr_gym.coverage" NAME="ilqr_gym Coverage Results" MODIFIED="1566439367461" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods/ilqr-gym-master" />
     <SUITE FILE_PATH="coverage/ZMP_control_private$softac.coverage" NAME="softac Coverage Results" MODIFIED="1566857897307" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/SAC" />
-    <SUITE FILE_PATH="coverage/ZMP_control_private$main.coverage" NAME="main Coverage Results" MODIFIED="1566881821296" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/SAC_cartpole/code" />
+    <SUITE FILE_PATH="coverage/ZMP_control_private$main.coverage" NAME="main Coverage Results" MODIFIED="1566883864410" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/SAC_cartpole/code" />
     <SUITE FILE_PATH="coverage/ZMP_control_private$lqr.coverage" NAME="lqr Coverage Results" MODIFIED="1566439935916" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods" />
     <SUITE FILE_PATH="coverage/ZMP_control_private$mpc_scipy.coverage" NAME="mpc_scipy Coverage Results" MODIFIED="1566621208804" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods" />
     <SUITE FILE_PATH="coverage/ZMP_control_private$test_dynamics.coverage" NAME="test_dynamics Coverage Results" MODIFIED="1566577883686" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods/mpc/tests" />
@@ -614,13 +613,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="717">
-          <caret line="64" column="8" selection-start-line="64" selection-start-column="8" selection-end-line="64" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/sac.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1421">
@@ -638,20 +630,33 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/main.py">
+    <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/model.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="472">
-          <caret line="170" column="18" selection-start-line="170" selection-start-column="8" selection-end-line="170" selection-end-column="18" />
+        <state relative-caret-position="-145">
+          <caret line="88" column="31" selection-start-line="88" selection-start-column="20" selection-end-line="88" selection-end-column="31" />
           <folding>
-            <element signature="e#0#15#0" expanded="true" />
+            <element signature="e#0#12#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="316">
-          <caret line="38" column="42" lean-forward="true" selection-start-line="38" selection-start-column="42" selection-end-line="39" selection-end-column="77" />
+        <state relative-caret-position="588">
+          <caret line="63" column="83" selection-start-line="63" selection-start-column="83" selection-end-line="63" selection-end-column="83" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/SAC_cartpole/code/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="493">
+          <caret line="32" column="49" lean-forward="true" selection-start-line="32" selection-start-column="49" selection-end-line="32" selection-end-column="49" />
+          <folding>
+            <element signature="e#0#15#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
