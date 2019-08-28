@@ -34,21 +34,25 @@ def hard_update(target, source):
 
 
 def random_action(action_space):
-    return np.asarray([np.random.uniform(action_space.low[0], action_space.high[0]),
-                       np.random.uniform(action_space.low[1], action_space.high[1])])
+    action = []
+    for i in range(action_space.low.shape[0]):
+        action.append(np.random.uniform(action_space.low[i], action_space.high[i]))
+    return np.asarray(action)
 
 
 def calc_torque(state, k = 5.0, b = 0.5, k_g = 10.0):
     # state: cos(q), sin(q), dq
     theta = np.arctan2(state[1], state[0])
-    l_m = 1.0
-    theta_0 = np.arcsin(4.0 / k_g)
-    energy_error = 0.5 * k_g * (np.cos(theta_0) - np.cos(theta)) - \
-                   k_g / (9.81 * l_m) * l_m ** 2.0 * state[-1] ** 2.0 / 3.0
-    if energy_error >= 0:
-        torque = np.abs([k * (0 - theta) - b * state[-1]]) * np.sign(state[-1])
-    else:
-        torque = np.asarray([k * (0 - theta) - b * state[-1]]) - k_g * state[1]
+    # l_m = 1.0
+    # theta_0 = np.arcsin(4.0 / k_g)
+    # energy_error = 0.5 * k_g * (np.cos(theta_0) - np.cos(theta)) - \
+    #                k_g / (9.81 * l_m) * l_m ** 2.0 * state[-1] ** 2.0 / 3.0
+    # if energy_error >= 0:
+    #     torque = np.abs([k * (0 - theta) - b * state[-1]]) * np.sign(state[-1])
+    # else:
+    #     torque = np.asarray([k * (0 - theta) - b * state[-1]]) - k_g * state[1]
+    torque = np.asarray([k * (0 - theta) - b * state[-1]]) - k_g * state[1]
+    # print('Set torque: ', torque)
     return torque, theta
 
 
@@ -61,13 +65,12 @@ def render_env(env, agent, k = None, b = None, k_g = None, model_based = False):
         if k is None or b is None or k_g is None:
             action = agent.select_action(state, eval=True)
             if model_based:
-                torque, theta = calc_torque(state, k=action[0], b=action[1], k_g=10.0)
+                # torque, theta = calc_torque(state, k=abs(action[0]), b=0.5, k_g=20.0)
+                torque, theta = calc_torque(state, k=action[0], b=action[1], k_g=20.0)
             else:
                 torque = action
-            # print(action)
         else:
             torque, theta = calc_torque(state, k, b, k_g)
-        # print('state, %s, torque: %s' % (state, torque))
         next_state, reward, done, _ = env.step(torque)
         episode_reward += reward
         state = next_state

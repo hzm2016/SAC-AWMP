@@ -4,7 +4,9 @@ import gym
 import numpy as np
 import itertools
 import torch
+from tqdm import tqdm
 from gym import spaces
+
 from sac import SAC
 from tensorboardX import SummaryWriter
 from replay_memory import ReplayMemory
@@ -20,13 +22,13 @@ parser.add_argument('--eval_only', type=bool, default=False,
                     help='Only evaluates a policy without training (default:True)')
 parser.add_argument('--eval', type=bool, default=True,
                     help='Evaluates a policy a policy every 10 episode (default:True)')
-parser.add_argument('--model_based', type=bool, default=False,
+parser.add_argument('--model_based', type=bool, default=True,
                     help='Use an impedance control model (default:True)')
 parser.add_argument('--gamma', type=float, default=0.99, metavar='G',
                     help='discount factor for reward (default: 0.99)')
 parser.add_argument('--tau', type=float, default=0.005, metavar='G',
                     help='target smoothing coefficient(τ) (default: 0.005)')
-parser.add_argument('--lr', type=float, default=0.0002, metavar='G',
+parser.add_argument('--lr', type=float, default=0.0003, metavar='G',
                     help='learning rate (default: 0.0003)')
 parser.add_argument('--alpha', type=float, default=0.2, metavar='G',
                     help='Temperature parameter α determines the relative importance of the entropy term against the '
@@ -37,7 +39,7 @@ parser.add_argument('--seed', type=int, default=456, metavar='N',
                     help='random seed (default: 456)')
 parser.add_argument('--batch_size', type=int, default=256, metavar='N',
                     help='batch size (default: 256)')
-parser.add_argument('--num_steps', type=int, default=20000, metavar='N',
+parser.add_argument('--num_steps', type=int, default=200000, metavar='N',
                     help='maximum number of steps (default: 1000000)')
 parser.add_argument('--hidden_size', type=int, default=256, metavar='N',
                     help='hidden size (default: 256)')
@@ -63,7 +65,8 @@ env.seed(args.seed)
 model_based = args.model_based
 # Agent
 if model_based:
-    action_space = spaces.Box(low= np.array([0, 0]),high=np.array([1e1, 1e1]),dtype=np.float32)
+    # action_space = spaces.Box(low=np.array([0]), high=np.array([1e2]), dtype=np.float32)
+    action_space = spaces.Box(low= np.array([-1e3, -1e1]), high=np.array([1e3, 1e1]), dtype=np.float32)
 else:
     action_space = env.action_space
 # print(action_space)
@@ -80,10 +83,13 @@ if not args.eval_only:
 
     # Training Loop
     total_numsteps = 0
+    pre_num_steps = 0
     updates = 0
 
     best_reward = -1e5
+    pbar = tqdm(total=args.num_steps, initial=total_numsteps)
     for i_episode in itertools.count(1):
+        pbar.update(total_numsteps - pre_num_steps)
         episode_reward = 0
         episode_steps = 0
         done = False
@@ -112,12 +118,14 @@ if not args.eval_only:
             else:
                 action = agent.select_action(state)  # Sample action from policy
             if model_based:
-                torque, theta = calc_torque(state, k = abs(action[0]), b = abs(action[1]), k_g = 20.0)
+                # torque, theta = calc_torque(state, k=abs(action[0]), b=0.5, k_g=20.0)
+                torque, theta = calc_torque(state, k = action[0], b = action[1], k_g = 20.0)
             else:
                 torque = action
             next_state, reward, done, _ = env.step(torque) # Step
             episode_steps += 1
             total_numsteps += 1
+
             episode_reward += reward
 
             # Ignore the "done" signal if it comes from hitting the time horizon.
@@ -132,8 +140,8 @@ if not args.eval_only:
             break
 
         writer.add_scalar('reward/train', episode_reward, i_episode)
-        print("Episode: {}, total numsteps: {}, episode steps: {}, reward: {}".format(
-            i_episode, total_numsteps, episode_steps, episode_reward))
+        # print("Episode: {}, total numsteps: {}, episode steps: {}, reward: {}".format(
+        #     i_episode, total_numsteps, episode_steps, episode_reward))
 
         if args.eval == True:
             avg_reward = 0.
@@ -145,23 +153,24 @@ if not args.eval_only:
                 while not done:
                     action = agent.select_action(state, eval=True)
                     if model_based:
+                        # torque, theta = calc_torque(state, k=abs(action[0]), b=0.5, k_g=20.0)
                         torque, theta = calc_torque(state, k=action[0], b=action[1], k_g=20.0)
                     else:
                         torque = action
-                    next_state, reward, done, _ = env.step(action)
+                    next_state, reward, done, _ = env.step(torque)
                     episode_reward += reward
 
                     state = next_state
                 avg_reward += episode_reward
             avg_reward /= episodes
 
-            print("Test Episodes: {}, Reward: {}".format(i_episode, avg_reward))
+            # print("Test Episodes: {}, Reward: {}".format(i_episode, avg_reward))
             writer.add_scalar('avg_reward/test', avg_reward, i_episode)
 
             if avg_reward > best_reward:
                 agent.save_model(args.env_name)
                 best_reward = avg_reward
-                render_env(env, agent)
+                render_env(env, agent, model_based=model_based)
                 print("----------------------------------------")
                 print("Test Episodes: {}, Best Reward: {}, Action: {}".format(
                     i_episode, round(best_reward, 2), action))
@@ -169,7 +178,9 @@ if not args.eval_only:
 else:
     agent.load_model(args.env_name)
     for i in range(20):
-        render_env(env, agent, k = 2.0, b = 2.0, k_g=20.0, model_based = True)
+        render_env(env, agent, model_based = model_based)
+        # render_env(env, agent, k = 100.0, b = 0.5, k_g=20.0, model_based = model_based)
+
 
 env.close()
 
