@@ -151,7 +151,7 @@ if not args.eval_only:
             # (https://github.com/openai/spinningup/blob/master/spinup/algos/sac/sac.py)
             mask = 1 if episode_steps == env._max_episode_steps else float(not done)
 
-            reward_all = reward - args.alpha * positive_energy
+            reward_all = reward - 0.1 * args.alpha * positive_energy
             memory.push(state, action, reward_all, next_state, mask) # Append transition to memory
 
             state = next_state
@@ -173,7 +173,7 @@ if not args.eval_only:
             if avg_reward > best_reward:
                 agent.save_model(args.env_name + args.method_name)
                 best_reward = avg_reward
-                render_env(env, agent, model_based=model_based)
+                # render_env(env, agent, model_based=model_based)
                 print("----------------------------------------")
                 print("Test Episodes: {}, Best reward: {}, Action: {}".format(
                     episodes, round(best_reward, 2), action))
