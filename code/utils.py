@@ -79,3 +79,25 @@ def render_env(env, agent, k = None, b = None, k_g = None,
         else:
             env.render()
     print('Render reward: ', episode_reward)
+
+def eval_agent(env, agent, model_based = False, episodes = 10):
+    avg_reward = 0.
+
+    for _ in range(episodes):
+        state = env.reset()
+        episode_reward = 0
+        done = False
+        while not done:
+            action = agent.select_action(state, eval=True)
+            if model_based:
+                # torque, theta = calc_torque(state, k=abs(action[0]), b=0.5, k_g=20.0)
+                torque, theta = calc_torque(state, k=action[0], b=action[1], k_g=20.0)
+            else:
+                torque = action
+            next_state, reward, done, _ = env.step(torque)
+            episode_reward += reward
+
+            state = next_state
+        avg_reward += episode_reward
+    avg_reward /= episodes
+    return avg_reward

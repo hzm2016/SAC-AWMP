@@ -1,6 +1,6 @@
 import argparse
 import datetime
-import roboschool
+# import roboschool
 import gym
 import numpy as np
 import itertools
@@ -18,11 +18,13 @@ parser = argparse.ArgumentParser(description='PyTorch REINFORCE example')
 parser.add_argument('--env-name', default="RoboschoolWalker2d-v1",
                     help='name of the environment to run (default: Walker2d-v2, '
                          'Pendulum-v0, RoboschoolWalker2d-v1)')
+parser.add_argument('--method_name', default="",
+                    help='Name of your method (default: )')
 parser.add_argument('--policy', default="Gaussian",
                     help='algorithm to use: Gaussian | Deterministic')
 parser.add_argument('--save_video', type=bool, default=False,
                     help='Save video (default:False)')
-parser.add_argument('--eval_only', type=bool, default=False,
+parser.add_argument('--eval_only', type=bool, default=True,
                     help='Only evaluates a policy without training (default:True)')
 parser.add_argument('--eval', type=bool, default=True,
                     help='Evaluates a policy a policy every 10 episode (default:True)')
@@ -134,6 +136,12 @@ if not args.eval_only:
                 torque, theta = calc_torque(state, k = action[0], b = action[1], k_g = 20.0)
             else:
                 torque = action
+
+            # calculate positive energy
+            positive_energy = torque[0] * state[-1]
+            if positive_energy < 0:
+                positive_energy == 0
+
             next_state, reward, done, _ = env.step(torque) # Step
             episode_steps += 1
             total_numsteps += 1
@@ -144,7 +152,8 @@ if not args.eval_only:
             # (https://github.com/openai/spinningup/blob/master/spinup/algos/sac/sac.py)
             mask = 1 if episode_steps == env._max_episode_steps else float(not done)
 
-            memory.push(state, action, reward, next_state, mask) # Append transition to memory
+            reward_all = reward - args.alpha * positive_energy
+            memory.push(state, action, reward_all, next_state, mask) # Append transition to memory
 
             state = next_state
 
@@ -152,46 +161,31 @@ if not args.eval_only:
             break
 
         writer.add_scalar('reward/train', episode_reward, i_episode)
+        writer.add_scalar('positive_energy/train', positive_energy, i_episode)
         # print("Episode: {}, total numsteps: {}, episode steps: {}, reward: {}".format(
         #     i_episode, total_numsteps, episode_steps, episode_reward))
 
         if args.eval == True:
-            avg_reward = 0.
             episodes = 10
-            for _ in range(episodes):
-                state = env.reset()
-                episode_reward = 0
-                done = False
-                while not done:
-                    action = agent.select_action(state, eval=True)
-                    if model_based:
-                        # torque, theta = calc_torque(state, k=abs(action[0]), b=0.5, k_g=20.0)
-                        torque, theta = calc_torque(state, k=action[0], b=action[1], k_g=20.0)
-                    else:
-                        torque = action
-                    next_state, reward, done, _ = env.step(torque)
-                    episode_reward += reward
-
-                    state = next_state
-                avg_reward += episode_reward
-            avg_reward /= episodes
-
+            avg_reward = eval_agent(env, agent, model_based=model_based)
             # print("Test Episodes: {}, Reward: {}".format(i_episode, avg_reward))
             writer.add_scalar('avg_reward/test', avg_reward, i_episode)
 
             if avg_reward > best_reward:
-                agent.save_model(args.env_name)
+                agent.save_model(args.env_name + args.method_name)
                 best_reward = avg_reward
-                # render_env(env, agent, model_based=model_based)
+                render_env(env, agent, model_based=model_based)
                 print("----------------------------------------")
-                print("Test Episodes: {}, Best Reward: {}, Action: {}".format(
-                    i_episode, round(best_reward, 2), action))
+                print("Test Episodes: {}, Best reward: {}, Action: {}".format(
+                    episodes, round(best_reward, 2), action))
                 print("----------------------------------------")
 else:
-    agent.load_model(args.env_name)
+    agent.load_model(args.env_name + args.method_name)
+    episodes = 100
+    avg_reward = eval_agent(env, agent, model_based=model_based, episodes=episodes)
+    print("Final test episodes: {}, Reward: {}".format(episodes, round(avg_reward, 2)))
     for i in range(5):
         render_env(env, agent, model_based = model_based, save_video =args.save_video)
         # render_env(env, agent, k = 100.0, b = 0.5, k_g=20.0, model_based = model_based)
-
 env.close()
 
