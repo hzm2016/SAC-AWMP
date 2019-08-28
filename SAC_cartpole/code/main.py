@@ -14,7 +14,7 @@ from utils import *
 
 
 parser = argparse.ArgumentParser(description='PyTorch REINFORCE example')
-parser.add_argument('--env-name', default="Pendulum-v0",
+parser.add_argument('--env-name', default="Walker2d-v2",
                     help='name of the environment to run')
 parser.add_argument('--policy', default="Gaussian",
                     help='algorithm to use: Gaussian | Deterministic')
@@ -22,7 +22,7 @@ parser.add_argument('--eval_only', type=bool, default=False,
                     help='Only evaluates a policy without training (default:True)')
 parser.add_argument('--eval', type=bool, default=True,
                     help='Evaluates a policy a policy every 10 episode (default:True)')
-parser.add_argument('--model_based', type=bool, default=True,
+parser.add_argument('--model_based', type=bool, default=False,
                     help='Use an impedance control model (default:True)')
 parser.add_argument('--gamma', type=float, default=0.99, metavar='G',
                     help='discount factor for reward (default: 0.99)')
@@ -66,7 +66,7 @@ model_based = args.model_based
 # Agent
 if model_based:
     # action_space = spaces.Box(low=np.array([0]), high=np.array([1e2]), dtype=np.float32)
-    action_space = spaces.Box(low= np.array([-1e3, -1e1]), high=np.array([1e3, 1e1]), dtype=np.float32)
+    action_space = spaces.Box(low= np.array([-1e2, -1e1]), high=np.array([1e2, 1e1]), dtype=np.float32)
 else:
     action_space = env.action_space
 # print(action_space)
@@ -170,7 +170,7 @@ if not args.eval_only:
             if avg_reward > best_reward:
                 agent.save_model(args.env_name)
                 best_reward = avg_reward
-                render_env(env, agent, model_based=model_based)
+                # render_env(env, agent, model_based=model_based)
                 print("----------------------------------------")
                 print("Test Episodes: {}, Best Reward: {}, Action: {}".format(
                     i_episode, round(best_reward, 2), action))

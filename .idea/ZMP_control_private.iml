@@ -5,7 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/control_methods/ilqr-gym-master" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/SAC_cartpole/code" isTestSource="false" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.7 (2)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.6 (domain_adaptation)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TestRunnerService">
