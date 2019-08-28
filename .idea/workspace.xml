@@ -2,10 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d9d7c869-404d-4494-9751-929efb3aedaa" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/ZMP_control_private.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ZMP_control_private.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SAC_cartpole/code/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/SAC_cartpole/code/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SAC_cartpole/code/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/SAC_cartpole/code/utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SAC_cartpole/results/models/sac_actor_Pendulum-v0_" beforeDir="false" afterPath="$PROJECT_DIR$/SAC_cartpole/results/models/sac_actor_Pendulum-v0_" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SAC_cartpole/results/models/sac_critic_Pendulum-v0_" beforeDir="false" afterPath="$PROJECT_DIR$/SAC_cartpole/results/models/sac_critic_Pendulum-v0_" afterDir="false" />
     </list>
@@ -22,35 +22,8 @@
       </list>
     </option>
   </component>
-  <component name="FindInProjectRecents">
-    <findStrings>
-      <find>u_lower</find>
-      <find>con</find>
-      <find>minimize</find>
-      <find>lower</find>
-      <find>dx</find>
-      <find>objective</find>
-      <find>obj</find>
-      <find>cos</find>
-      <find>tqdm</find>
-      <find>trange</find>
-      <find>num_steps</find>
-      <find>start_steps</find>
-      <find>replay_size</find>
-      <find>memory</find>
-      <find>itertools</find>
-      <find>count</find>
-      <find>pre_num_steps</find>
-    </findStrings>
-  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-  </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="506" />
-    <option name="y" value="100" />
-    <option name="width" value="1400" />
-    <option name="height" value="1000" />
   </component>
   <component name="ProjectId" id="1Q2JFn89H2srsWllwnq250yG7Tt" />
   <component name="PropertiesComponent">
@@ -129,7 +102,8 @@
       <workItem from="1566573812608" duration="39773000" />
       <workItem from="1566857396973" duration="3319000" />
       <workItem from="1566860731349" duration="33245000" />
-      <workItem from="1566962657265" duration="4152000" />
+      <workItem from="1566962657265" duration="8178000" />
+      <workItem from="1567009918942" duration="7531000" />
     </task>
     <servers />
   </component>
@@ -150,11 +124,23 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
           </value>
         </entry>
       </map>
     </option>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$USER_HOME$/gym/gym/wrappers/monitor.py</url>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/ZMP_control_private$lqr.coverage" NAME="lqr Coverage Results" MODIFIED="1566439935916" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods" />
@@ -163,7 +149,7 @@
     <SUITE FILE_PATH="coverage/ZMP_control_private$leg.coverage" NAME="leg Coverage Results" MODIFIED="1566668730946" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods/mpc_lib/mpc/env_dx" />
     <SUITE FILE_PATH="coverage/ZMP_control_private$ilqr_gym.coverage" NAME="ilqr_gym Coverage Results" MODIFIED="1566439367461" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods/ilqr-gym-master" />
     <SUITE FILE_PATH="coverage/ZMP_control_private$dynamic_mpc_scipy.coverage" NAME="dynamic_mpc_scipy Coverage Results" MODIFIED="1566686723913" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods" />
-    <SUITE FILE_PATH="coverage/ZMP_control_private$main.coverage" NAME="main Coverage Results" MODIFIED="1566967650053" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/SAC_cartpole/code" />
+    <SUITE FILE_PATH="coverage/ZMP_control_private$main.coverage" NAME="main Coverage Results" MODIFIED="1567017612744" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/SAC_cartpole/code" />
     <SUITE FILE_PATH="coverage/ZMP_control_private$optim.coverage" NAME="optim Coverage Results" MODIFIED="1566521913309" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods" />
     <SUITE FILE_PATH="coverage/ZMP_control_private$leg_control__1_.coverage" NAME="leg_control (1) Coverage Results" MODIFIED="1566694136805" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/leg/controllers/ZMP_control" />
     <SUITE FILE_PATH="coverage/ZMP_control_private$leg_control.coverage" NAME="leg_control Coverage Results" MODIFIED="1566689300622" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/control_methods/mpc_lib/examples" />

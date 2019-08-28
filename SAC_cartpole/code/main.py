@@ -1,12 +1,13 @@
 import argparse
 import datetime
+import roboschool
 import gym
 import numpy as np
 import itertools
 import torch
 from tqdm import tqdm
 from gym import spaces
-
+from gym import wrappers
 from sac import SAC
 from tensorboardX import SummaryWriter
 from replay_memory import ReplayMemory
@@ -14,10 +15,13 @@ from utils import *
 
 
 parser = argparse.ArgumentParser(description='PyTorch REINFORCE example')
-parser.add_argument('--env-name', default="Walker2d-v2",
-                    help='name of the environment to run')
+parser.add_argument('--env-name', default="RoboschoolWalker2d-v1",
+                    help='name of the environment to run (default: Walker2d-v2, '
+                         'Pendulum-v0, RoboschoolWalker2d-v1)')
 parser.add_argument('--policy', default="Gaussian",
                     help='algorithm to use: Gaussian | Deterministic')
+parser.add_argument('--save_video', type=bool, default=False,
+                    help='Save video (default:False)')
 parser.add_argument('--eval_only', type=bool, default=False,
                     help='Only evaluates a policy without training (default:True)')
 parser.add_argument('--eval', type=bool, default=True,
@@ -58,6 +62,14 @@ args = parser.parse_args()
 # Environment
 # env = NormalizedActions(gym.make(args.env_name))
 env = gym.make(args.env_name)
+if args.save_video:
+    env = wrappers.Monitor(env,'../results/video/{}_SAC_{}_{}_{}'.format(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
+                                                                args.env_name,args.policy,
+                                                                "autotune" if args.automatic_entropy_tuning else "")
+                           # ,video_callable=lambda x: True
+                           # ,resume=True
+                           )
+print('env setting successfully!')
 torch.manual_seed(args.seed)
 np.random.seed(args.seed)
 env.seed(args.seed)
@@ -177,10 +189,9 @@ if not args.eval_only:
                 print("----------------------------------------")
 else:
     agent.load_model(args.env_name)
-    for i in range(20):
-        render_env(env, agent, model_based = model_based)
+    for i in range(5):
+        render_env(env, agent, model_based = model_based, save_video =args.save_video)
         # render_env(env, agent, k = 100.0, b = 0.5, k_g=20.0, model_based = model_based)
-
 
 env.close()
 

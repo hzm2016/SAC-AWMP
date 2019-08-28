@@ -9,6 +9,7 @@ $ cat .gitignore
 *.pt
 *.zip
 *.h5
+*video*
 *modelnet40_ply_hdf5_2048*
 **/PartAnnotation*
 *hdf5_data*

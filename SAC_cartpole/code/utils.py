@@ -56,9 +56,9 @@ def calc_torque(state, k = 5.0, b = 0.5, k_g = 10.0):
     return torque, theta
 
 
-def render_env(env, agent, k = None, b = None, k_g = None, model_based = False):
+def render_env(env, agent, k = None, b = None, k_g = None,
+               model_based = False, save_video = False):
     state = env.reset()
-    print(state)
     done = False
     episode_reward = 0.0
     while not done:
@@ -74,5 +74,8 @@ def render_env(env, agent, k = None, b = None, k_g = None, model_based = False):
         next_state, reward, done, _ = env.step(torque)
         episode_reward += reward
         state = next_state
-        env.render()
+        if save_video:
+            env.render(mode='rgb_array')
+        else:
+            env.render()
     print('Render reward: ', episode_reward)
