@@ -1,6 +1,6 @@
 import argparse
 import datetime
-# import roboschool
+import roboschool
 import gym
 import numpy as np
 import itertools
@@ -15,16 +15,16 @@ from utils import *
 
 
 parser = argparse.ArgumentParser(description='PyTorch REINFORCE example')
-parser.add_argument('--env-name', default="RoboschoolWalker2d-v1",
+parser.add_argument('--env-name', default="Walker2d-v2",
                     help='name of the environment to run (default: Walker2d-v2, '
                          'Pendulum-v0, RoboschoolWalker2d-v1)')
-parser.add_argument('--method_name', default="",
+parser.add_argument('--method_name', default="_low_energy",
                     help='Name of your method (default: )')
 parser.add_argument('--policy', default="Gaussian",
                     help='algorithm to use: Gaussian | Deterministic')
 parser.add_argument('--save_video', type=bool, default=False,
                     help='Save video (default:False)')
-parser.add_argument('--eval_only', type=bool, default=True,
+parser.add_argument('--eval_only', type=bool, default=False,
                     help='Only evaluates a policy without training (default:True)')
 parser.add_argument('--eval', type=bool, default=True,
                     help='Evaluates a policy a policy every 10 episode (default:True)')
@@ -138,9 +138,8 @@ if not args.eval_only:
                 torque = action
 
             # calculate positive energy
-            positive_energy = torque[0] * state[-1]
-            if positive_energy < 0:
-                positive_energy == 0
+            positive_energy = torque * state[-len(torque):]
+            positive_energy = np.sum(positive_energy.clip(min=0))
 
             next_state, reward, done, _ = env.step(torque) # Step
             episode_steps += 1
@@ -182,8 +181,8 @@ if not args.eval_only:
 else:
     agent.load_model(args.env_name + args.method_name)
     episodes = 100
-    avg_reward = eval_agent(env, agent, model_based=model_based, episodes=episodes)
-    print("Final test episodes: {}, Reward: {}".format(episodes, round(avg_reward, 2)))
+    # avg_reward = eval_agent(env, agent, model_based=model_based, episodes=episodes)
+    # print("Final test episodes: {}, Reward: {}".format(episodes, round(avg_reward, 2)))
     for i in range(5):
         render_env(env, agent, model_based = model_based, save_video =args.save_video)
         # render_env(env, agent, k = 100.0, b = 0.5, k_g=20.0, model_based = model_based)

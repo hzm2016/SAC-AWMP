@@ -1,6 +1,7 @@
 import math
 import torch
 import numpy as np
+from tqdm import trange
 
 
 def create_log_gaussian(mean, log_std, t):
