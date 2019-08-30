@@ -1,7 +1,6 @@
 import math
 import torch
 import numpy as np
-from tqdm import trange
 
 
 def create_log_gaussian(mean, log_std, t):
@@ -41,21 +40,20 @@ def random_action(action_space):
     return np.asarray(action)
 
 
-
-def calc_torque(state, k = 5.0, b = 0.5, k_g = 10.0):
+def calc_torque(state, action):
     # state: cos(q), sin(q), dq
-    theta = np.arctan2(state[1], state[0])
-    # l_m = 1.0
-    # theta_0 = np.arcsin(4.0 / k_g)
-    # energy_error = 0.5 * k_g * (np.cos(theta_0) - np.cos(theta)) - \
-    #                k_g / (9.81 * l_m) * l_m ** 2.0 * state[-1] ** 2.0 / 3.0
-    # if energy_error >= 0:
-    #     torque = np.abs([k * (0 - theta) - b * state[-1]]) * np.sign(state[-1])
-    # else:
-    #     torque = np.asarray([k * (0 - theta) - b * state[-1]]) - k_g * state[1]
-    torque = np.asarray([k * (0 - theta) - b * state[-1]]) - k_g * state[1]
-    # print('Set torque: ', torque)
-    return torque, theta
+    if action is None:
+        k = 5.0 * np.ones(6)
+        b = 5.0 * np.ones(6)
+        joint_angle_e = 5.0 * np.ones(6)
+    else:
+        k = action[0:6]
+        b = action[6:12]
+        joint_angle_e = action[12:18]
+    joint_angle = state[8:20:2]
+    joint_speed = state[9:20:2]
+    torque = k * (joint_angle_e - joint_angle) - b * joint_speed
+    return torque, joint_angle
 
 
 def render_env(env, agent, k = None, b = None, k_g = None,
@@ -68,11 +66,11 @@ def render_env(env, agent, k = None, b = None, k_g = None,
             action = agent.select_action(state, eval=True)
             if model_based:
                 # torque, theta = calc_torque(state, k=abs(action[0]), b=0.5, k_g=20.0)
-                torque, theta = calc_torque(state, k=action[0], b=action[1], k_g=20.0)
+                torque, theta = calc_torque(state, action)
             else:
                 torque = action
         else:
-            torque, theta = calc_torque(state, k, b, k_g)
+            torque, theta = calc_torque(state, action)
         next_state, reward, done, _ = env.step(torque)
         episode_reward += reward
         state = next_state
@@ -81,6 +79,57 @@ def render_env(env, agent, k = None, b = None, k_g = None,
         else:
             env.render()
     print('Render reward: ', episode_reward)
+
+
+def render_env_phase(env, agent, save_video = False):
+    state = env.reset()
+    action = agent.select_action(state)
+    pre_state = np.copy(state)
+    done = False
+    episode_reward = 0.0
+    while not done:
+        is_same_phase = np.array_equal(pre_state[-2:], state[-2:])
+        if not is_same_phase:
+            action = agent.select_action(state, eval=True)
+
+        torque, theta = calc_torque(state, action)
+        next_state, reward, done, _ = env.step(torque)
+
+        episode_reward += reward
+
+        state[:] = next_state[:]
+        pre_state[:] = state[:]
+
+        if save_video:
+            env.render(mode='rgb_array')
+        else:
+            env.render()
+    print('Render reward: ', episode_reward)
+
+def eval_agent_phase(env, agent, episodes = 10):
+    avg_reward = 0.
+
+    for _ in range(episodes):
+        state = env.reset()
+        action = agent.select_action(state)
+        pre_state = np.copy(state)
+        episode_reward = 0
+        done = False
+        while not done:
+            is_same_phase = np.array_equal(pre_state[-2:], state[-2:])
+            if not is_same_phase:
+                action = agent.select_action(state, eval=True)
+            torque, theta = calc_torque(state, action)
+            next_state, reward, done, _ = env.step(torque)
+            episode_reward += reward
+
+            state[:] = next_state[:]
+            pre_state[:] = state[:]
+
+        avg_reward += episode_reward
+    avg_reward /= episodes
+    return avg_reward
+
 
 def eval_agent(env, agent, model_based = False, episodes = 10):
     avg_reward = 0.
@@ -93,7 +142,7 @@ def eval_agent(env, agent, model_based = False, episodes = 10):
             action = agent.select_action(state, eval=True)
             if model_based:
                 # torque, theta = calc_torque(state, k=abs(action[0]), b=0.5, k_g=20.0)
-                torque, theta = calc_torque(state, k=action[0], b=action[1], k_g=20.0)
+                torque, theta = calc_torque(state, action)
             else:
                 torque = action
             next_state, reward, done, _ = env.step(torque)

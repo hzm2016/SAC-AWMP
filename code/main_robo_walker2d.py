@@ -1,24 +1,26 @@
 import argparse
 import datetime
 import roboschool
+from roboschool import gym_forward_walker, gym_mujoco_walkers
 import gym
 import numpy as np
 import itertools
 import torch
+from OpenGL import GLU
 from tqdm import tqdm
 from gym import spaces
 from gym import wrappers
 from sac import SAC
 from tensorboardX import SummaryWriter
 from replay_memory import ReplayMemory
-from utils import *
-
+# from utils import *
+from walker2d_utils import *
 
 parser = argparse.ArgumentParser(description='PyTorch REINFORCE example')
-parser.add_argument('--env-name', default="Walker2d-v2",
+parser.add_argument('--env-name', default="RoboschoolWalker2d-v1",
                     help='name of the environment to run (default: Walker2d-v2, '
                          'Pendulum-v0, RoboschoolWalker2d-v1)')
-parser.add_argument('--method_name', default="_low_energy",
+parser.add_argument('--method_name', default="_my_reward",
                     help='Name of your method (default: )')
 parser.add_argument('--policy', default="Gaussian",
                     help='algorithm to use: Gaussian | Deterministic')
@@ -51,7 +53,7 @@ parser.add_argument('--hidden_size', type=int, default=256, metavar='N',
                     help='hidden size (default: 256)')
 parser.add_argument('--updates_per_step', type=int, default=1, metavar='N',
                     help='model updates per simulator step (default: 1)')
-parser.add_argument('--start_steps', type=int, default=1000, metavar='N',
+parser.add_argument('--start_steps', type=int, default=10000, metavar='N',
                     help='Steps sampling random actions (default: 10000)')
 parser.add_argument('--target_update_interval', type=int, default=1, metavar='N',
                     help='Value target update per no. of updates per step (default: 1)')
@@ -80,11 +82,13 @@ model_based = args.model_based
 # Agent
 if model_based:
     # action_space = spaces.Box(low=np.array([0]), high=np.array([1e2]), dtype=np.float32)
-    action_space = spaces.Box(low= np.array([-1e2, -1e1]), high=np.array([1e2, 1e1]), dtype=np.float32)
+    low_actions = np.r_[np.zeros(12), -np.ones(6)]
+    high_actions = np.r_[1e3 * np.ones(6), 10.0 * np.ones(6), np.ones(6)]
+    action_space = spaces.Box(low= low_actions, high=high_actions, dtype=np.float32)
 else:
     action_space = env.action_space
 # print(action_space)
-agent = SAC(env.observation_space.shape[0], action_space, args)
+agent = SAC(env.observation_space.shape[0] + 2, action_space, args)
 
 if not args.eval_only:
     #TesnorboardX
@@ -105,13 +109,25 @@ if not args.eval_only:
     for i_episode in itertools.count(1):
         pbar.update(total_numsteps - pre_num_steps)
         episode_reward = 0
+        episode_my_reward = 0.0
         episode_steps = 0
         done = False
         # np.array([np.cos(theta), np.sin(theta), thetadot])
+        # state[0:6] = [x, y, z,
+        # 0.3*vx, 0.3*vy, 0.3*vz]
+        # state[6:10] = [np.sin(self.angle_to_target), np.cos(self.angle_to_target),
+        # row, pitch]
+        # state[10:22:2]: joint position, scaled to -1..+1 between limits
+        # state[11:22:2]: joint speed, scaled to -1..+1 between limits
+        # state[22:24]: right / left foot state (touch = 1.0)
         state = env.reset()
         pre_num_steps = total_numsteps
+        pre_state = np.copy(state)
+        last_phase_state = None
+        last_phase_action = None
         while not done:
-            if len(memory) > args.batch_size:
+            is_same_phase = np.array_equal(pre_state[-2:], state[-2:])
+            if len(memory) > args.batch_size and not is_same_phase:
                 # Number of updates per step in environment
                 for i in range(args.updates_per_step):
                     # Update parameters of all the networks
@@ -124,45 +140,69 @@ if not args.eval_only:
                     writer.add_scalar('loss/entropy_loss', ent_loss, updates)
                     writer.add_scalar('entropy_temprature/alpha', alpha, updates)
                     updates += 1
-            if args.start_steps > total_numsteps:
-                if model_based:
+
+            if model_based and not is_same_phase:
+                if args.start_steps > total_numsteps:
                     action = random_action(action_space)
                 else:
+                    action = agent.select_action(state)  # Sample action from policy
+                torque, theta = calc_torque(state, action)
+                last_phase_state = np.copy(state)
+                last_phase_action = np.copy(action)
+
+
+            if not model_based:
+                if args.start_steps > total_numsteps:
                     action = env.action_space.sample()  # Sample random action
-            else:
-                action = agent.select_action(state)  # Sample action from policy
-            if model_based:
-                # torque, theta = calc_torque(state, k=abs(action[0]), b=0.5, k_g=20.0)
-                torque, theta = calc_torque(state, k = action[0], b = action[1], k_g = 20.0)
-            else:
+                else:
+                    action = agent.select_action(state)  # Sample action from policy
                 torque = action
 
+            xyz = state[0:3]
+            v_xyz = state[4:6]
+            pitch = state[9]
+            joing_angle = state[10:22:2]
+            joing_speed = state[11:22:2]
+
+            if (xyz[2] > 0.8 and xyz[2] < 2.0 and abs(pitch) < 1.0 and v_xyz[0] > 0.5):
+                alive_reward = 1.0
+            else:
+                alive_reward = -1.0
+
             # calculate positive energy
-            positive_energy = torque * state[-len(torque):]
-            positive_energy = np.sum(positive_energy.clip(min=0))
+            positive_energy_reward = torque * joing_speed
+            positive_energy_reward = -2e-4 * np.sum(positive_energy_reward.clip(min=0))
+
+            pre_xyz = pre_state[0:3]
+            move_reward = np.clip(xyz[0] - pre_xyz[0], a_min = -0.5, a_max=0.5)
+
 
             next_state, reward, done, _ = env.step(torque) # Step
             episode_steps += 1
             total_numsteps += 1
 
-            episode_reward += reward
-
             # Ignore the "done" signal if it comes from hitting the time horizon.
             # (https://github.com/openai/spinningup/blob/master/spinup/algos/sac/sac.py)
             mask = 1 if episode_steps == env._max_episode_steps else float(not done)
 
-            reward_all = reward - 0.1 * args.alpha * positive_energy
-            memory.push(state, action, reward_all, next_state, mask) # Append transition to memory
+            my_reward = alive_reward + move_reward
 
-            state = next_state
+            memory.push(state, action, my_reward, next_state, mask) # Append transition to memory
+
+            pre_state[:] = state[:]
+            state[:] = next_state[:]
+
+
+            episode_reward += reward
+            episode_my_reward += my_reward
 
         if total_numsteps > args.num_steps:
             break
 
         writer.add_scalar('reward/train', episode_reward, i_episode)
-        writer.add_scalar('positive_energy/train', positive_energy, i_episode)
-        # print("Episode: {}, total numsteps: {}, episode steps: {}, reward: {}".format(
-        #     i_episode, total_numsteps, episode_steps, episode_reward))
+        writer.add_scalar('my_reward/train', episode_my_reward, i_episode)
+        # print("Episode: {}, episode_reward: {}, my_reward: {}, positive_energy_reward: {}".format(
+        #     i_episode, episode_reward, my_reward, positive_energy_reward))
 
         if args.eval == True:
             episodes = 10
@@ -175,12 +215,12 @@ if not args.eval_only:
                 best_reward = avg_reward
                 # render_env(env, agent, model_based=model_based)
                 print("----------------------------------------")
-                print("Test Episodes: {}, Best reward: {}, Action: {}".format(
-                    episodes, round(best_reward, 2), action))
+                print("Test Episodes: {}, Best reward: {}".format(
+                    episodes, round(best_reward, 2)))
                 print("----------------------------------------")
 else:
     agent.load_model(args.env_name + args.method_name)
-    episodes = 100
+    # episodes = 100
     # avg_reward = eval_agent(env, agent, model_based=model_based, episodes=episodes)
     # print("Final test episodes: {}, Reward: {}".format(episodes, round(avg_reward, 2)))
     for i in range(5):
