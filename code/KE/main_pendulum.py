@@ -67,10 +67,7 @@ env = gym.make(args.env_name)
 if args.save_video:
     env = wrappers.Monitor(env,'../results/video/{}_SAC_{}_{}_{}'.format(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
                                                                 args.env_name,args.policy,
-                                                                "autotune" if args.automatic_entropy_tuning else "")
-                           # ,video_callable=lambda x: True
-                           # ,resume=True
-                           )
+                                                                "autotune" if args.automatic_entropy_tuning else ""))
 print('env setting successfully!')
 torch.manual_seed(args.seed)
 np.random.seed(args.seed)

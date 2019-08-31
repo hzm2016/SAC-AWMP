@@ -9,7 +9,6 @@ from model import GaussianPolicy, QNetwork, DeterministicPolicy
 class SAC(object):
     def __init__(self, num_inputs, action_space, args):
 
-        self.action_space = action_space
         self.gamma = args.gamma
         self.tau = args.tau
         self.alpha = args.alpha
@@ -18,7 +17,8 @@ class SAC(object):
         self.target_update_interval = args.target_update_interval
         self.automatic_entropy_tuning = args.automatic_entropy_tuning
 
-        self.device = torch.device("cuda" if args.cuda else "cpu")
+        self.device = torch.device("cuda" if args.cuda else "cpu") 
+
         self.critic = QNetwork(num_inputs, action_space.shape[0], args.hidden_size).to(device=self.device)
         self.critic_optim = Adam(self.critic.parameters(), lr=args.lr)
 
@@ -43,7 +43,6 @@ class SAC(object):
 
     def select_action(self, state, eval=False):
         state = torch.FloatTensor(state).to(self.device).unsqueeze(0)
-        # action, _, _ = self.policy.sample(state)
         if eval == False:
             action, _, _ = self.policy.sample(state)
         else:
@@ -66,7 +65,6 @@ class SAC(object):
             min_qf_next_target = torch.min(qf1_next_target, qf2_next_target) - self.alpha * next_state_log_pi
             next_q_value = reward_batch + mask_batch * self.gamma * (min_qf_next_target)
 
-
         qf1, qf2 = self.critic(state_batch, action_batch)  # Two Q-functions to mitigate positive bias in the policy improvement step
         qf1_loss = F.mse_loss(qf1, next_q_value) # JQ = 𝔼(st,at)~D[0.5(Q1(st,at) - r(st,at) - γ(𝔼st+1~p[V(st+1)]))^2]
         qf2_loss = F.mse_loss(qf2, next_q_value) # JQ = 𝔼(st,at)~D[0.5(Q1(st,at) - r(st,at) - γ(𝔼st+1~p[V(st+1)]))^2]
@@ -76,10 +74,8 @@ class SAC(object):
         qf1_pi, qf2_pi = self.critic(state_batch, pi)
         min_qf_pi = torch.min(qf1_pi, qf2_pi)
 
-        # maximize the q value of the selected action
         policy_loss = ((self.alpha * log_pi) - min_qf_pi).mean() # Jπ = 𝔼st∼D,εt∼N[α * logπ(f(εt;st)|st) − Q(st,f(εt;st))]
 
-        # minimize the error between the q-value and reward.
         self.critic_optim.zero_grad()
         qf1_loss.backward()
         self.critic_optim.step()
@@ -87,8 +83,7 @@ class SAC(object):
         self.critic_optim.zero_grad()
         qf2_loss.backward()
         self.critic_optim.step()
-
-        # maximize the q value of the selected action
+        
         self.policy_optim.zero_grad()
         policy_loss.backward()
         self.policy_optim.step()
@@ -114,22 +109,19 @@ class SAC(object):
 
     # Save model parameters
     def save_model(self, env_name, suffix="", actor_path=None, critic_path=None):
-        if not os.path.exists('../results/models/'):
-            os.makedirs('../results/models/')
+        if not os.path.exists('models/'):
+            os.makedirs('models/')
+
         if actor_path is None:
-            actor_path = "../results/models/sac_actor_{}_{}".format(env_name, suffix)
+            actor_path = "models/sac_actor_{}_{}".format(env_name, suffix)
         if critic_path is None:
-            critic_path = "../results/models/sac_critic_{}_{}".format(env_name, suffix)
+            critic_path = "models/sac_critic_{}_{}".format(env_name, suffix)
         print('Saving models to {} and {}'.format(actor_path, critic_path))
         torch.save(self.policy.state_dict(), actor_path)
         torch.save(self.critic.state_dict(), critic_path)
     
     # Load model parameters
-    def load_model(self, env_name, suffix="", actor_path = None, critic_path = None):
-        if actor_path is None:
-            actor_path = "../results/models/sac_actor_{}_{}".format(env_name, suffix)
-        if critic_path is None:
-            critic_path = "../results/models/sac_critic_{}_{}".format(env_name, suffix)
+    def load_model(self, actor_path, critic_path):
         print('Loading models from {} and {}'.format(actor_path, critic_path))
         if actor_path is not None:
             self.policy.load_state_dict(torch.load(actor_path))

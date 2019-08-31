@@ -47,11 +47,11 @@ def calc_torque(state, action):
         b = 5.0 * np.ones(6)
         joint_angle_e = 5.0 * np.ones(6)
     else:
-        k = action[0:6]
-        b = action[6:12]
-        joint_angle_e = action[12:18]
-    joint_angle = state[8:20:2]
-    joint_speed = state[9:20:2]
+        k = action[0::3]
+        b = action[1::3]
+        joint_angle_e = action[2::3]
+    joint_angle = state[10:22:2]
+    joint_speed = state[11:22:2]
     torque = k * (joint_angle_e - joint_angle) - b * joint_speed
     return torque, joint_angle
 
@@ -72,6 +72,10 @@ def render_env(env, agent, k = None, b = None, k_g = None,
         else:
             torque, theta = calc_torque(state, action)
         next_state, reward, done, _ = env.step(torque)
+        xyz = state[0:3]
+        if abs(xyz[2]) > 0.8:
+            reward = -1.0
+            done = True
         episode_reward += reward
         state = next_state
         if save_video:
@@ -83,7 +87,7 @@ def render_env(env, agent, k = None, b = None, k_g = None,
 
 def render_env_phase(env, agent, save_video = False):
     state = env.reset()
-    action = agent.select_action(state)
+    action = agent.select_action(state, eval=True)
     pre_state = np.copy(state)
     done = False
     episode_reward = 0.0
@@ -102,16 +106,19 @@ def render_env_phase(env, agent, save_video = False):
 
         if save_video:
             env.render(mode='rgb_array')
+            print('action: ', action)
         else:
             env.render()
     print('Render reward: ', episode_reward)
+
 
 def eval_agent_phase(env, agent, episodes = 10):
     avg_reward = 0.
 
     for _ in range(episodes):
         state = env.reset()
-        action = agent.select_action(state)
+        # Sample action from policy
+        action = agent.select_action(state, eval=True)
         pre_state = np.copy(state)
         episode_reward = 0
         done = False
@@ -133,7 +140,6 @@ def eval_agent_phase(env, agent, episodes = 10):
 
 def eval_agent(env, agent, model_based = False, episodes = 10):
     avg_reward = 0.
-
     for _ in range(episodes):
         state = env.reset()
         episode_reward = 0
@@ -146,6 +152,10 @@ def eval_agent(env, agent, model_based = False, episodes = 10):
             else:
                 torque = action
             next_state, reward, done, _ = env.step(torque)
+            xyz = state[0:3]
+            if abs(xyz[2]) > 0.8:
+                reward = -1.0
+                done = True
             episode_reward += reward
 
             state = next_state

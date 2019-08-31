@@ -45,11 +45,11 @@ parser.add_argument('--automatic_entropy_tuning', type=bool, default=False, meta
                     help='Temperature parameter α automaically adjusted.')
 parser.add_argument('--seed', type=int, default=456, metavar='N',
                     help='random seed (default: 456)')
-parser.add_argument('--batch_size', type=int, default=32, metavar='N',
+parser.add_argument('--batch_size', type=int, default=256, metavar='N',
                     help='batch size (default: 256)')
 parser.add_argument('--num_steps', type=int, default=200000, metavar='N',
                     help='maximum number of steps (default: 1000000)')
-parser.add_argument('--hidden_size', type=int, default=64, metavar='N',
+parser.add_argument('--hidden_size', type=int, default=256, metavar='N',
                     help='hidden size (default: 256)')
 parser.add_argument('--updates_per_step', type=int, default=5, metavar='N',
                     help='model updates per simulator step (default: 1)')
@@ -79,11 +79,22 @@ np.random.seed(args.seed)
 env.seed(args.seed)
 
 # Agent
-low_actions = np.r_[np.zeros(12), -np.ones(6)]
-high_actions = np.r_[5e2 * np.ones(6), 10.0 * np.ones(6), np.ones(6)]
+# low_actions = np.r_[np.zeros(12), -np.ones(6)]
+# high_actions = np.r_[5e2 * np.ones(6), 10.0 * np.ones(6), np.ones(6)]
+# action_space = spaces.Box(low= low_actions, high=high_actions, dtype=np.float32)
+# agent = SAC(env.observation_space.shape[0] + 2, action_space, args)
+
+# two agents: k1, b1, theta_e1, k2, b2, theta_e2...
+low_actions = -np.ones(18)
+low_actions[0::3] = -5e2
+low_actions[1::3] = -10.0
+high_actions = np.ones(18)
+high_actions[0::3] = 5e2
+high_actions[1::3] = 10.0
 action_space = spaces.Box(low= low_actions, high=high_actions, dtype=np.float32)
-# print(action_space)
+# stance, swing
 agent = SAC(env.observation_space.shape[0] + 2, action_space, args)
+
 time_step = 0.0165/4.0
 if not args.eval_only:
     #TesnorboardX
@@ -91,7 +102,7 @@ if not args.eval_only:
                                                                 args.env_name,args.policy,
                                                                 "autotune" if args.automatic_entropy_tuning else ""))
 
-    # Memory
+    # Memory: stance, swing
     memory = ReplayMemory(args.replay_size)
 
     # Training Loop
@@ -115,7 +126,9 @@ if not args.eval_only:
         # state[11:22:2]: joint speed, scaled to -1..+1 between limits
         # state[22:24]: right / left foot state (touch = 1.0)
         state = env.reset()
+
         action = agent.select_action(state)
+
         pre_num_steps = total_numsteps
         pre_state = np.copy(state)
         last_phase_state = np.copy(state)
@@ -130,7 +143,6 @@ if not args.eval_only:
                 # else: # average speed
                 phase_reward += 25.0 * (state[0] - last_phase_state[0])
 
-                phase_reward *= 1e-1
                 memory.push(last_phase_state, last_phase_action, phase_reward,
                             state, mask)  # Append transition to memory
                 if len(memory) > args.batch_size and not is_same_phase:
@@ -150,7 +162,9 @@ if not args.eval_only:
                 if args.start_steps > total_numsteps:
                     action = random_action(action_space)
                 else:
-                    action = agent.select_action(state)  # Sample action from policy
+                    # Sample action from policy
+                    action = agent.select_action(state)
+
 
                 # change phase variables
                 phase_reward = 0.0
@@ -167,6 +181,17 @@ if not args.eval_only:
             # Ignore the "done" signal if it comes from hitting the time horizon.
             # (https://github.com/openai/spinningup/blob/master/spinup/algos/sac/sac.py)
             mask = 1 if episode_steps == env._max_episode_steps else float(not done)
+
+            xyz = state[0:3]
+            v_xyz = state[3:6]
+            pitch = state[9]
+            joing_angle = state[10:22:2]
+            joing_speed = state[11:22:2]
+
+            if (xyz[2] > 0.8 and xyz[2] < 2.0 and abs(pitch) < 1.0):
+                alive_reward = 1.0
+            else:
+                alive_reward = -1.0
 
             # my_reward = alive_reward + move_reward
             phase_reward += reward
