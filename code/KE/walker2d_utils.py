@@ -73,8 +73,9 @@ def render_env(env, agent, k = None, b = None, k_g = None,
             torque, theta = calc_torque(state, action)
         next_state, reward, done, _ = env.step(torque)
         xyz = state[0:3]
-        if abs(xyz[2]) > 0.8:
-            reward = -1.0
+        pitch = state[7]
+        if abs(xyz[2]) > 0.8 or abs(pitch) > 1.0:
+            my_reward = -2.0
             done = True
         episode_reward += reward
         state = next_state
@@ -140,6 +141,7 @@ def eval_agent_phase(env, agent, episodes = 10):
 
 def eval_agent(env, agent, model_based = False, episodes = 10):
     avg_reward = 0.
+    ave_x_dist = 0.0
     for _ in range(episodes):
         state = env.reset()
         episode_reward = 0
@@ -153,12 +155,14 @@ def eval_agent(env, agent, model_based = False, episodes = 10):
                 torque = action
             next_state, reward, done, _ = env.step(torque)
             xyz = state[0:3]
-            if abs(xyz[2]) > 0.8:
-                reward = -1.0
+            pitch = state[7]
+            if abs(xyz[2]) > 0.8 or abs(pitch) > 1.0:
                 done = True
             episode_reward += reward
 
             state = next_state
         avg_reward += episode_reward
+        ave_x_dist += state[0]
     avg_reward /= episodes
-    return avg_reward
+    ave_x_dist /= episodes
+    return avg_reward, ave_x_dist

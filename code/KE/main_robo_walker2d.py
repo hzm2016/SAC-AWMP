@@ -89,7 +89,6 @@ else:
     action_space = env.action_space
 # print(action_space)
 agent = SAC(env.observation_space.shape[0], action_space, args)
-
 if not args.eval_only:
     #TesnorboardX
     writer = SummaryWriter(logdir= args.result_path + '/runs/{}_SAC_{}_{}_{}'.format(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
@@ -105,6 +104,7 @@ if not args.eval_only:
     updates = 0
 
     best_reward = -1e5
+    longest_x_dist = 0.0
     pbar = tqdm(total=args.num_steps, initial=total_numsteps)
     for i_episode in itertools.count(1):
         pbar.update(total_numsteps - pre_num_steps)
@@ -124,8 +124,7 @@ if not args.eval_only:
         # # state[22:24]: right / left foot state (touch = 1.0)
 
         # state[0:8] = np.array([
-        #             z-self.initial_z,
-        #             np.sin(self.angle_to_target), np.cos(self.angle_to_target),
+        #             x, y, z,
         #             0.3*vx, 0.3*vy, 0.3*vz,    # 0.3 is just scaling typical speed into -1..+1, no physical sense here
         #             r, p], dtype=np.float32)
         # state[8:20:2]: joint position, scaled to -1..+1 between limits
@@ -161,9 +160,18 @@ if not args.eval_only:
 
             next_state, reward, done, _ = env.step(action)  # Step
             xyz = state[0:3]
-            if abs(xyz[2]) > 0.8:
-                reward = -1.0
+            v_xyz = state[3:6]
+            my_reward = 1.0
+            if v_xyz[0] > 0.2:
+                my_reward += 2.0
+            else:
+                my_reward -= -2.0
+
+            pitch = state[7]
+            if abs(xyz[2]) > 0.8 or abs(pitch) > 1.0:
+                my_reward = -2.0
                 done = True
+
             # env.render()
             # print('xyz ', state[0:3])
             episode_steps += 1
@@ -174,12 +182,7 @@ if not args.eval_only:
             # (https://github.com/openai/spinningup/blob/master/spinup/algos/sac/sac.py)
             mask = 1 if episode_steps == env._max_episode_steps else float(not done)
 
-            v_xyz = state[3:6]
-            if v_xyz[0] > 0.5:
-                reward += 0.5
-            else:
-                reward -= 0.5
-            memory.push(state, action, reward, next_state, mask)  # Append transition to memory
+            memory.push(state, action, my_reward, next_state, mask)  # Append transition to memory
             state = next_state
         # while not done:
         #     if len(memory) > args.batch_size:
@@ -248,7 +251,10 @@ if not args.eval_only:
 
         if total_numsteps > args.num_steps:
             break
-        final_reward = state[0]
+        if state[0] > 1:
+            final_reward = 2 * state[0]
+        else:
+            final_reward = 0.0
         memory.add_final_reward(final_reward=final_reward, steps=episode_steps)
 
         writer.add_scalar('reward/train', episode_reward, i_episode)
@@ -258,18 +264,20 @@ if not args.eval_only:
 
         if args.eval == True:
             episodes = 10
-            avg_reward = eval_agent(env, agent, model_based=model_based)
+            avg_reward, ave_x_dist = eval_agent(env, agent, model_based=model_based)
             # print("Test Episodes: {}, Reward: {}".format(i_episode, avg_reward))
             writer.add_scalar('avg_reward/test', avg_reward, i_episode)
+            writer.add_scalar('ave_x_dist/test', ave_x_dist, i_episode)
 
-            if (avg_reward > best_reward) and (total_numsteps > args.start_steps):
+            if (ave_x_dist > longest_x_dist) and (total_numsteps > args.start_steps):
                 agent.save_model(args.result_path, args.env_name + args.method_name)
-                best_reward = avg_reward
-                if best_reward > 500:
+                # best_reward = avg_reward
+                longest_x_dist = ave_x_dist
+                if ave_x_dist > 1.0:
                     render_env(env, agent, model_based=model_based)
                 print("----------------------------------------")
-                print("Test Episodes: {}, Best reward: {}".format(
-                    episodes, round(best_reward, 2)))
+                print("Test Episodes: {}, Longest_x_dist: {}".format(
+                    episodes, round(longest_x_dist, 2)))
                 print("----------------------------------------")
 else:
     agent.load_model(args.result_path, args.env_name + args.method_name)
