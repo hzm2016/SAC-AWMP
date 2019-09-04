@@ -2,6 +2,7 @@ import roboschool, gym
 import datetime
 import cv2
 from TD3 import TD3
+from walker2d_utils import *
 # from PIL import Image
 from OpenGL import GLU
 # from gym import wrappers
@@ -15,6 +16,7 @@ from OpenGL import GLU
 
 def test():
     env_name = "RoboschoolWalker2d-v1"
+    method_name = 'impedance'
     random_seed = 0
     n_episodes = 1
     lr = 0.001
@@ -24,9 +26,8 @@ def test():
     filename = "TD3_{}_{}".format(env_name, random_seed)
     filename += ''
     result_path = '../../results'
-    directory = result_path + "/models/TD3/{}".format(env_name)  # save trained models
+    directory = result_path + "/models/TD3/{}_{}".format(env_name, method_name)  # save trained models
     # directory = "./preTrained/{}".format(env_name)
-
     env = gym.make(env_name)
     # env = wrappers.Monitor(env, '../../results/video/{}_TD3_{}'.format(
     #     datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
@@ -52,6 +53,9 @@ def test():
         state = env.reset()
         for t in range(max_timesteps):
             action = policy.select_action(state)
+            action = policy.select_action(state)
+
+            torque, _ = calc_torque(state, action)
             state, reward, done, _ = env.step(action)
             ep_reward += reward
             if save_video:

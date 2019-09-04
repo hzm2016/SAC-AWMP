@@ -1,6 +1,7 @@
 import math
 import torch
 import numpy as np
+from roboschool import gym_forward_walker
 
 
 def create_log_gaussian(mean, log_std, t):
@@ -40,19 +41,12 @@ def random_action(action_space):
     return np.asarray(action)
 
 
-def calc_torque(state, action):
-    # state: cos(q), sin(q), dq
-    if action is None:
-        k = 5.0 * np.ones(6)
-        b = 5.0 * np.ones(6)
-        joint_angle_e = 5.0 * np.ones(6)
-    else:
-        k = action[0::3]
-        b = action[1::3]
-        joint_angle_e = action[2::3]
-    joint_angle = state[10:22:2]
-    joint_speed = state[11:22:2]
-    torque = k * (joint_angle_e - joint_angle) - b * joint_speed
+def calc_torque(state, action, k = 1.0, b = 0.0):
+    # action: joint angle_e
+    joint_angle = state[8:20:2]
+    joint_speed = state[9:20:2]
+    torque = k * (action - joint_angle) - b * joint_speed
+    # print('torque: ', torque)
     return torque, joint_angle
 
 

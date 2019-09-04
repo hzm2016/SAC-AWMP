@@ -159,18 +159,18 @@ if not args.eval_only:
                     updates += 1
 
             next_state, reward, done, _ = env.step(action)  # Step
-            xyz = state[0:3]
-            v_xyz = state[3:6]
-            my_reward = 1.0
-            if v_xyz[0] > 0.2:
-                my_reward += 2.0
-            else:
-                my_reward -= -2.0
-
-            pitch = state[7]
-            if abs(xyz[2]) > 0.8 or abs(pitch) > 1.0:
-                my_reward = -2.0
-                done = True
+            # xyz = state[0:3]
+            # v_xyz = state[3:6]
+            # my_reward = 1.0
+            # if v_xyz[0] > 0.2:
+            #     my_reward += 2.0
+            # else:
+            #     my_reward -= -2.0
+            #
+            # pitch = state[7]
+            # if abs(xyz[2]) > 0.8 or abs(pitch) > 1.0:
+            #     my_reward = -2.0
+            #     done = True
 
             # env.render()
             # print('xyz ', state[0:3])
@@ -182,7 +182,7 @@ if not args.eval_only:
             # (https://github.com/openai/spinningup/blob/master/spinup/algos/sac/sac.py)
             mask = 1 if episode_steps == env._max_episode_steps else float(not done)
 
-            memory.push(state, action, my_reward, next_state, mask)  # Append transition to memory
+            memory.push(state, action, reward, next_state, mask)  # Append transition to memory
             state = next_state
         # while not done:
         #     if len(memory) > args.batch_size:
@@ -251,11 +251,11 @@ if not args.eval_only:
 
         if total_numsteps > args.num_steps:
             break
-        if state[0] > 1:
-            final_reward = 2 * state[0]
-        else:
-            final_reward = 0.0
-        memory.add_final_reward(final_reward=final_reward, steps=episode_steps)
+        # if state[0] > 1:
+        #     final_reward = 2 * state[0]
+        # else:
+        #     final_reward = 0.0
+        # memory.add_final_reward(final_reward=final_reward, steps=episode_steps)
 
         writer.add_scalar('reward/train', episode_reward, i_episode)
         # writer.add_scalar('my_reward/train', episode_my_reward, i_episode)

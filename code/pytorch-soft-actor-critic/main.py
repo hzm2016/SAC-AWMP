@@ -14,7 +14,7 @@ parser.add_argument('--env-name', default="RoboschoolWalker2d-v1",
                     help='name of the environment to run')
 parser.add_argument('--policy', default="Gaussian",
                     help='algorithm to use: Gaussian | Deterministic')
-parser.add_argument('--eval', type=bool, default=True,
+parser.add_argument('--eval', type=bool, default=False,
                     help='Evaluates a policy a policy every 10 episode (default:True)')
 parser.add_argument('--gamma', type=float, default=0.99, metavar='G',
                     help='discount factor for reward (default: 0.99)')
