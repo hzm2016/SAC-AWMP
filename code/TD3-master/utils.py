@@ -1,5 +1,6 @@
 import numpy as np
-
+import pandas as pd
+from scipy import signal
 # Code based on: 
 # https://github.com/openai/baselines/blob/master/baselines/deepq/replay_buffer.py
 
@@ -17,6 +18,13 @@ class ReplayBuffer(object):
 		else:
 			self.storage.append(data)
 
+	def add_final_reward(self, final_reward, steps):
+		len_buffer = len(self.storage)
+		for i in range(len_buffer - steps, len_buffer):
+			item = list(self.storage[i])
+			item[3] += final_reward
+			self.storage[i] = tuple(item)
+
 	def sample(self, batch_size):
 		ind = np.random.randint(0, len(self.storage), size=batch_size)
 		x, y, u, r, d = [], [], [], [], []
@@ -30,3 +38,9 @@ class ReplayBuffer(object):
 			d.append(np.array(D, copy=False))
 
 		return np.array(x), np.array(y), np.array(u), np.array(r).reshape(-1, 1), np.array(d).reshape(-1, 1)
+
+
+def read_table(file_name = '../../data/joint_angle.xls'):
+	dfs = pd.read_excel(file_name, sheet_name='joint_angle')
+	data = dfs.values[1:-1, -6:].astype(np.float)
+	return data
