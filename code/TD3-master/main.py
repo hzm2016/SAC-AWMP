@@ -105,9 +105,9 @@ if __name__ == "__main__":
                 args.env_name))
 
         while total_timesteps < args.max_timesteps:
-            pbar.update(total_timesteps - pre_num_steps)
-            pre_num_steps = total_timesteps
             if done:
+                pbar.update(total_timesteps - pre_num_steps)
+                pre_num_steps = total_timesteps
                 if total_timesteps != 0:
                     writer.add_scalar('ave_reward/train', episode_reward, total_timesteps)
                     # print(("Total T: %d Episode Num: %d Episode T: %d Reward: %f") %
@@ -149,18 +149,21 @@ if __name__ == "__main__":
 
             # Perform action
             new_obs, reward, done, _ = env.step(action)
+            episode_reward += reward
+
+            reward -= 0.5
 
             if np.array_equal(new_obs[-2:], np.asarray([1., 1.])):
                 still_steps += 1
             else:
                 still_steps = 0
-            if still_steps > 100:
+            if still_steps > 300:
                 replay_buffer.add_final_reward(-0.5, still_steps - 1)
                 reward -= 0.5
                 done = True
 
             done_bool = 0 if episode_timesteps + 1 == env._max_episode_steps else float(done)
-            episode_reward += reward
+
 
             # Store data in replay buffer
             replay_buffer.add((obs, new_obs, action, reward, done_bool))
