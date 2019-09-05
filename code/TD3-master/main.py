@@ -12,6 +12,7 @@ import cv2
 
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
+from scipy import signal
 
 
 # Runs policy for X episodes and returns average reward
@@ -37,6 +38,8 @@ if __name__ == "__main__":
     parser.add_argument("--policy_name", default="TD3")  # Policy name
     parser.add_argument("--env_name", default="RoboschoolWalker2d-v1")  # OpenAI gym environment name
     parser.add_argument("--eval_only", default=False)
+    parser.add_argument("--method_name", default="human_angle",
+                        help='Name of your method (default: )')  # Name of the method
     parser.add_argument("--save_video", default=False)
     parser.add_argument("--seed", default=0, type=int)  # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--start_timesteps", default=1e4,
@@ -58,10 +61,18 @@ if __name__ == "__main__":
     print("Settings: %s" % (file_name))
     print("---------------------------------------")
 
-    if not os.path.exists("../../results"):
-        os.makedirs("./results")
-    if args.save_models and not os.path.exists("./pytorch_models"):
-        os.makedirs("./pytorch_models")
+    result_path = "../../results"
+    video_dir = '{}/video/{}_{}'.format(result_path, args.env_name, args.method_name)
+    model_dir = '{}/models/TD3/{}_{}'.format(result_path, args.env_name, args.method_name)
+    if args.save_models and not os.path.exists(model_dir):
+        os.makedirs(model_dir)
+    if args.save_video and not os.path.exists(video_dir):
+        os.makedirs(video_dir)
+
+    # if not os.path.exists("../../results"):
+    #     os.makedirs("./results")
+    # if args.save_models and not os.path.exists("./pytorch_models"):
+    #     os.makedirs("./pytorch_models")
 
     env = gym.make(args.env_name)
 
@@ -84,6 +95,15 @@ if __name__ == "__main__":
         policy = DDPG.DDPG(state_dim, action_dim, max_action)
 
     if not args.eval_only:
+
+        log_dir = '{}/runs/{}_TD3_{}_{}'.format(result_path,
+                                                datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
+                                                args.env_name, args.method_name)
+
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+
+
         replay_buffer = utils.ReplayBuffer()
 
         # Evaluate untrained policy
@@ -91,6 +111,18 @@ if __name__ == "__main__":
 
         total_timesteps = 0
         pre_num_steps = total_timesteps
+
+        if 'human_angle' == args.method_name:
+            human_joint_angle = utils.read_table()
+
+            pre_foot_contact = 1
+            foot_contact = 1
+            foot_contact_vec = np.asarray([1, 1, 1])
+            delay_num = foot_contact_vec.shape[0] - 1
+            gait_num = 0
+            joint_angle = np.zeros((0, 7))
+            idx_angle = np.zeros(0)
+
         timesteps_since_eval = 0
         episode_num = 0
         done = True
@@ -98,11 +130,7 @@ if __name__ == "__main__":
         best_reward = 0.0
 
         # TesnorboardX
-        result_path = '../../results'
-        writer = SummaryWriter(
-            logdir=result_path + '/runs/{}_TD3_{}'.format(
-                datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
-                args.env_name))
+        writer = SummaryWriter(logdir=log_dir)
 
         while total_timesteps < args.max_timesteps:
             if done:
@@ -128,8 +156,8 @@ if __name__ == "__main__":
                         best_reward = avg_reward
                         print(("Total T: %d Episode Num: %d Episode T: %d Reward: %f") %
                               (total_timesteps, episode_num, episode_timesteps, avg_reward))
-                        if args.save_models: policy.save(file_name, directory="./pytorch_models")
-                        np.save("./results/%s" % (file_name), evaluations)
+                        if args.save_models: policy.save(file_name, directory=model_dir)
+                        np.save(log_dir + "/%s" % (file_name), evaluations)
 
                 # Reset environment
                 obs = env.reset()
@@ -137,6 +165,14 @@ if __name__ == "__main__":
                 episode_reward = 0
                 episode_timesteps = 0
                 episode_num += 1
+
+                if 'human_angle' == args.method_name:
+                    pre_foot_contact = 1
+                    foot_contact = 1
+                    foot_contact_vec = np.asarray([1, 1, 1])
+                    gait_num = 0
+                    joint_angle = np.zeros((0, 7))
+                    idx_angle = np.zeros(0)
 
             # Select action randomly or according to policy
             if total_timesteps < args.start_timesteps:
@@ -151,6 +187,31 @@ if __name__ == "__main__":
             new_obs, reward, done, _ = env.step(action)
             episode_reward += reward
 
+            utils.fifo_list(foot_contact_vec, new_obs[-2])
+            if 'human_angle' == args.method_name:
+                if 0 == np.std(foot_contact_vec):
+                    foot_contact = np.mean(foot_contact_vec)
+                if 1 == (foot_contact - pre_foot_contact):
+                    if joint_angle.shape[0] > 20:
+                        gait_num += 1
+                        if gait_num >= 2:
+                            joint_angle_sampled = signal.resample(joint_angle[:-delay_num, :-1],
+                                                                  num=human_joint_angle.shape[0])
+                            coefficient = utils.calc_cos_similarity(human_joint_angle,
+                                                                    joint_angle_sampled)
+                            # print('gait_num:', gait_num, 'time steps in a gait: ', joint_angle.shape[0],
+                            #       'coefficient: ', coefficient)
+                            replay_buffer.add_final_reward(coefficient, joint_angle.shape[0] - delay_num,
+                                                           delay= delay_num)
+                            replay_buffer.add_specific_reward(0.05, idx_angle)
+                            idx_angle = np.r_[idx_angle, joint_angle[:-delay_num, -1]]
+                    joint_angle = joint_angle[-delay_num:]
+                pre_foot_contact = foot_contact
+                joint_angle_obs = np.zeros((1, 7))
+                joint_angle_obs[0, :-1] = obs[8:20:2]
+                joint_angle_obs[-1] = total_timesteps
+                joint_angle = np.r_[joint_angle, joint_angle_obs]
+
             reward -= 0.5
 
             if np.array_equal(new_obs[-2:], np.asarray([1., 1.])):
@@ -161,6 +222,7 @@ if __name__ == "__main__":
                 replay_buffer.add_final_reward(-0.5, still_steps - 1)
                 reward -= 0.5
                 done = True
+
 
             done_bool = 0 if episode_timesteps + 1 == env._max_episode_steps else float(done)
 
@@ -178,18 +240,18 @@ if __name__ == "__main__":
 
         # Final evaluation
         evaluations.append(evaluate_policy(policy))
-        if args.save_models: policy.save("%s" % (file_name), directory="./pytorch_models")
-        np.save("./results/%s" % (file_name), evaluations)
+        if args.save_models: policy.save("%s" % (file_name), directory=model_dir)
+        np.save(log_dir + "/%s" % (file_name), evaluations)
 
-    policy.load("%s" % (file_name), directory="./pytorch_models")
+    policy.load("%s" % (file_name), directory=model_dir)
     if args.save_video:
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        video_name = '../../results/video/{}_TD3_{}.mp4'.format(
+        video_name = video_dir + '/{}_TD3_{}.mp4'.format(
             datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
             args.env_name)
         out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (640, 480))
         print(video_name)
-    for i in range(3):
+    for i in range(1):
         obs = env.reset()
         done = False
         while not done:
