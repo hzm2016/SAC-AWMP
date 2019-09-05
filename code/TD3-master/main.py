@@ -42,7 +42,7 @@ if __name__ == "__main__":
     parser.add_argument("--start_timesteps", default=1e4,
                         type=int)  # How many time steps purely random policy is run for
     parser.add_argument("--eval_freq", default=1e3, type=float)  # How often (time steps) we evaluate
-    parser.add_argument("--max_timesteps", default=1e6, type=float)  # Max time steps to run environment for
+    parser.add_argument("--max_timesteps", default=3.1e5, type=float)  # Max time steps to run environment for
     parser.add_argument("--save_models", default=True)  # Whether or not models are saved
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
     parser.add_argument("--batch_size", default=100, type=int)  # Batch size for both actor and critic
@@ -187,7 +187,7 @@ if __name__ == "__main__":
         video_name = '../../results/video/{}_TD3_{}.mp4'.format(
             datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
             args.env_name)
-        out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (600, 400))
+        out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (640, 480))
         print(video_name)
     for i in range(3):
         obs = env.reset()
