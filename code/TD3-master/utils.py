@@ -27,12 +27,12 @@ class ReplayBuffer(object):
 			item[3] += final_reward
 			self.storage[i] = tuple(item)
 
-	def add_specific_reward(self, reward, idx_vec):
-		for idx in idx_vec:
-			idx = int(idx)
-			item = list(self.storage[idx])
-			item[3] += reward
-			self.storage[idx] = tuple(item)
+	def add_specific_reward(self, reward_vec, idx_vec):
+		for i in range(len(idx_vec)):
+			time_step_num = int(idx_vec[i])
+			item = list(self.storage[time_step_num])
+			item[3] += reward_vec[i]
+			self.storage[time_step_num] = tuple(item)
 
 	def sample(self, batch_size):
 		ind = np.random.randint(0, len(self.storage), size=batch_size)
@@ -50,7 +50,7 @@ class ReplayBuffer(object):
 
 
 def read_table(file_name = '../../data/joint_angle.xls'):
-	dfs = pd.read_excel(file_name, sheet_name='joint_angle')
+	dfs = pd.read_excel(file_name, sheet_name='walk_fast')
 	data = dfs.values[1:-1, -6:].astype(np.float)
 	return data
 

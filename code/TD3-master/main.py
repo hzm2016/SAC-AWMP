@@ -122,6 +122,7 @@ if __name__ == "__main__":
             gait_num = 0
             joint_angle = np.zeros((0, 7))
             idx_angle = np.zeros(0)
+            reward_angle = np.zeros(0)
 
         timesteps_since_eval = 0
         episode_num = 0
@@ -173,6 +174,7 @@ if __name__ == "__main__":
                     gait_num = 0
                     joint_angle = np.zeros((0, 7))
                     idx_angle = np.zeros(0)
+                    reward_angle = np.zeros(0)
 
             # Select action randomly or according to policy
             if total_timesteps < args.start_timesteps:
@@ -203,8 +205,10 @@ if __name__ == "__main__":
                             #       'coefficient: ', coefficient)
                             replay_buffer.add_final_reward(coefficient, joint_angle.shape[0] - delay_num,
                                                            delay= delay_num)
-                            replay_buffer.add_specific_reward(0.05, idx_angle)
+                            replay_buffer.add_specific_reward(reward_angle, idx_angle)
                             idx_angle = np.r_[idx_angle, joint_angle[:-delay_num, -1]]
+                            reward_angle = np.r_[reward_angle,
+                                                 0.05 * np.ones(joint_angle[:-delay_num, -1].shape[0])]
                     joint_angle = joint_angle[-delay_num:]
                 pre_foot_contact = foot_contact
                 joint_angle_obs = np.zeros((1, 7))
@@ -251,7 +255,7 @@ if __name__ == "__main__":
             args.env_name)
         out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (640, 480))
         print(video_name)
-    for i in range(1):
+    for i in range(3):
         obs = env.reset()
         done = False
         while not done:
