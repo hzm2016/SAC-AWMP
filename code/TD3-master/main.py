@@ -16,7 +16,7 @@ from scipy import signal
 
 
 # Runs policy for X episodes and returns average reward
-def evaluate_policy(policy, eval_episodes=10):
+def evaluate_policy(env, policy, eval_episodes=10):
     avg_reward = 0.
     for _ in range(eval_episodes):
         obs = env.reset()
@@ -33,19 +33,19 @@ def evaluate_policy(policy, eval_episodes=10):
     return avg_reward
 
 
-if __name__ == "__main__":
+def main(method_name = 'human_angle'):
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default="TD3")  # Policy name
     parser.add_argument("--env_name", default="RoboschoolWalker2d-v1")  # OpenAI gym environment name
     parser.add_argument("--eval_only", default=False)
-    parser.add_argument("--method_name", default="human_angle",
+    parser.add_argument("--method_name", default=method_name,
                         help='Name of your method (default: )')  # Name of the method
     parser.add_argument("--save_video", default=False)
     parser.add_argument("--seed", default=0, type=int)  # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--start_timesteps", default=1e4,
                         type=int)  # How many time steps purely random policy is run for
-    parser.add_argument("--eval_freq", default=1e3, type=float)  # How often (time steps) we evaluate
-    parser.add_argument("--max_timesteps", default=3.1e5, type=float)  # Max time steps to run environment for
+    parser.add_argument("--eval_freq", default=5e3, type=float)  # How often (time steps) we evaluate
+    parser.add_argument("--max_timesteps", default=3e5, type=float)  # Max time steps to run environment for
     parser.add_argument("--save_models", default=True)  # Whether or not models are saved
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
     parser.add_argument("--batch_size", default=100, type=int)  # Batch size for both actor and critic
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     args = parser.parse_args()
 
-    file_name = "%s_%s_%s" % (args.policy_name, args.env_name, str(args.seed))
+    file_name = "%s_%s_%s_%s" % (args.policy_name, args.env_name, str(args.seed), args.method_name)
     print("---------------------------------------")
     print("Settings: %s" % (file_name))
     print("---------------------------------------")
@@ -103,16 +103,17 @@ if __name__ == "__main__":
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
 
-
         replay_buffer = utils.ReplayBuffer()
 
         # Evaluate untrained policy
-        evaluations = [evaluate_policy(policy)]
+        evaluations = [evaluate_policy(env, policy)]
 
         total_timesteps = 0
         pre_num_steps = total_timesteps
 
         if 'human_angle' == args.method_name:
+            still_steps = 0
+
             human_joint_angle = utils.read_table()
 
             pre_foot_contact = 1
@@ -150,7 +151,7 @@ if __name__ == "__main__":
                 # Evaluate episode
                 if timesteps_since_eval >= args.eval_freq:
                     timesteps_since_eval %= args.eval_freq
-                    avg_reward = evaluate_policy(policy)
+                    avg_reward = evaluate_policy(env, policy)
                     evaluations.append(avg_reward)
                     writer.add_scalar('ave_reward/test', avg_reward, total_timesteps)
                     if best_reward < avg_reward:
@@ -158,7 +159,8 @@ if __name__ == "__main__":
                         print(("Total T: %d Episode Num: %d Episode T: %d Reward: %f") %
                               (total_timesteps, episode_num, episode_timesteps, avg_reward))
                         if args.save_models: policy.save(file_name, directory=model_dir)
-                        np.save(log_dir + "/%s" % (file_name), evaluations)
+                        np.save(log_dir + "/test_accuracy", evaluations)
+                        utils.write_table(log_dir + "/test_accuracy", np.asarray(evaluations))
 
                 # Reset environment
                 obs = env.reset()
@@ -168,6 +170,7 @@ if __name__ == "__main__":
                 episode_num += 1
 
                 if 'human_angle' == args.method_name:
+                    still_steps = 0
                     pre_foot_contact = 1
                     foot_contact = 1
                     foot_contact_vec = np.asarray([1, 1, 1])
@@ -189,8 +192,8 @@ if __name__ == "__main__":
             new_obs, reward, done, _ = env.step(action)
             episode_reward += reward
 
-            utils.fifo_list(foot_contact_vec, new_obs[-2])
             if 'human_angle' == args.method_name:
+                utils.fifo_list(foot_contact_vec, new_obs[-2])
                 if 0 == np.std(foot_contact_vec):
                     foot_contact = np.mean(foot_contact_vec)
                 if 1 == (foot_contact - pre_foot_contact):
@@ -204,7 +207,7 @@ if __name__ == "__main__":
                             # print('gait_num:', gait_num, 'time steps in a gait: ', joint_angle.shape[0],
                             #       'coefficient: ', coefficient)
                             replay_buffer.add_final_reward(coefficient, joint_angle.shape[0] - delay_num,
-                                                           delay= delay_num)
+                                                           delay=delay_num)
                             replay_buffer.add_specific_reward(reward_angle, idx_angle)
                             idx_angle = np.r_[idx_angle, joint_angle[:-delay_num, -1]]
                             reward_angle = np.r_[reward_angle,
@@ -216,20 +219,18 @@ if __name__ == "__main__":
                 joint_angle_obs[-1] = total_timesteps
                 joint_angle = np.r_[joint_angle, joint_angle_obs]
 
-            reward -= 0.5
-
-            if np.array_equal(new_obs[-2:], np.asarray([1., 1.])):
-                still_steps += 1
-            else:
-                still_steps = 0
-            if still_steps > 300:
-                replay_buffer.add_final_reward(-0.5, still_steps - 1)
                 reward -= 0.5
-                done = True
 
+                if np.array_equal(new_obs[-2:], np.asarray([1., 1.])):
+                    still_steps += 1
+                else:
+                    still_steps = 0
+                if still_steps > 300:
+                    replay_buffer.add_final_reward(-0.5, still_steps - 1)
+                    reward -= 0.5
+                    done = True
 
             done_bool = 0 if episode_timesteps + 1 == env._max_episode_steps else float(done)
-
 
             # Store data in replay buffer
             replay_buffer.add((obs, new_obs, action, reward, done_bool))
@@ -240,33 +241,42 @@ if __name__ == "__main__":
             total_timesteps += 1
             timesteps_since_eval += 1
 
-
-
         # Final evaluation
-        evaluations.append(evaluate_policy(policy))
+        evaluations.append(evaluate_policy(env, policy))
         if args.save_models: policy.save("%s" % (file_name), directory=model_dir)
-        np.save(log_dir + "/%s" % (file_name), evaluations)
+        np.save(log_dir + "/test_accuracy", evaluations)
+        utils.write_table(log_dir + "/test_accuracy", np.asarray(evaluations))
 
-    policy.load("%s" % (file_name), directory=model_dir)
-    if args.save_video:
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        video_name = video_dir + '/{}_TD3_{}.mp4'.format(
-            datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
-            args.env_name)
-        out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (640, 480))
-        print(video_name)
-    for i in range(3):
-        obs = env.reset()
-        done = False
-        while not done:
-            action = policy.select_action(np.array(obs))
-            obs, reward, done, _ = env.step(action)
-            if args.save_video:
-                img = env.render(mode='rgb_array')
-                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-                out_video.write(img)
-            else:
-                env.render()
-    env.close()
-    if args.save_video:
-        out_video.release()
+        env.close()
+    else:
+        policy.load("%s" % (file_name), directory=model_dir)
+
+        if args.save_video:
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            video_name = video_dir + '/{}_TD3_{}.mp4'.format(
+                datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
+                args.env_name)
+            out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (640, 480))
+            print(video_name)
+        for i in range(3):
+            obs = env.reset()
+            done = False
+            while not done:
+                action = policy.select_action(np.array(obs))
+                obs, reward, done, _ = env.step(action)
+                if args.save_video:
+                    img = env.render(mode='rgb_array')
+                    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                    out_video.write(img)
+                else:
+                    env.render()
+        env.close()
+        if args.save_video:
+            out_video.release()
+
+if __name__ == "__main__":
+    method_name_vec = ['', 'human_angle']
+    for r in range(2):
+        for c in range(5):
+            print('r: {}, c: {}.'.format(r, c))
+            main(method_name = method_name_vec[r])
