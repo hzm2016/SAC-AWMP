@@ -5,8 +5,6 @@ import argparse
 import os
 import datetime
 import TD3
-import OurDDPG
-import DDPG
 import cv2
 import sys
 sys.path.insert(0,'../')
@@ -85,12 +83,7 @@ def main(method_name = 'human_angle'):
     max_action = float(env.action_space.high[0])
 
     # Initialize policy
-    if args.policy_name == "TD3":
-        policy = TD3.TD3(state_dim, action_dim, max_action)
-    elif args.policy_name == "OurDDPG":
-        policy = OurDDPG.DDPG(state_dim, action_dim, max_action)
-    elif args.policy_name == "DDPG":
-        policy = DDPG.DDPG(state_dim, action_dim, max_action)
+    policy = TD3.TD3(state_dim, action_dim, max_action)
 
     if not args.eval_only:
 
@@ -157,7 +150,9 @@ def main(method_name = 'human_angle'):
                         best_reward = avg_reward
                         print(("Best reward! Total T: %d Episode Num: %d Episode T: %d Reward: %f") %
                               (total_timesteps, episode_num, episode_timesteps, avg_reward))
-                        if args.save_models: policy.save(file_name, directory=model_dir)
+                        if args.save_models:
+                            policy.save(file_name, directory=model_dir)
+                            policy.save(file_name, directory=log_dir)
                         np.save(log_dir + "/test_accuracy", evaluations)
                         utils.write_table(log_dir + "/test_accuracy", np.asarray(evaluations))
                     else:
@@ -247,7 +242,6 @@ def main(method_name = 'human_angle'):
 
         # Final evaluation
         evaluations.append(evaluate_policy(env, policy))
-        if args.save_models: policy.save("%s" % (file_name), directory=model_dir)
         np.save(log_dir + "/test_accuracy", evaluations)
         utils.write_table(log_dir + "/test_accuracy", np.asarray(evaluations))
 
@@ -280,7 +274,7 @@ def main(method_name = 'human_angle'):
 if __name__ == "__main__":
     # main()
     method_name_vec = ['', 'still_steps', 'human_angle_still_steps']
-    for r in [3]:
-        for c in range(5):
+    for r in range(3):
+        for c in range(1):
             print('r: {}, c: {}.'.format(r, c))
             main(method_name = method_name_vec[r])
