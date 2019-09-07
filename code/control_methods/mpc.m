@@ -1,1 +1,0 @@
-openExample('mpc/mpcmiso')
