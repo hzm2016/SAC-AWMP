@@ -1,9 +1,10 @@
 import torch
 import torch.nn.functional as F
 from torch.optim import Adam
-from code.utils.utils import soft_update, hard_update
-from code.SAC.model import GaussianPolicy, QNetwork, DeterministicPolicy
-
+import sys
+sys.path.insert(0,'../')
+from utils.utils import soft_update, hard_update
+from model import GaussianPolicy, QNetwork, DeterministicPolicy
 
 class SAC(object):
     def __init__(self, num_inputs, action_space, args):

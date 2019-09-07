@@ -8,8 +8,9 @@ import TD3
 import OurDDPG
 import DDPG
 import cv2
-
-from ..utils import utils
+import sys
+sys.path.insert(0,'../')
+from utils import utils
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 from scipy import signal
@@ -109,8 +110,6 @@ def main(method_name = 'human_angle'):
         pre_num_steps = total_timesteps
 
         if 'human_angle' == args.method_name:
-            still_steps = 0
-
             human_joint_angle = utils.read_table()
 
             pre_foot_contact = 1
@@ -121,6 +120,9 @@ def main(method_name = 'human_angle'):
             joint_angle = np.zeros((0, 7))
             idx_angle = np.zeros(0)
             reward_angle = np.zeros(0)
+
+        if 'still_steps' in args.method_name:
+            still_steps = 0
 
         timesteps_since_eval = 0
         episode_num = 0
@@ -169,8 +171,7 @@ def main(method_name = 'human_angle'):
                 episode_timesteps = 0
                 episode_num += 1
 
-                if 'human_angle' == args.method_name:
-                    still_steps = 0
+                if 'human_angle' in args.method_name:
                     pre_foot_contact = 1
                     foot_contact = 1
                     foot_contact_vec = np.asarray([1, 1, 1])
@@ -178,6 +179,8 @@ def main(method_name = 'human_angle'):
                     joint_angle = np.zeros((0, 7))
                     idx_angle = np.zeros(0)
                     reward_angle = np.zeros(0)
+                if 'still_steps' in args.method_name:
+                    still_steps = 0
 
             # Select action randomly or according to policy
             if total_timesteps < args.start_timesteps:
@@ -192,7 +195,7 @@ def main(method_name = 'human_angle'):
             new_obs, reward, done, _ = env.step(action)
             episode_reward += reward
 
-            if 'human_angle' == args.method_name:
+            if 'human_angle' in args.method_name:
                 utils.fifo_list(foot_contact_vec, new_obs[-2])
                 if 0 == np.std(foot_contact_vec):
                     foot_contact = np.mean(foot_contact_vec)
@@ -221,6 +224,7 @@ def main(method_name = 'human_angle'):
 
                 reward -= 0.5
 
+            if 'still_steps' in args.method_name:
                 if np.array_equal(new_obs[-2:], np.asarray([1., 1.])):
                     still_steps += 1
                 else:
@@ -275,7 +279,7 @@ def main(method_name = 'human_angle'):
 
 if __name__ == "__main__":
     # main()
-    method_name_vec = ['', 'human_angle']
+    method_name_vec = ['', 'still_steps', 'human_angle_still_steps']
     for r in [1]:
         for c in range(5):
             print('r: {}, c: {}.'.format(r, c))
