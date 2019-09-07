@@ -246,8 +246,6 @@ def main(method_name = 'human_angle'):
         np.save(log_dir + "/test_accuracy", evaluations)
         utils.write_table(log_dir + "/test_accuracy", np.asarray(evaluations))
 
-        env.close()
-
     policy.load("%s" % (file_name), directory=model_dir)
 
     if args.save_video:
