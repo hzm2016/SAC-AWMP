@@ -280,7 +280,7 @@ def main(method_name = 'human_angle'):
 if __name__ == "__main__":
     # main()
     method_name_vec = ['', 'still_steps', 'human_angle_still_steps']
-    for r in [1]:
+    for r in [3]:
         for c in range(5):
             print('r: {}, c: {}.'.format(r, c))
             main(method_name = method_name_vec[r])
