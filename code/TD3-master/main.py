@@ -69,10 +69,6 @@ def main(method_name = 'human_angle'):
     if args.save_video and not os.path.exists(video_dir):
         os.makedirs(video_dir)
 
-    # if not os.path.exists("../../results"):
-    #     os.makedirs("./results")
-    # if args.save_models and not os.path.exists("./pytorch_models"):
-    #     os.makedirs("./pytorch_models")
 
     env = gym.make(args.env_name)
 
@@ -128,7 +124,7 @@ def main(method_name = 'human_angle'):
         timesteps_since_eval = 0
         episode_num = 0
         done = True
-        pbar = tqdm(total=args.max_timesteps, initial=total_timesteps)
+        pbar = tqdm(total=args.max_timesteps, initial=total_timesteps, position=0, leave=True)
         best_reward = 0.0
 
         # TesnorboardX
@@ -156,11 +152,14 @@ def main(method_name = 'human_angle'):
                     writer.add_scalar('ave_reward/test', avg_reward, total_timesteps)
                     if best_reward < avg_reward:
                         best_reward = avg_reward
-                        print(("Total T: %d Episode Num: %d Episode T: %d Reward: %f") %
+                        print(("Best reward! Total T: %d Episode Num: %d Episode T: %d Reward: %f") %
                               (total_timesteps, episode_num, episode_timesteps, avg_reward))
                         if args.save_models: policy.save(file_name, directory=model_dir)
                         np.save(log_dir + "/test_accuracy", evaluations)
                         utils.write_table(log_dir + "/test_accuracy", np.asarray(evaluations))
+                    else:
+                        print(("Total T: %d Episode Num: %d Episode T: %d Reward: %f") %
+                              (total_timesteps, episode_num, episode_timesteps, avg_reward))
 
                 # Reset environment
                 obs = env.reset()
@@ -225,9 +224,9 @@ def main(method_name = 'human_angle'):
                     still_steps += 1
                 else:
                     still_steps = 0
-                if still_steps > 300:
-                    replay_buffer.add_final_reward(-0.5, still_steps - 1)
-                    reward -= 0.5
+                if still_steps > 100:
+                    replay_buffer.add_final_reward(-2.0, still_steps - 1)
+                    reward -= 2.0
                     done = True
 
             done_bool = 0 if episode_timesteps + 1 == env._max_episode_steps else float(done)
@@ -248,35 +247,37 @@ def main(method_name = 'human_angle'):
         utils.write_table(log_dir + "/test_accuracy", np.asarray(evaluations))
 
         env.close()
-    else:
-        policy.load("%s" % (file_name), directory=model_dir)
 
-        if args.save_video:
-            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-            video_name = video_dir + '/{}_TD3_{}.mp4'.format(
-                datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
-                args.env_name)
-            out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (640, 480))
-            print(video_name)
-        for i in range(3):
-            obs = env.reset()
-            done = False
-            while not done:
-                action = policy.select_action(np.array(obs))
-                obs, reward, done, _ = env.step(action)
-                if args.save_video:
-                    img = env.render(mode='rgb_array')
-                    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-                    out_video.write(img)
-                else:
-                    env.render()
-        env.close()
-        if args.save_video:
-            out_video.release()
+    policy.load("%s" % (file_name), directory=model_dir)
+
+    if args.save_video:
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        video_name = video_dir + '/{}_TD3_{}.mp4'.format(
+            datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
+            args.env_name)
+        out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (640, 480))
+        print(video_name)
+    for i in range(1):
+        obs = env.reset()
+        done = False
+        while not done:
+            action = policy.select_action(np.array(obs))
+            obs, reward, done, _ = env.step(action)
+            if args.save_video:
+                img = env.render(mode='rgb_array')
+                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                out_video.write(img)
+            else:
+                env.render()
+    env.close()
+    if args.save_video:
+        out_video.release()
+
 
 if __name__ == "__main__":
+    # main()
     method_name_vec = ['', 'human_angle']
-    for r in range(2):
+    for r in [1]:
         for c in range(5):
             print('r: {}, c: {}.'.format(r, c))
             main(method_name = method_name_vec[r])
