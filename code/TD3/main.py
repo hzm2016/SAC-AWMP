@@ -5,6 +5,7 @@ import argparse
 import os
 import datetime
 import TD3
+import ATD3
 import cv2
 import sys
 sys.path.insert(0,'../')
@@ -32,10 +33,11 @@ def evaluate_policy(env, policy, eval_episodes=10):
     return avg_reward
 
 
-def main(method_name = 'human_angle'):
+def main(method_name = '', policy_name = 'TD3'):
     parser = argparse.ArgumentParser()
-    parser.add_argument("--policy_name", default="TD3")  # Policy name
+    parser.add_argument("--policy_name", default=policy_name)  # Policy name
     parser.add_argument("--env_name", default="RoboschoolWalker2d-v1")  # OpenAI gym environment name
+    parser.add_argument("--log_path", default='runs/ATD3_walker2d')
     parser.add_argument("--eval_only", default=False)
     parser.add_argument("--method_name", default=method_name,
                         help='Name of your method (default: )')  # Name of the method
@@ -83,13 +85,16 @@ def main(method_name = 'human_angle'):
     max_action = float(env.action_space.high[0])
 
     # Initialize policy
-    policy = TD3.TD3(state_dim, action_dim, max_action)
+    if 'TD3' == args.policy_name:
+        policy = TD3.TD3(state_dim, action_dim, max_action)
+    elif 'ATD3' == args.policy_name:
+        policy = ATD3.ATD3(state_dim, action_dim, max_action)
 
     if not args.eval_only:
 
-        log_dir = '{}/runs/{}_TD3_{}_{}'.format(result_path,
+        log_dir = '{}/{}/{}_{}_{}_{}'.format(result_path, args.log_path,
                                                 datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
-                                                args.env_name, args.method_name)
+                                                args.policy_name, args.env_name, args.method_name)
 
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
@@ -216,8 +221,7 @@ def main(method_name = 'human_angle'):
                 joint_angle_obs[0, :-1] = obs[8:20:2]
                 joint_angle_obs[-1] = total_timesteps
                 joint_angle = np.r_[joint_angle, joint_angle_obs]
-
-                reward -= 0.5
+                # reward -= 0.5
 
             if 'still_steps' in args.method_name:
                 if np.array_equal(new_obs[-2:], np.asarray([1., 1.])):
@@ -225,8 +229,8 @@ def main(method_name = 'human_angle'):
                 else:
                     still_steps = 0
                 if still_steps > 100:
-                    replay_buffer.add_final_reward(-2.0, still_steps - 1)
-                    reward -= 2.0
+                    replay_buffer.add_final_reward(-1.0, still_steps - 1)
+                    reward -= 1.0
                     done = True
 
             done_bool = 0 if episode_timesteps + 1 == env._max_episode_steps else float(done)
@@ -273,9 +277,11 @@ def main(method_name = 'human_angle'):
 
 if __name__ == "__main__":
     # main()
-    method_name_vec = ['', 'still_steps', 'human_angle_still_steps', 'human_angle_still_steps_ATD3']
-    for r in [3]:
-    # for r in range(3):
-        for c in range(10):
+    method_name_vec = ['still_steps', 'human_angle_still_steps', 'human_angle_still_steps_ATD3']
+    policy_name_vec = ['TD3', 'TD3', 'ATD3']
+    # for r in [1]:
+    for r in range(3):
+        for c in range(1):
             print('r: {}, c: {}.'.format(r, c))
-            main(method_name = method_name_vec[r])
+            main(method_name=method_name_vec[r],
+                 policy_name = policy_name_vec[r])

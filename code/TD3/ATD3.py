@@ -65,7 +65,7 @@ class Critic(nn.Module):
 		return x1 
 
 
-class TD3(object):
+class ATD3(object):
 	def __init__(self, state_dim, action_dim, max_action):
 		self.actor = Actor(state_dim, action_dim, max_action).to(device)
 		self.actor_target = Actor(state_dim, action_dim, max_action).to(device)
@@ -116,7 +116,8 @@ class TD3(object):
 			current_Q1, current_Q2 = self.critic(state, action)
 
 			# Compute critic loss
-			critic_loss = F.mse_loss(current_Q1, target_Q) + F.mse_loss(current_Q2, target_Q)
+			critic_loss = F.mse_loss(current_Q1, target_Q) + F.mse_loss(current_Q2, target_Q) - \
+						  0.1 * F.mse_loss(current_Q1, current_Q2)
 
 			# Optimize the critic
 			self.critic_optimizer.zero_grad()
