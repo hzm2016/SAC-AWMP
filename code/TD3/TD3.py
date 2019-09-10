@@ -104,6 +104,11 @@ class TD3(object):
 
 			# Compute the target Q value
 			target_Q1, target_Q2 = self.critic_target(next_state, next_action)
+			# if torch.rand(1) > 0.5:
+			# 	target_Q = target_Q1
+			# else:
+			# 	target_Q = target_Q2
+
 			target_Q = torch.min(target_Q1, target_Q2)
 			target_Q = reward + (done * discount * target_Q).detach()
 
@@ -111,7 +116,8 @@ class TD3(object):
 			current_Q1, current_Q2 = self.critic(state, action)
 
 			# Compute critic loss
-			critic_loss = F.mse_loss(current_Q1, target_Q) + F.mse_loss(current_Q2, target_Q) 
+			critic_loss = F.mse_loss(current_Q1, target_Q) + F.mse_loss(current_Q2, target_Q) - \
+						  0.1 * F.mse_loss(current_Q1, current_Q2)
 
 			# Optimize the critic
 			self.critic_optimizer.zero_grad()

@@ -102,7 +102,7 @@ def main(method_name = 'human_angle'):
         total_timesteps = 0
         pre_num_steps = total_timesteps
 
-        if 'human_angle' == args.method_name:
+        if 'human_angle' in args.method_name:
             human_joint_angle = utils.read_table()
 
             pre_foot_contact = 1
@@ -273,8 +273,9 @@ def main(method_name = 'human_angle'):
 
 if __name__ == "__main__":
     # main()
-    method_name_vec = ['', 'still_steps', 'human_angle_still_steps']
-    for r in range(3):
-        for c in range(1):
+    method_name_vec = ['', 'still_steps', 'human_angle_still_steps', 'human_angle_still_steps_ATD3']
+    for r in [3]:
+    # for r in range(3):
+        for c in range(10):
             print('r: {}, c: {}.'.format(r, c))
             main(method_name = method_name_vec[r])
