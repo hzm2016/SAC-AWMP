@@ -16,13 +16,15 @@ from code.utils.utils import *
 from scipy import stats, signal
 
 
-def plot_error_line(t, acc_mean_mat, acc_std_mat, legend_vec = None,
+def plot_error_line(t, acc_mean_mat, acc_std_mat = None, legend_vec = None,
                     marker_vec=['o', '+', 'v', 'x', 'd', '*', ''],
                     line_vec=['-', '--', '-.', ':', '-', '--', '-.'],
                     line_width_vec=[2, 2, 2, 2, 2, 2, 2], marker_size=5
                     ):
+    if acc_std_mat is None:
+        acc_std_mat = 0 * acc_mean_mat
     # acc_mean_mat, acc_std_mat: rows: methods, cols: time
-    color_vec = plt.cm.Dark2(np.arange(acc_mean_mat.shape[0]))
+    color_vec = plt.cm.Dark2(np.arange(8))
     for r in range(acc_mean_mat.shape[0]):
         plt.plot(t, acc_mean_mat[r, :], linestyle=line_vec[r],
                  marker=marker_vec[r], markersize=marker_size, linewidth=line_width_vec[r],
@@ -30,21 +32,28 @@ def plot_error_line(t, acc_mean_mat, acc_std_mat, legend_vec = None,
         plt.fill_between(t, acc_mean_mat[r, :] - acc_std_mat[r, :],
                          acc_mean_mat[r, :] + acc_std_mat[r, :], alpha=0.1, color=color_vec[r])
     if legend_vec is not None:
-        plt.legend(legend_vec, loc = 'lower left')
+        plt.legend(legend_vec, loc = 'lower right')
 
 def plot_test_acc():
     method_name_vec = ['', 'human_angle_still_steps', 'human_angle_still_steps_ATD3']
     # method_name_vec = ['ATD3', 'TD3']
     acc_mat = np.zeros((len(method_name_vec), 10, 61))
     for r in range(len(method_name_vec)):
-        file_name_vec = glob.glob('runs/ATD3_results/' + '*v1_' + method_name_vec[r] + '/test_accuracy.xls')
+
         # file_name_vec = glob.glob('runs/ATD_results2/' + '*' + method_name_vec[r] + '*/test_accuracy.xls')
         for c in range(acc_mat.shape[1]):
-            dfs = pd.read_excel(file_name_vec[c])
-            acc_mat[r, c, :] = smooth(dfs.values.astype(np.float)[:, 0], weight=0.0)
+            file_name = 'runs/ATD3_results/TD3_' + method_name_vec[r] + '_{}/test_accuracy.xls'.format(c+1)
+            print(file_name)
+            dfs = pd.read_excel(file_name)
+            acc_mat[r, c, :] = dfs.values.astype(np.float)[:, 0]
 
     max_acc = np.max(acc_mat, axis=-1)
-    print(max_acc)
+    print('Max acc, mean: {}, std: {}'.format(np.mean(max_acc, axis=-1), np.std(max_acc, axis=-1)))
+
+    for r in range(acc_mat.shape[0]):
+        for c in range(acc_mat.shape[1]):
+            acc_mat[r, c, :] = smooth(acc_mat[r, c, :], weight=0.8)
+
     mean_acc = np.mean(acc_mat, axis=1)
     std_acc = np.std(acc_mat, axis=1)
     # kernel = np.ones((1, 1), np.float32) / 1
@@ -111,9 +120,10 @@ def plot_gait():
     method_name_vec = ['', 'human_angle_still_steps', 'human_angle_still_steps_ATD3']
 
     for i in range(len(method_name_vec)):
-        file_name_vec = glob.glob('video/*v1_' + method_name_vec[i] + '/*.xls')
+        file_name_vec = glob.glob('video/*v1_' + method_name_vec[i] + '/*state.xls')
         joint_angle_mean_mat = np.zeros((0, 6, 100))
         for j in range(len(file_name_vec)):
+            print(file_name_vec[j])
             joint_angle_mean_temp, _ = read_joint_angle_gait(file_name_vec[j])
             if joint_angle_mean_temp is not None:
                 joint_angle_mean_mat = np.r_[joint_angle_mean_mat, joint_angle_mean_temp.reshape(1, 6, 100)]
@@ -124,7 +134,6 @@ def plot_gait():
         joint_angle_std[i+1] = np.std(joint_angle_mean_mat, axis=0)
 
     joint_angle_mean = joint_angle_mean - joint_angle_mean[..., [0]]
-
     fig = plt.figure(figsize=(10, 7))
     plt.rcParams.update({'font.size': 15})
     t = np.linspace(1, 100, 100)
@@ -139,6 +148,37 @@ def plot_gait():
     fig.legend(['Human', 'TD3', 'Gait reward + TD3', 'Gait reward + ATD3'],
                loc='lower center', ncol=4, bbox_to_anchor=(0.49, 0.96))
     plt.savefig('images/joint_angle.pdf', bbox_inches='tight', pad_inches=0.15)
+    plt.show()
+
+
+def plot_Q_value():
+    method_name_vec = ['human_angle_still_steps', 'human_angle_still_steps_ATD3']
+    reward_Q_list = []
+    for i in range(len(method_name_vec)):
+        file_name_vec = glob.glob('video/*v1_' + method_name_vec[i] + '/*reward_Q.xls')
+        reward_Q_mat = np.zeros((0, 3))
+        for j in range(len(file_name_vec)):
+        # for j in range(1):
+            print(file_name_vec[j])
+            dfs = pd.read_excel(file_name_vec[j])
+            reward_Q = dfs.values
+            reward_Q_mat = np.r_[reward_Q_mat, reward_Q]
+        reward_Q_list.append(np.transpose(reward_Q_mat[:,1:]))
+        print(reward_Q_list[-1].shape)
+    fig = plt.figure(figsize=(10, 5))
+    plt.rcParams.update({'font.size': 15})
+    # y_label_vec = ['TD3 Q value', 'ATD3 Q value']
+    plt.ylabel('Q_value')
+    # plt.subplot(2, 1, i + 1)
+    error = np.zeros((2, min(reward_Q_list[0].shape[-1], reward_Q_list[1].shape[-1])))
+    print(error.shape)
+    for i in range(2):
+        error[i, :] = (reward_Q_list[i][0] - reward_Q_list[i][1])[:error.shape[-1]]
+    t = np.linspace(1, 100, error.shape[-1])
+    plot_error_line(t, error, marker_size=0)
+    fig.tight_layout()
+    fig.legend(['TD3', 'ATD3'],loc='upper center')
+    plt.savefig('images/Q_value.pdf', bbox_inches='tight', pad_inches=0.15)
     plt.show()
 
 
@@ -180,10 +220,19 @@ def smooth(scalars, weight = 0.8):
         last = smoothed_val                                  # Anchor the last smoothed value
     return np.asarray(smoothed)
 
-# Fig: test acc
+# # Fig: test acc
+# print('------Fig: test acc------')
 # plot_test_acc()
-# Fig: joint angle
-plot_gait()
-# Fig: joint angle noise
+
+# # Fig: joint angle
+# print('-----Fig: joint angle-----')
+# plot_gait()
+
+# # Fig: joint angle noise
+# print('-----Fig: joint angle noise-----')
 # plot_gait_noise()
 
+
+# Fig: Q_value
+print('-----Fig: Q value-----')
+plot_Q_value()
