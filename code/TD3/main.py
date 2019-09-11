@@ -7,6 +7,7 @@ import datetime
 import TD3
 import ATD3
 import cv2
+import glob
 import sys
 sys.path.insert(0,'../')
 from utils import utils
@@ -33,12 +34,12 @@ def evaluate_policy(env, policy, eval_episodes=10):
     return avg_reward
 
 
-def main(method_name = '', policy_name = 'TD3'):
+def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default=policy_name)  # Policy name
     parser.add_argument("--env_name", default="RoboschoolWalker2d-v1")  # OpenAI gym environment name
     parser.add_argument("--log_path", default='runs/ATD3_walker2d')
-    parser.add_argument("--eval_only", default=False)
+    parser.add_argument("--eval_only", default=True)
     parser.add_argument("--method_name", default=method_name,
                         help='Name of your method (default: )')  # Name of the method
 
@@ -48,8 +49,9 @@ def main(method_name = '', policy_name = 'TD3'):
     parser.add_argument("--eval_freq", default=5e3, type=float)  # How often (time steps) we evaluate
     parser.add_argument("--max_timesteps", default=3e5, type=float)  # Max time steps to run environment for
     parser.add_argument("--save_models", default=True)  # Whether or not models are saved
-    parser.add_argument("--save_video", default=False)
+    parser.add_argument("--save_video", default=True)
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
+    parser.add_argument("--state_noise", default=state_noise, type=float)  # Std of Gaussian exploration noise
     parser.add_argument("--batch_size", default=100, type=int)  # Batch size for both actor and critic
     parser.add_argument("--discount", default=0.99, type=float)  # Discount factor
     parser.add_argument("--tau", default=0.005, type=float)  # Target network update rate
@@ -58,7 +60,8 @@ def main(method_name = '', policy_name = 'TD3'):
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     args = parser.parse_args()
 
-    file_name = "%s_%s_%s_%s" % (args.policy_name, args.env_name, str(args.seed), args.method_name)
+    # file_name = "%s_%s_%s_%s" % (args.policy_name, args.env_name, str(args.seed), args.method_name)
+    file_name = "TD3_%s_%s_%s" % (args.env_name, str(args.seed), args.method_name)
     print("---------------------------------------")
     print("Settings: %s" % (file_name))
     print("---------------------------------------")
@@ -221,7 +224,7 @@ def main(method_name = '', policy_name = 'TD3'):
                 joint_angle_obs[0, :-1] = obs[8:20:2]
                 joint_angle_obs[-1] = total_timesteps
                 joint_angle = np.r_[joint_angle, joint_angle_obs]
-                # reward -= 0.5
+                reward -= 0.5
 
             if 'still_steps' in args.method_name:
                 if np.array_equal(new_obs[-2:], np.asarray([1., 1.])):
@@ -229,8 +232,8 @@ def main(method_name = '', policy_name = 'TD3'):
                 else:
                     still_steps = 0
                 if still_steps > 100:
-                    replay_buffer.add_final_reward(-1.0, still_steps - 1)
-                    reward -= 1.0
+                    replay_buffer.add_final_reward(-2.0, still_steps - 1)
+                    reward -= 2.0
                     done = True
 
             done_bool = 0 if episode_timesteps + 1 == env._max_episode_steps else float(done)
@@ -248,40 +251,48 @@ def main(method_name = '', policy_name = 'TD3'):
         evaluations.append(evaluate_policy(env, policy))
         np.save(log_dir + "/test_accuracy", evaluations)
         utils.write_table(log_dir + "/test_accuracy", np.asarray(evaluations))
-
-    policy.load("%s" % (file_name), directory=model_dir)
-
-    if args.save_video:
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        video_name = video_dir + '/{}_TD3_{}.mp4'.format(
-            datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
-            args.env_name)
-        out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (640, 480))
-        print(video_name)
-    for i in range(1):
-        obs = env.reset()
-        done = False
-        while not done:
-            action = policy.select_action(np.array(obs))
-            obs, reward, done, _ = env.step(action)
+        env.close()
+    else:
+        for i in range(10):
+            model_path = result_path + '/runs/ATD3_results/TD3_{}_{}'.format(args.method_name, i+1)
+            print(model_path)
+            policy.load("%s" % (file_name), directory=model_path)
             if args.save_video:
-                img = env.render(mode='rgb_array')
-                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-                out_video.write(img)
-            else:
-                env.render()
-    env.close()
-    if args.save_video:
-        out_video.release()
+                fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+                video_name = video_dir + '/{}_{}_{}.mp4'.format(
+                    datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
+                    file_name,args.state_noise)
+                out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (640, 480))
+            for _ in range(1):
+                obs = env.reset()
+                obs_mat = np.asarray(obs)
+                done = False
+                while not done:
+                    action = policy.select_action(np.array(obs))
+                    obs, reward, done, _ = env.step(action)
+                    obs[8:20] += np.random.normal(0, args.state_noise, size=obs[8:20].shape[0]).clip(
+                                -1, 1)
+                    obs_mat = np.c_[obs_mat, np.asarray(obs)]
+                    if args.save_video:
+                        img = env.render(mode='rgb_array')
+                        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                        out_video.write(img)
+                    else:
+                        env.render()
+            if args.save_video:
+                utils.write_table(video_name, np.transpose(obs_mat))
+                out_video.release()
+        env.close()
 
 
 if __name__ == "__main__":
     # main()
-    method_name_vec = ['still_steps', 'human_angle_still_steps', 'human_angle_still_steps_ATD3']
-    policy_name_vec = ['TD3', 'TD3', 'ATD3']
-    # for r in [1]:
-    for r in range(3):
+    method_name_vec = ['', 'still_steps', 'human_angle_still_steps', 'human_angle_still_steps_ATD3']
+    policy_name_vec = ['TD3', 'TD3', 'TD3', 'ATD3']
+    # for r in [2]:
+    for r in range(4):
         for c in range(1):
-            print('r: {}, c: {}.'.format(r, c))
-            main(method_name=method_name_vec[r],
-                 policy_name = policy_name_vec[r])
+            for n in range(1):
+                print('r: {}, c: {}.'.format(r, c))
+                main(method_name=method_name_vec[r],
+                     policy_name = policy_name_vec[r], state_noise= 0.02 * n)
