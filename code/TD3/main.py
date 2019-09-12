@@ -208,8 +208,9 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
                         if gait_num >= 2:
                             joint_angle_sampled = signal.resample(joint_angle[:-delay_num, :-1],
                                                                   num=human_joint_angle.shape[0])
+                            # The ATD3 seems to prefer the negative similarity reward
                             coefficient = utils.calc_cos_similarity(human_joint_angle,
-                                                                    joint_angle_sampled) - 0.25
+                                                                    joint_angle_sampled) - 0.5
                             print('gait_num:', gait_num, 'time steps in a gait: ', joint_angle.shape[0],
                                   'coefficient: ', coefficient)
                             replay_buffer.add_final_reward(coefficient, joint_angle.shape[0] - delay_num,
@@ -360,10 +361,10 @@ if __name__ == "__main__":
     # main()
     # method_name_vec = ['', 'still_steps', 'human_angle_still_steps', 'human_angle_still_steps_ATD3']
     # policy_name_vec = ['TD3', 'TD3', 'TD3', 'ATD3']
-    method_name_vec = ['human_angle_still_steps', 'human_angle_still_steps_ATD3']
-    policy_name_vec = ['TD3', 'ATD3']
-    for c in range(10):
-        for r in range(2):
+    method_name_vec = ['human_angle_still_steps_ATD3', 'human_angle_still_steps']
+    policy_name_vec = ['ATD3', 'TD3']
+    for r in range(2):
+        for c in range(10):
             for n in range(1):
                 print('r: {}, c: {}.'.format(r, c))
                 main(method_name=method_name_vec[r],
