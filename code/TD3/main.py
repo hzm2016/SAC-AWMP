@@ -209,12 +209,11 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
                             joint_angle_sampled = signal.resample(joint_angle[:-delay_num, :-1],
                                                                   num=human_joint_angle.shape[0])
                             coefficient = utils.calc_cos_similarity(human_joint_angle,
-                                                                    joint_angle_sampled)
-                            # print('gait_num:', gait_num, 'time steps in a gait: ', joint_angle.shape[0],
-                            #       'coefficient: ', coefficient)
+                                                                    joint_angle_sampled) - 0.25
+                            print('gait_num:', gait_num, 'time steps in a gait: ', joint_angle.shape[0],
+                                  'coefficient: ', coefficient)
                             replay_buffer.add_final_reward(coefficient, joint_angle.shape[0] - delay_num,
                                                            delay=delay_num)
-                            # print(joint_angle)
                             replay_buffer.add_specific_reward(reward_angle, idx_angle)
                             idx_angle = np.r_[idx_angle, joint_angle[:-delay_num, -1]]
                             reward_angle = np.r_[reward_angle,
@@ -255,8 +254,8 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
         env.close()
     else:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        for i in range(10):
-            model_path = result_path + '/runs/ATD3_results/TD3_{}_{}'.format(args.method_name, i+1)
+        for i in range(1):
+            model_path = result_path + '/runs/ATD3_walker2d/TD3_{}_{}'.format(args.method_name, i+1)
             print(model_path)
             policy.load("%s" % (file_name), directory=model_path)
             if args.save_video:
@@ -363,8 +362,8 @@ if __name__ == "__main__":
     # policy_name_vec = ['TD3', 'TD3', 'TD3', 'ATD3']
     method_name_vec = ['human_angle_still_steps', 'human_angle_still_steps_ATD3']
     policy_name_vec = ['TD3', 'ATD3']
-    for r in range(2):
-        for c in range(1):
+    for c in range(10):
+        for r in range(2):
             for n in range(1):
                 print('r: {}, c: {}.'.format(r, c))
                 main(method_name=method_name_vec[r],
