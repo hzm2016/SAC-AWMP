@@ -39,7 +39,7 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
     parser.add_argument("--policy_name", default=policy_name)  # Policy name
     parser.add_argument("--env_name", default="RoboschoolWalker2d-v1")  # OpenAI gym environment name
     parser.add_argument("--log_path", default='runs/ATD3_walker2d')
-    parser.add_argument("--eval_only", default=False)
+    parser.add_argument("--eval_only", default=True)
     parser.add_argument("--method_name", default=method_name,
                         help='Name of your method (default: )')  # Name of the method
 
@@ -49,7 +49,7 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
     parser.add_argument("--eval_freq", default=5e3, type=float)  # How often (time steps) we evaluate
     parser.add_argument("--max_timesteps", default=3e5, type=float)  # Max time steps to run environment for
     parser.add_argument("--save_models", default=True)  # Whether or not models are saved
-    parser.add_argument("--save_video", default=False)
+    parser.add_argument("--save_video", default=True)
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
     parser.add_argument("--state_noise", default=state_noise, type=float)  # Std of Gaussian exploration noise
     parser.add_argument("--batch_size", default=100, type=int)  # Batch size for both actor and critic
@@ -255,7 +255,7 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
         env.close()
     else:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        for i in range(1):
+        for i in range(10):
             model_path = result_path + '/runs/ATD3_walker2d/TD3_{}_{}'.format(args.method_name, i+1)
             print(model_path)
             policy.load("%s" % (file_name), directory=model_path)
@@ -297,44 +297,44 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
 
                     obs, reward, done, _ = env.step(action)
 
-                    if 'human_angle' in args.method_name and args.save_video:
-                        utils.fifo_list(foot_contact_vec, obs[-2])
-                        if 0 == np.std(foot_contact_vec):
-                            foot_contact = np.mean(foot_contact_vec)
-                        if 1 == (foot_contact - pre_foot_contact):
-                            if joint_angle.shape[0] > 20:
-                                gait_num += 1
-                                if gait_num >= 2:
-                                    joint_angle_sampled = signal.resample(joint_angle[:-delay_num, :-1],
-                                                                          num=human_joint_angle.shape[0])
-                                    coefficient = utils.calc_cos_similarity(human_joint_angle,
-                                                                            joint_angle_sampled)
-                                    # print('gait_num:', gait_num, 'time steps in a gait: ', joint_angle.shape[0],
-                                    #       'coefficient: ', coefficient)
-                                    reward_Q1_Q2_mat[(-joint_angle.shape[0] - delay_num) : -delay_num, 0] += coefficient
-
-                                    reward_Q1_Q2_mat[idx_angle] += reward_angle
-                                    idx_angle = np.r_[idx_angle, joint_angle[:-delay_num, -1]]
-                                    reward_angle = np.r_[reward_angle,
-                                                         0.05 * np.ones(joint_angle[:-delay_num, -1].shape[0])]
-                            joint_angle = joint_angle[-delay_num:]
-                        pre_foot_contact = foot_contact
-                        joint_angle_obs = np.zeros((1, 7))
-                        joint_angle_obs[0, :-1] = obs[8:20:2]
-                        joint_angle_obs[0, -1] = reward_Q1_Q2_mat.shape[0]
-                        print(joint_angle_obs)
-                        joint_angle = np.r_[joint_angle, joint_angle_obs]
-                        reward -= 0.5
-
-                    if 'still_steps' in args.method_name and args.save_video:
-                        if np.array_equal(obs[-2:], np.asarray([1., 1.])):
-                            still_steps += 1
-                        else:
-                            still_steps = 0
-                        if still_steps > 100:
-                            reward_Q1_Q2_mat[(-still_steps + 1):, 0] += -2.0
-                            reward -= 2.0
-                            done = True
+                    # if 'human_angle' in args.method_name and args.save_video:
+                    #     utils.fifo_list(foot_contact_vec, obs[-2])
+                    #     if 0 == np.std(foot_contact_vec):
+                    #         foot_contact = np.mean(foot_contact_vec)
+                    #     if 1 == (foot_contact - pre_foot_contact):
+                    #         if joint_angle.shape[0] > 20:
+                    #             gait_num += 1
+                    #             if gait_num >= 2:
+                    #                 joint_angle_sampled = signal.resample(joint_angle[:-delay_num, :-1],
+                    #                                                       num=human_joint_angle.shape[0])
+                    #                 coefficient = utils.calc_cos_similarity(human_joint_angle,
+                    #                                                         joint_angle_sampled) -0.5
+                    #                 # print('gait_num:', gait_num, 'time steps in a gait: ', joint_angle.shape[0],
+                    #                 #       'coefficient: ', coefficient)
+                    #                 reward_Q1_Q2_mat[(-joint_angle.shape[0] - delay_num) : -delay_num, 0] += coefficient
+                    #
+                    #                 reward_Q1_Q2_mat[idx_angle] += reward_angle
+                    #                 idx_angle = np.r_[idx_angle, joint_angle[:-delay_num, -1]]
+                    #                 reward_angle = np.r_[reward_angle,
+                    #                                      0.05 * np.ones(joint_angle[:-delay_num, -1].shape[0])]
+                    #         joint_angle = joint_angle[-delay_num:]
+                    #     pre_foot_contact = foot_contact
+                    #     joint_angle_obs = np.zeros((1, 7))
+                    #     joint_angle_obs[0, :-1] = obs[8:20:2]
+                    #     joint_angle_obs[0, -1] = reward_Q1_Q2_mat.shape[0]
+                    #     # print(joint_angle_obs)
+                    #     joint_angle = np.r_[joint_angle, joint_angle_obs]
+                    #     reward -= 0.5
+                    #
+                    # if 'still_steps' in args.method_name and args.save_video:
+                    #     if np.array_equal(obs[-2:], np.asarray([1., 1.])):
+                    #         still_steps += 1
+                    #     else:
+                    #         still_steps = 0
+                    #     if still_steps > 100:
+                    #         reward_Q1_Q2_mat[(-still_steps + 1):, 0] += -2.0
+                    #         reward -= 2.0
+                    #         done = True
 
                     reward_Q1_Q2[0, 0] = reward
                     reward_Q1_Q2_mat = np.r_[reward_Q1_Q2_mat, reward_Q1_Q2]
@@ -359,13 +359,13 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
 
 if __name__ == "__main__":
     # main()
-    # method_name_vec = ['', 'still_steps', 'human_angle_still_steps', 'human_angle_still_steps_ATD3']
-    # policy_name_vec = ['TD3', 'TD3', 'TD3', 'ATD3']
-    method_name_vec = ['human_angle_still_steps_ATD3', 'human_angle_still_steps']
-    policy_name_vec = ['ATD3', 'TD3']
-    for r in range(2):
-        for c in range(10):
+    method_name_vec = ['', 'still_steps', 'human_angle_still_steps', 'human_angle_still_steps_ATD3']
+    policy_name_vec = ['TD3', 'TD3', 'TD3', 'ATD3']
+    # method_name_vec = ['human_angle_still_steps_ATD3', 'human_angle_still_steps']
+    # policy_name_vec = ['ATD3', 'TD3']
+    for r in range(4):
+        for c in range(1):
             for n in range(1):
                 print('r: {}, c: {}.'.format(r, c))
                 main(method_name=method_name_vec[r],
-                     policy_name = policy_name_vec[r], state_noise= 0.02 * n)
+                     policy_name = policy_name_vec[r], state_noise= 0.04 * n)

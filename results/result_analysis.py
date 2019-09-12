@@ -42,12 +42,13 @@ def plot_test_acc():
 
         # file_name_vec = glob.glob('runs/ATD_results2/' + '*' + method_name_vec[r] + '*/test_accuracy.xls')
         for c in range(acc_mat.shape[1]):
-            file_name = 'runs/ATD3_results/TD3_' + method_name_vec[r] + '_{}/test_accuracy.xls'.format(c+1)
+            file_name = 'runs/ATD3_walker2d/TD3_' + method_name_vec[r] + '_{}/test_accuracy.xls'.format(c+1)
             print(file_name)
             dfs = pd.read_excel(file_name)
             acc_mat[r, c, :] = dfs.values.astype(np.float)[:, 0]
 
     max_acc = np.max(acc_mat, axis=-1)
+    print(max_acc)
     print('Max acc, mean: {}, std: {}'.format(np.mean(max_acc, axis=-1), np.std(max_acc, axis=-1)))
 
     for r in range(acc_mat.shape[0]):
@@ -187,7 +188,7 @@ def plot_gait_noise():
     joint_angle_std = np.zeros((4, 6, 100))
     joint_angle_mean[0] = read_table(file_name='../data/joint_angle.xls').T
     for i in range(3):
-        file_name_vec = glob.glob('video/*ATD3/noises/*' + str(0.04 * i) + '.*.xls')
+        file_name_vec = glob.glob('video/*ATD3/noises/*' + str(0.04 * i) + '*state.xls')
         print(file_name_vec)
         joint_angle_mean[i + 1], joint_angle_std[i + 1] = read_joint_angle_gait(file_name_vec[0])
 
@@ -220,19 +221,19 @@ def smooth(scalars, weight = 0.8):
         last = smoothed_val                                  # Anchor the last smoothed value
     return np.asarray(smoothed)
 
-# # Fig: test acc
-# print('------Fig: test acc------')
-# plot_test_acc()
+# Fig: test acc
+print('------Fig: test acc------')
+plot_test_acc()
 
-# # Fig: joint angle
-# print('-----Fig: joint angle-----')
-# plot_gait()
+# Fig: joint angle
+print('-----Fig: joint angle-----')
+plot_gait()
 
-# # Fig: joint angle noise
-# print('-----Fig: joint angle noise-----')
-# plot_gait_noise()
+# Fig: joint angle noise
+print('-----Fig: joint angle noise-----')
+plot_gait_noise()
 
 
-# Fig: Q_value
-print('-----Fig: Q value-----')
-plot_Q_value()
+# # Fig: Q_value
+# print('-----Fig: Q value-----')
+# plot_Q_value()
