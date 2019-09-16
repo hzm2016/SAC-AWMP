@@ -109,7 +109,7 @@ class ATD3(object):
 			# else:
 			# 	target_Q = target_Q2
 
-			target_Q = 0.5 * (target_Q1 + target_Q2)
+			target_Q = torch.min(target_Q1, target_Q2)
 			target_Q = reward + (done * discount * target_Q).detach()
 
 			# Get current Q estimates
@@ -128,7 +128,10 @@ class ATD3(object):
 			if it % policy_freq == 0:
 
 				# Compute actor loss
-				actor_loss = -self.critic.Q1(state, self.actor(state)).mean()
+				current_Q1, current_Q2 = self.critic(state, self.actor(state))
+				actor_loss = -0.5 * (current_Q1 + current_Q2).mean()
+
+				# actor_loss = -self.critic.Q1(state, self.actor(state)).mean()
 				
 				# Optimize the actor 
 				self.actor_optimizer.zero_grad()
