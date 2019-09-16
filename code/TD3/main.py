@@ -259,13 +259,13 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
             model_path = result_path + '/runs/ATD3_walker2d/TD3_{}_{}'.format(args.method_name, i+1)
             print(model_path)
             policy.load("%s" % (file_name), directory=model_path)
-            if args.save_video:
-                fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-                video_name = video_dir + '/{}_{}_{}.mp4'.format(
-                    datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
-                    file_name,args.state_noise)
-                out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (640, 480))
             for _ in range(1):
+                if args.save_video:
+                    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+                    video_name = video_dir + '/{}_{}_{}.mp4'.format(
+                        datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
+                        file_name, args.state_noise)
+                    out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (640, 480))
                 obs = env.reset()
                 obs_mat = np.asarray(obs)
                 done = False
@@ -351,10 +351,10 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
                     else:
                         env.render()
 
-            if args.save_video:
-                utils.write_table(video_name + '_state', np.transpose(obs_mat))
-                utils.write_table(video_name + '_reward_Q', reward_Q1_Q2_mat)
-                out_video.release()
+                if args.save_video:
+                    utils.write_table(video_name + '_state', np.transpose(obs_mat))
+                    utils.write_table(video_name + '_reward_Q', reward_Q1_Q2_mat)
+                    out_video.release()
         env.close()
 
 

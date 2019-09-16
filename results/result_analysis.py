@@ -167,11 +167,14 @@ def calc_TD_reward(reward_Q):
 
 def calc_expected_reward(reward_Q):
     reward = np.copy(reward_Q[:, 0])
-    for r in range(reward_Q.shape[0]-1):
-        for c in range(r+1, reward_Q.shape[0]):
-            reward[r] += 0.99 ** (c-r) * reward[c]
+    r = 0
+    # for r in range(reward_Q.shape[0]-1):
+    for c in range(r+1, reward_Q.shape[0]):
+        reward[r] += 0.99 ** (c-r) * reward[c]
         # reward[r] += np.min(0.99 * reward_Q[r + 1, 1:3])
-    return reward
+    init_rewar_Q = reward_Q[[0],:]
+    init_rewar_Q[0, 0] = reward[0]
+    return init_rewar_Q
 
 def plot_Q_value():
     method_name_vec = ['human_angle_still_steps', 'human_angle_still_steps_ATD3']
@@ -184,9 +187,10 @@ def plot_Q_value():
             print(file_name_vec[j])
             dfs = pd.read_excel(file_name_vec[j])
             reward_Q = dfs.values
-            # reward_Q[:, 0] = calc_expected_reward(reward_Q)
-            reward_Q = calc_TD_reward(reward_Q)
-            reward_Q_mat = np.r_[reward_Q_mat, reward_Q[:-1,:]]
+            reward_Q = calc_expected_reward(reward_Q)
+            reward_Q_mat = np.r_[reward_Q_mat, reward_Q]
+            # reward_Q = calc_TD_reward(reward_Q)
+            # reward_Q_mat = np.r_[reward_Q_mat, reward_Q[:-1,:]]
         reward_Q_list.append(np.transpose(reward_Q_mat))
         print(reward_Q_list[-1].shape)
     fig = plt.figure(figsize=(10, 5))
