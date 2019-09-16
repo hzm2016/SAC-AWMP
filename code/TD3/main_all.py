@@ -34,11 +34,12 @@ def evaluate_policy(env, policy, eval_episodes=10):
     return avg_reward
 
 
-def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
+def main(method_name = '', policy_name = 'TD3', env_name = "RoboschoolWalker2d-v1",
+         state_noise = 0.0):
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default=policy_name)  # Policy name
-    parser.add_argument("--env_name", default="RoboschoolWalker2d-v1")  # OpenAI gym environment name
-    parser.add_argument("--log_path", default='runs/ATD3_walker2d')
+    parser.add_argument("--env_name", default=env_name)  # OpenAI gym environment name
+    parser.add_argument("--log_path", default='runs/ATD3_all')
     parser.add_argument("--eval_only", default=False)
     parser.add_argument("--method_name", default=method_name,
                         help='Name of your method (default: )')  # Name of the method
@@ -47,7 +48,7 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
     parser.add_argument("--start_timesteps", default=1e4,
                         type=int)  # How many time steps purely random policy is run for
     parser.add_argument("--eval_freq", default=5e3, type=float)  # How often (time steps) we evaluate
-    parser.add_argument("--max_timesteps", default=3e5, type=float)  # Max time steps to run environment for
+    parser.add_argument("--max_timesteps", default=1e6, type=float)  # Max time steps to run environment for
     parser.add_argument("--save_models", default=True)  # Whether or not models are saved
     parser.add_argument("--save_video", default=False)
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
@@ -110,21 +111,6 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
         total_timesteps = 0
         pre_num_steps = total_timesteps
 
-        if 'human_angle' in args.method_name:
-            human_joint_angle = utils.read_table()
-
-            pre_foot_contact = 1
-            foot_contact = 1
-            foot_contact_vec = np.asarray([1, 1, 1])
-            delay_num = foot_contact_vec.shape[0] - 1
-            gait_num = 0
-            joint_angle = np.zeros((0, 7))
-            idx_angle = np.zeros(0)
-            reward_angle = np.zeros(0)
-
-        if 'still_steps' in args.method_name:
-            still_steps = 0
-
         timesteps_since_eval = 0
         episode_num = 0
         done = True
@@ -174,16 +160,6 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
                 episode_timesteps = 0
                 episode_num += 1
 
-                if 'human_angle' in args.method_name:
-                    pre_foot_contact = 1
-                    foot_contact = 1
-                    foot_contact_vec = np.asarray([1, 1, 1])
-                    gait_num = 0
-                    joint_angle = np.zeros((0, 7))
-                    idx_angle = np.zeros(0)
-                    reward_angle = np.zeros(0)
-                if 'still_steps' in args.method_name:
-                    still_steps = 0
 
             # Select action randomly or according to policy
             if total_timesteps < args.start_timesteps:
@@ -198,44 +174,6 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
             new_obs, reward, done, _ = env.step(action)
             episode_reward += reward
 
-            if 'human_angle' in args.method_name:
-                utils.fifo_list(foot_contact_vec, new_obs[-2])
-                if 0 == np.std(foot_contact_vec):
-                    foot_contact = np.mean(foot_contact_vec)
-                if 1 == (foot_contact - pre_foot_contact):
-                    if joint_angle.shape[0] > 20:
-                        gait_num += 1
-                        if gait_num >= 2:
-                            joint_angle_sampled = signal.resample(joint_angle[:-delay_num, :-1],
-                                                                  num=human_joint_angle.shape[0])
-                            # The ATD3 seems to prefer the negative similarity reward
-                            coefficient = utils.calc_cos_similarity(human_joint_angle,
-                                                                    joint_angle_sampled) - 0.5
-                            print('gait_num:', gait_num, 'time steps in a gait: ', joint_angle.shape[0],
-                                  'coefficient: ', coefficient)
-                            replay_buffer.add_final_reward(coefficient, joint_angle.shape[0] - delay_num,
-                                                           delay=delay_num)
-                            replay_buffer.add_specific_reward(reward_angle, idx_angle)
-                            idx_angle = np.r_[idx_angle, joint_angle[:-delay_num, -1]]
-                            reward_angle = np.r_[reward_angle,
-                                                 0.05 * np.ones(joint_angle[:-delay_num, -1].shape[0])]
-                    joint_angle = joint_angle[-delay_num:]
-                pre_foot_contact = foot_contact
-                joint_angle_obs = np.zeros((1, 7))
-                joint_angle_obs[0, :-1] = obs[8:20:2]
-                joint_angle_obs[0, -1] = total_timesteps
-                joint_angle = np.r_[joint_angle, joint_angle_obs]
-                reward -= 0.5
-
-            if 'still_steps' in args.method_name:
-                if np.array_equal(new_obs[-2:], np.asarray([1., 1.])):
-                    still_steps += 1
-                else:
-                    still_steps = 0
-                if still_steps > 100:
-                    replay_buffer.add_final_reward(-2.0, still_steps - 1)
-                    reward -= 2.0
-                    done = True
 
             done_bool = 0 if episode_timesteps + 1 == env._max_episode_steps else float(done)
 
@@ -256,7 +194,7 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
     else:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         for i in range(10):
-            model_path = result_path + '/runs/ATD3_walker2d/TD3_{}_{}'.format(args.method_name, i+1)
+            model_path = result_path + '/runs/ATD3_all/TD3_{}_{}'.format(args.method_name, i+1)
             print(model_path)
             policy.load("%s" % (file_name), directory=model_path)
             if args.save_video:
@@ -271,21 +209,6 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
                 done = False
                 reward_Q1_Q2_mat = np.zeros((0, 3))
 
-                if 'human_angle' in args.method_name and args.save_video:
-                    human_joint_angle = utils.read_table()
-
-                    pre_foot_contact = 1
-                    foot_contact = 1
-                    foot_contact_vec = np.asarray([1, 1, 1])
-                    delay_num = foot_contact_vec.shape[0] - 1
-                    gait_num = 0
-                    joint_angle = np.zeros((0, 7))
-                    idx_angle = np.zeros(0, dtype=np.int)
-                    reward_angle = np.zeros(0)
-
-                if 'still_steps' in args.method_name and args.save_video:
-                    still_steps = 0
-
                 while not done:
                     action = policy.select_action(np.array(obs))
 
@@ -296,46 +219,6 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
                     reward_Q1_Q2[0, 2] = Q2.cpu().detach().numpy()
 
                     obs, reward, done, _ = env.step(action)
-
-                    if 'human_angle' in args.method_name and args.save_video:
-                        utils.fifo_list(foot_contact_vec, obs[-2])
-                        if 0 == np.std(foot_contact_vec):
-                            foot_contact = np.mean(foot_contact_vec)
-                        if 1 == (foot_contact - pre_foot_contact):
-                            if joint_angle.shape[0] > 20:
-                                gait_num += 1
-                                if gait_num >= 2:
-                                    joint_angle_sampled = signal.resample(joint_angle[:-delay_num, :-1],
-                                                                          num=human_joint_angle.shape[0])
-                                    coefficient = utils.calc_cos_similarity(human_joint_angle,
-                                                                            joint_angle_sampled) - 0.5
-                                    # print('gait_num:', gait_num, 'time steps in a gait: ', joint_angle.shape[0],
-                                    #       'coefficient: ', coefficient)
-                                    reward_Q1_Q2_mat[-joint_angle.shape[0]: -delay_num, 0] += coefficient
-                                    if len(idx_angle) > 0:
-                                        reward_Q1_Q2_mat[idx_angle.astype(np.int)] += reward_angle.reshape((-1, 1))
-
-                                    idx_angle = np.r_[idx_angle, joint_angle[:-delay_num, -1]]
-                                    reward_angle = np.r_[reward_angle,
-                                                         0.05 * np.ones(joint_angle[:-delay_num, -1].shape[0])]
-                            joint_angle = joint_angle[-delay_num:]
-                        pre_foot_contact = foot_contact
-                        joint_angle_obs = np.zeros((1, 7))
-                        joint_angle_obs[0, :-1] = obs[8:20:2]
-                        joint_angle_obs[0, -1] = reward_Q1_Q2_mat.shape[0]
-                        # print(joint_angle_obs)
-                        joint_angle = np.r_[joint_angle, joint_angle_obs]
-                        reward -= 0.5
-
-                    if 'still_steps' in args.method_name and args.save_video:
-                        if np.array_equal(obs[-2:], np.asarray([1., 1.])):
-                            still_steps += 1
-                        else:
-                            still_steps = 0
-                        if still_steps > 100:
-                            reward_Q1_Q2_mat[(-still_steps + 1):, 0] += -2.0
-                            reward -= 2.0
-                            done = True
 
                     reward_Q1_Q2[0, 0] = reward
                     reward_Q1_Q2_mat = np.r_[reward_Q1_Q2_mat, reward_Q1_Q2]
@@ -359,14 +242,12 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
 
 
 if __name__ == "__main__":
-    # main()
-    # method_name_vec = ['', 'still_steps', 'human_angle_still_steps', 'human_angle_still_steps_ATD3']
-    # policy_name_vec = ['TD3', 'TD3', 'TD3', 'ATD3']
-    method_name_vec = ['human_angle_still_steps_ATD3', 'human_angle_still_steps']
-    policy_name_vec = ['ATD3', 'TD3']
-    for r in range(1):
-        for c in range(10):
-            for n in range(1):
+    env_name_vec = ['RoboschoolHalfCheetah-v1', 'RoboschoolAnt-v1',
+                    'RoboschoolHumanoid-v1', 'RoboschoolAtlasForwardWalk-v1']
+    policy_name_vec = ['TD3', 'ATD3']
+    for r in range(4):
+        for c in range(2):
+            for n in range(10):
                 print('r: {}, c: {}.'.format(r, c))
-                main(method_name=method_name_vec[r],
-                     policy_name = policy_name_vec[r], state_noise= 0.04 * n)
+                main(policy_name = policy_name_vec[c],
+                     env_name=env_name_vec[r])

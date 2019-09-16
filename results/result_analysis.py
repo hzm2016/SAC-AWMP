@@ -5,7 +5,10 @@ Created on Thu Jul  4 10:29:32 2019
 @author: kuangen
 """
 from matplotlib import cm
+import matplotlib
+matplotlib.rcParams['text.usetex'] = True
 import matplotlib.pyplot as plt
+
 import pandas as pd
 import numpy as np
 import glob
@@ -19,27 +22,26 @@ from scipy import stats, signal
 def plot_error_line(t, acc_mean_mat, acc_std_mat = None, legend_vec = None,
                     marker_vec=['o', '+', 'v', 'x', 'd', '*', ''],
                     line_vec=['-', '--', '-.', ':', '-', '--', '-.'],
-                    line_width_vec=[2, 2, 2, 2, 2, 2, 2], marker_size=5
-                    ):
+                    line_width_vec=[2, 2, 2, 2, 2, 2, 2], marker_size=5,
+                    init_idx = 0):
     if acc_std_mat is None:
         acc_std_mat = 0 * acc_mean_mat
     # acc_mean_mat, acc_std_mat: rows: methods, cols: time
     color_vec = plt.cm.Dark2(np.arange(8))
     for r in range(acc_mean_mat.shape[0]):
-        plt.plot(t, acc_mean_mat[r, :], linestyle=line_vec[r],
-                 marker=marker_vec[r], markersize=marker_size, linewidth=line_width_vec[r],
-                 color=color_vec[r])
+        plt.plot(t, acc_mean_mat[r, :], linestyle=line_vec[r + init_idx],
+                 marker=marker_vec[r + init_idx], markersize=marker_size, linewidth=line_width_vec[r + init_idx],
+                 color=color_vec[r + init_idx])
         plt.fill_between(t, acc_mean_mat[r, :] - acc_std_mat[r, :],
-                         acc_mean_mat[r, :] + acc_std_mat[r, :], alpha=0.1, color=color_vec[r])
+                         acc_mean_mat[r, :] + acc_std_mat[r, :], alpha=0.1, color=color_vec[r+init_idx])
     if legend_vec is not None:
         plt.legend(legend_vec, loc = 'lower right')
 
 def plot_test_acc():
-    method_name_vec = ['', 'human_angle_still_steps', 'human_angle_still_steps_ATD3']
+    method_name_vec = ['','human_angle_still_steps', 'human_angle_still_steps_ATD3']
     # method_name_vec = ['ATD3', 'TD3']
     acc_mat = np.zeros((len(method_name_vec), 10, 61))
     for r in range(len(method_name_vec)):
-
         # file_name_vec = glob.glob('runs/ATD_results2/' + '*' + method_name_vec[r] + '*/test_accuracy.xls')
         for c in range(acc_mat.shape[1]):
             file_name = 'runs/ATD3_walker2d/TD3_' + method_name_vec[r] + '_{}/test_accuracy.xls'.format(c+1)
@@ -66,10 +68,12 @@ def plot_test_acc():
 
     plt.tight_layout()
     plt.rcParams.update({'font.size': 15})
-    plot_error_line(t, mean_acc, std_acc, legend_vec=['TD3', 'Gait reward + TD3', 'Gait reward + ATD3'])
+    plot_error_line(t, mean_acc, std_acc, legend_vec=['TD3', 'Gait reward + TD3', 'Gait reward + ATD3'], init_idx=1)
     # plot_error_line(t, mean_acc, std_acc, legend_vec=['ATD3', 'TD3'])
     # plt.xticks(np.arange(0, 1e5, 5))
-    plt.xlabel('Time steps (1e5)')
+    #r'Time steps (1 x 10^5)'
+    plt.xlabel(r'Time steps ($1 \times 10^{5}$)')
+    plt.xlim((min(t), max(t)))
     plt.ylabel('Average reward')
     plt.savefig('images/test_accuracy.pdf', bbox_inches='tight')
     plt.show()
@@ -136,21 +140,38 @@ def plot_gait():
 
     joint_angle_mean = joint_angle_mean - joint_angle_mean[..., [0]]
     fig = plt.figure(figsize=(10, 7))
+
     plt.rcParams.update({'font.size': 15})
-    t = np.linspace(1, 100, 100)
+    t = np.linspace(0, 100, 100)
     y_label_vec = ['Hip angle', 'Knee angle', 'Ankle angle']
     for i in range(3):
         plt.subplot(3, 1, i+1)
         plot_error_line(t, joint_angle_mean[:, i, :], joint_angle_std[:, i, :])
+        plt.xlim((min(t), max(t)))
         plt.ylabel(y_label_vec[i])
 
-    plt.xlabel('% Gait cycle')
+    plt.xlabel('\% Gait cycle')
     fig.tight_layout()
     fig.legend(['Human', 'TD3', 'Gait reward + TD3', 'Gait reward + ATD3'],
                loc='lower center', ncol=4, bbox_to_anchor=(0.49, 0.96))
     plt.savefig('images/joint_angle.pdf', bbox_inches='tight', pad_inches=0.15)
     plt.show()
 
+def calc_TD_reward(reward_Q):
+    reward_Q_TD = np.zeros(reward_Q.shape)
+    reward_Q_TD[:, 0] = reward_Q[:, 0]
+    for r in range(reward_Q.shape[0]-1):
+        reward_Q_TD[r,1:3] = reward_Q[r, 1:3] - 0.99 * np.min(reward_Q[r+1, 1:3])
+    return reward_Q_TD
+
+
+def calc_expected_reward(reward_Q):
+    reward = np.copy(reward_Q[:, 0])
+    for r in range(reward_Q.shape[0]-1):
+        for c in range(r+1, reward_Q.shape[0]):
+            reward[r] += 0.99 ** (c-r) * reward[c]
+        # reward[r] += np.min(0.99 * reward_Q[r + 1, 1:3])
+    return reward
 
 def plot_Q_value():
     method_name_vec = ['human_angle_still_steps', 'human_angle_still_steps_ATD3']
@@ -163,23 +184,34 @@ def plot_Q_value():
             print(file_name_vec[j])
             dfs = pd.read_excel(file_name_vec[j])
             reward_Q = dfs.values
-            reward_Q_mat = np.r_[reward_Q_mat, reward_Q]
-        reward_Q_list.append(np.transpose(reward_Q_mat[:,1:]))
+            # reward_Q[:, 0] = calc_expected_reward(reward_Q)
+            reward_Q = calc_TD_reward(reward_Q)
+            reward_Q_mat = np.r_[reward_Q_mat, reward_Q[:-1,:]]
+        reward_Q_list.append(np.transpose(reward_Q_mat))
         print(reward_Q_list[-1].shape)
     fig = plt.figure(figsize=(10, 5))
     plt.rcParams.update({'font.size': 15})
-    # y_label_vec = ['TD3 Q value', 'ATD3 Q value']
-    plt.ylabel('Q_value')
-    # plt.subplot(2, 1, i + 1)
-    error = np.zeros((2, min(reward_Q_list[0].shape[-1], reward_Q_list[1].shape[-1])))
-    print(error.shape)
-    for i in range(2):
-        error[i, :] = (reward_Q_list[i][0] - reward_Q_list[i][1])[:error.shape[-1]]
-    t = np.linspace(1, 100, error.shape[-1])
-    plot_error_line(t, error, marker_size=0)
+    # plt.ylabel('Q_value')
+
+    # TD3, Q1-y: 0.00867055; Q2-y: -0.06572405; mean: -0.02852675145429441
+    # ATD3, Q1-y: 0.07438378; Q2-y: -0.13060971; mean: -0.028112966411443552
+
+    for i in range(len(method_name_vec)):
+        reward_Q = reward_Q_list[i]
+        # diff_reward_Q = np.mean(reward_Q[1:3, :], axis=0, keepdims=True) - reward_Q[[0], :]
+        # diff_reward_Q = (reward_Q[1:3, :] - reward_Q[[0], :]) / reward_Q[[0], :]
+        diff_reward_Q = (np.mean(reward_Q[1:3, :], axis=0, keepdims=True) - reward_Q[[0], :]) / reward_Q[[0], :]
+        t = np.linspace(0, 100, reward_Q.shape[-1])
+        plot_error_line(t, reward_Q, marker_size=0, init_idx=i*3)
+        print(np.mean(diff_reward_Q, axis=-1), np.mean(diff_reward_Q))
+    plt.xlim((min(t), max(t)))
+    plt.ylabel('Q-value')
+
     fig.tight_layout()
-    fig.legend(['TD3', 'ATD3'],loc='upper center')
-    plt.savefig('images/Q_value.pdf', bbox_inches='tight', pad_inches=0.15)
+    # fig.legend(['True', 'Q1', 'Q2'],ncol=3, loc='upper center')
+    fig.legend(['TD3 true', 'TD3 Q1', 'TD3 Q2', 'ATD3 true', 'ATD3 Q1', 'ATD3 Q2'],
+               loc='lower center', ncol=4, bbox_to_anchor=(0.49, 0.9))
+    # plt.savefig('images/Q_value.pdf', bbox_inches='tight', pad_inches=0.15)
     plt.show()
 
 
@@ -196,14 +228,14 @@ def plot_gait_noise():
 
     fig = plt.figure(figsize=(10, 7))
     plt.rcParams.update({'font.size': 15})
-    t = np.linspace(1, 100, 100)
+    t = np.linspace(0, 100, 100)
     y_label_vec = ['Hip angle', 'Knee angle', 'Ankle angle']
     for i in range(3):
         plt.subplot(3, 1, i + 1)
         plot_error_line(t, joint_angle_mean[:, i, :], joint_angle_std[:, i, :])
         plt.ylabel(y_label_vec[i])
-
-    plt.xlabel('% Gait cycle')
+        plt.xlim((min(t), max(t)))
+    plt.xlabel('\% Gait cycle')
     fig.tight_layout()
     fig.legend(['Human', 'noise = 0.0', 'noise = 0.04', 'noise = 0.08'],
                loc='lower center', ncol=4, bbox_to_anchor=(0.49, 0.96))
@@ -221,19 +253,19 @@ def smooth(scalars, weight = 0.8):
         last = smoothed_val                                  # Anchor the last smoothed value
     return np.asarray(smoothed)
 
-# Fig: test acc
-print('------Fig: test acc------')
-plot_test_acc()
+# # # Fig: test acc
+# print('------Fig: test acc------')
+# plot_test_acc()
 
-# Fig: joint angle
-print('-----Fig: joint angle-----')
-plot_gait()
+# # # Fig: joint angle
+# print('-----Fig: joint angle-----')
+# plot_gait()
 
-# Fig: joint angle noise
-print('-----Fig: joint angle noise-----')
-plot_gait_noise()
+# # # Fig: joint angle noise
+# print('-----Fig: joint angle noise-----')
+# plot_gait_noise()
 
 
-# # Fig: Q_value
-# print('-----Fig: Q value-----')
-# plot_Q_value()
+# Fig: Q_value
+print('-----Fig: Q value-----')
+plot_Q_value()

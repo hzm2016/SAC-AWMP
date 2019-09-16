@@ -109,7 +109,7 @@ class ATD3(object):
 			# else:
 			# 	target_Q = target_Q2
 
-			target_Q = torch.min(target_Q1, target_Q2)
+			target_Q = 0.5 * (target_Q1 + target_Q2)
 			target_Q = reward + (done * discount * target_Q).detach()
 
 			# Get current Q estimates
