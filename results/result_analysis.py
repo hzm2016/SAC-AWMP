@@ -257,9 +257,9 @@ def smooth(scalars, weight = 0.8):
         last = smoothed_val                                  # Anchor the last smoothed value
     return np.asarray(smoothed)
 
-# # # Fig: test acc
-# print('------Fig: test acc------')
-# plot_test_acc()
+# # Fig: test acc
+print('------Fig: test acc------')
+plot_test_acc()
 
 # # # Fig: joint angle
 # print('-----Fig: joint angle-----')
@@ -270,6 +270,6 @@ def smooth(scalars, weight = 0.8):
 # plot_gait_noise()
 
 
-# Fig: Q_value
-print('-----Fig: Q value-----')
-plot_Q_value()
+# # Fig: Q_value
+# print('-----Fig: Q value-----')
+# plot_Q_value()

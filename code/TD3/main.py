@@ -163,9 +163,9 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
                             policy.save(file_name, directory=log_dir)
                         np.save(log_dir + "/test_accuracy", evaluations)
                         utils.write_table(log_dir + "/test_accuracy", np.asarray(evaluations))
-                    else:
-                        print(("Total T: %d Episode Num: %d Episode T: %d Reward: %f") %
-                              (total_timesteps, episode_num, episode_timesteps, avg_reward))
+                    # else:
+                        # print(("Total T: %d Episode Num: %d Episode T: %d Reward: %f") %
+                        #       (total_timesteps, episode_num, episode_timesteps, avg_reward))
 
                 # Reset environment
                 obs = env.reset()
@@ -211,8 +211,8 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
                             # The ATD3 seems to prefer the negative similarity reward
                             coefficient = utils.calc_cos_similarity(human_joint_angle,
                                                                     joint_angle_sampled) - 0.5
-                            print('gait_num:', gait_num, 'time steps in a gait: ', joint_angle.shape[0],
-                                  'coefficient: ', coefficient)
+                            # print('gait_num:', gait_num, 'time steps in a gait: ', joint_angle.shape[0],
+                            #       'coefficient: ', coefficient)
                             replay_buffer.add_final_reward(coefficient, joint_angle.shape[0] - delay_num,
                                                            delay=delay_num)
                             replay_buffer.add_specific_reward(reward_angle, idx_angle)
