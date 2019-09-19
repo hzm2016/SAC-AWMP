@@ -114,8 +114,8 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0):
 
     if not args.eval_only:
 
-        log_dir = '{}/{}/{}_{}_{}_{}'.format(result_path, args.log_path,
-                                                datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
+        log_dir = '{}/{}/seed_{}_{}_{}_{}_{}'.format(result_path, args.log_path, args.seed,
+                                                datetime.datetime.now().strftime("%d_%H-%M-%S"),
                                                 args.policy_name, args.env_name, args.method_name)
 
         if not os.path.exists(log_dir):
@@ -403,10 +403,11 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0):
 
 
 if __name__ == "__main__":
-    method_name_vec = ['human_angle_still_steps_seq_ATD3_RNN', 'human_angle_still_steps', 'still_steps', '']
-    policy_name_vec = ['ATD3_RNN', 'TD3', 'TD3', 'TD3']
-    for c in range(10):
-        for r in range(4):
+    method_name_vec = ['human_angle_still_steps_seq_ATD3_RNN', 'human_angle_still_steps_ATD3',
+                       'human_angle_still_steps', 'still_steps', '']
+    policy_name_vec = ['ATD3_RNN', 'ATD3', 'TD3', 'TD3', 'TD3']
+    for r in range(2):
+        for c in range(3):
             for n in range(1):
                 print('r: {}, c: {}.'.format(r, c))
                 main(method_name=method_name_vec[r], policy_name = policy_name_vec[r],
