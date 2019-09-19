@@ -57,7 +57,7 @@ class ReplayBuffer(object):
 
 
 def read_table(file_name='../../data/joint_angle.xls'):
-    dfs = pd.read_excel(file_name, sheet_name='walk_natural')
+    dfs = pd.read_excel(file_name, sheet_name='run')
     data = dfs.values[1:-1, -6:].astype(np.float)
     return data
 
