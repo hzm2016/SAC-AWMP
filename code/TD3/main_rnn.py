@@ -10,6 +10,8 @@ import cv2
 import glob
 import sys
 sys.path.insert(0,'../')
+print(os.getcwd())
+print(sys.path)
 from utils import utils
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
@@ -73,6 +75,7 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
 
     # file_name = "%s_%s_%s_%s" % (args.policy_name, args.env_name, str(args.seed), args.method_name)
     file_name = "TD3_%s_%s_%s" % (args.env_name, str(args.seed), args.method_name)
+
     print("---------------------------------------")
     print("Settings: %s" % (file_name))
     print("---------------------------------------")
