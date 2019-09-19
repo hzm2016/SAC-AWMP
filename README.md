@@ -1,6 +1,7 @@
-# DRL_biped_walking
+# PyTorch implementation of ATD3
 
-Run the code:
+### Usage
+The paper results can be reproduced exactly by running:
 ```
-python main_rnn.py
+./run.sh
 ```
