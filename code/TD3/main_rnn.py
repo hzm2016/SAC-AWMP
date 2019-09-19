@@ -403,8 +403,8 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
 if __name__ == "__main__":
     method_name_vec = ['human_angle_still_steps_seq_ATD3_RNN', 'human_angle_still_steps', 'still_steps', '']
     policy_name_vec = ['ATD3_RNN', 'TD3', 'TD3', 'TD3']
-    for r in range(4):
-        for c in range(5):
+    for c in range(10):
+        for r in range(4):
             for n in range(1):
                 print('r: {}, c: {}.'.format(r, c))
                 main(method_name=method_name_vec[r],
