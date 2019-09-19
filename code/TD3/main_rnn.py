@@ -48,8 +48,8 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
     parser.add_argument("--env_name", default="RoboschoolWalker2d-v1")  # OpenAI gym environment name
     parser.add_argument("--log_path", default='runs/ATD3_walker2d')
 
-    parser.add_argument("--eval_only", default=True)
-    parser.add_argument("--save_video", default=True)
+    parser.add_argument("--eval_only", default=False)
+    parser.add_argument("--save_video", default=False)
     parser.add_argument("--method_name", default=method_name,
                         help='Name of your method (default: )')  # Name of the method
 
@@ -290,7 +290,7 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
             model_path = result_path + '/runs/ATD3_walker2d/{}_{}'.format(args.method_name, i+1)
             print(model_path)
             policy.load("%s" % (file_name), directory=model_path)
-            for _ in range(10):
+            for _ in range(1):
                 if args.save_video:
                     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
                     video_name = video_dir + '/{}_{}_{}.mp4'.format(
@@ -327,8 +327,8 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
                         action = policy.select_action(np.array(obs))
 
                     reward_Q1_Q2 = np.zeros((1,3))
-                    Q1, Q2 = policy.critic(torch.FloatTensor(obs.reshape((1, -1))).to(device),
-                                           torch.FloatTensor(action.reshape((1, -1))).to(device))
+                    Q1, Q2 = policy.critic(torch.FloatTensor(np.expand_dims(obs_vec, axis=0)).to(device),
+                                           torch.FloatTensor(np.expand_dims(action, axis=0)).to(device))
                     reward_Q1_Q2[0, 1] = Q1.cpu().detach().numpy()
                     reward_Q1_Q2[0, 2] = Q2.cpu().detach().numpy()
 
@@ -404,7 +404,7 @@ if __name__ == "__main__":
     # policy_name_vec = ['TD3', 'TD3', 'TD3', 'ATD3']
     method_name_vec = ['human_angle_still_steps_seq_ATD3_RNN','human_angle_still_steps_seq_ATD3_CNN', 'human_angle_still_steps_ATD3', 'human_angle_still_steps']
     policy_name_vec = ['ATD3_RNN', 'ATD3_CNN', 'ATD3', 'TD3']
-    for r in [0]:
+    for r in range(3):
         for c in range(1):
             for n in range(1):
                 print('r: {}, c: {}.'.format(r, c))
