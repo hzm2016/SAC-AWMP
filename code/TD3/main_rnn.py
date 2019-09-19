@@ -56,7 +56,7 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
                         help='Name of your method (default: )')  # Name of the method
 
     parser.add_argument("--seq_len", default=2, type=int)
-    parser.add_argument("--seed", default=0, type=int)  # Sets Gym, PyTorch and Numpy seeds
+    # parser.add_argument("--seed", default=0, type=int)  # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--start_timesteps", default=1e4,
                         type=int)  # How many time steps purely random policy is run for
     parser.add_argument("--eval_freq", default=5e3, type=float)  # How often (time steps) we evaluate
@@ -73,8 +73,7 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     args = parser.parse_args()
 
-    # file_name = "%s_%s_%s_%s" % (args.policy_name, args.env_name, str(args.seed), args.method_name)
-    file_name = "TD3_%s_%s_%s" % (args.env_name, str(args.seed), args.method_name)
+    file_name = "TD3_%s_%s" % (args.env_name, args.method_name)
 
     print("---------------------------------------")
     print("Settings: %s" % (file_name))
@@ -92,10 +91,10 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0):
     env = gym.make(args.env_name)
 
     # Set seeds
-    env.seed(args.seed)
-
-    torch.manual_seed(args.seed)
-    np.random.seed(args.seed)
+    # env.seed(args.seed)
+    #
+    # torch.manual_seed(args.seed)
+    # np.random.seed(args.seed)
 
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
