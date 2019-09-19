@@ -56,6 +56,7 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0):
                         help='Name of your method (default: )')  # Name of the method
 
     parser.add_argument("--seq_len", default=2, type=int)
+    parser.add_argument("--ini_seed", default=0, type=int)  # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--seed", default=seed, type=int)  # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--start_timesteps", default=1e4,
                         type=int)  # How many time steps purely random policy is run for
@@ -73,6 +74,7 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0):
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     args = parser.parse_args()
 
+    args.seed += args.ini_seed
     file_name = "TD3_%s_%s_%s" % (args.env_name, args.seed, args.method_name)
 
     print("---------------------------------------")
