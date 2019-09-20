@@ -1,0 +1,144 @@
+#VRML_SIM R2019b utf8
+WorldInfo {
+  info [
+    "Aldebaran's Nao H25 V5.0"
+    "NAO is a programmable, 57-cm tall humanoid robot."
+    "The body has 25 degrees of freedom (DOF)."
+    "The sensors include 2 cameras, 4 microphones, sonar rangefinder, 2 IR emitters and receivers, 1 inertial board, and 8 pressure sensors."
+  ]
+  title "Aldebaran's Nao"
+  basicTimeStep 20
+  FPS 20
+  contactProperties [
+    ContactProperties {
+      material1 "NAO foot material"
+      coulombFriction [
+        7
+      ]
+      bounce 0.3
+      bounceVelocity 0.003
+    }
+  ]
+}
+Viewpoint {
+  orientation -0.222303840511369 0.9475004309683068 0.22983458357864345 1.6072110584646357
+  position 0.09772362655178211 0.5555306615171913 5.861906015965102
+  follow "NAO"
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+Nao {
+  translation -0.00744857 0.332875 5.9248
+  rotation 0.9999984188565374 0.0017587522171294918 -0.00026282135352802776 -1.5716832671978729
+  controller "nao"
+  headSlot [
+    DEF RobotHead Connector {
+      translation 0 0.073 -0.01
+      rotation 0.9999999999999999 0 0 0
+      name "robot_head_connector"
+      model "boom_head"
+      rotationStep 0.261799
+      isLocked TRUE
+      autoLock TRUE
+      distanceTolerance 0.1
+      axisTolerance 0.5
+      rotationTolerance 0.5
+    }
+  ]
+}
+DEF BoomBase Robot {
+  translation 0 0.25 0.85
+  children [
+    DEF BoomBase Group {
+      children [
+        DEF BoomBaseJoint Transform {
+          translation 0 0.25 0
+          children [
+            DEF BoomBaseJoint BallJoint {
+              jointParameters BallJointParameters {
+              }
+              jointParameters2 JointParameters {
+              }
+              jointParameters3 JointParameters {
+              }
+              device [
+                PositionSensor {
+                }
+              ]
+              device2 [
+                PositionSensor {
+                }
+              ]
+              device3 [
+                PositionSensor {
+                }
+              ]
+              endPoint DEF BoomBody Solid {
+                translation -0.0031219073860002484 0.002124137727232349 2.49987152771852
+                rotation 0.9449992383453106 -0.23187115510340298 -0.23067771231264697 1.6260005106993214
+                children [
+                  DEF BoomBody Group {
+                    children [
+                      DEF BoomBody Connector {
+                        translation 0 2.5 0
+                        rotation 0 1 0 0.523799
+                        name "boom_body_connector"
+                        model "boom_head"
+                        isLocked TRUE
+                        autoLock TRUE
+                        distanceTolerance 0.1
+                        axisTolerance 0.5
+                        rotationTolerance 0.5
+                      }
+                      DEF BoomBody Shape {
+                        appearance PBRAppearance {
+                        }
+                        geometry Cylinder {
+                          height 5
+                          radius 0.01
+                        }
+                      }
+                    ]
+                  }
+                ]
+                name "boom_body_solid"
+                boundingObject USE BoomBody
+                physics Physics {
+                  density 0.1
+                }
+              }
+            }
+            DEF BoomBaseJoint Shape {
+              appearance PBRAppearance {
+              }
+              geometry DEF BoomBaseJoint Sphere {
+                radius 0.1
+              }
+            }
+          ]
+        }
+        DEF BoomBase Shape {
+          appearance PBRAppearance {
+          }
+          geometry Cylinder {
+            height 0.5
+            radius 0.1
+          }
+        }
+      ]
+    }
+  ]
+  name "boom_base_solid"
+}
+Floor {
+  size 20 20
+  appearance Appearance {
+    texture ImageTexture {
+      url [
+        "textures/sand.jpg"
+      ]
+    }
+  }
+}

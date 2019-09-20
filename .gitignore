@@ -1,6 +1,5 @@
 $ cat .gitignore
 *.gif
-*webots*
 *.npz
 *.pth
 *.iml
