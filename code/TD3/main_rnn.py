@@ -5,7 +5,7 @@ from roboschool import gym_forward_walker
 import argparse
 import os
 import datetime
-import TD3, ATD3, ATD3_CNN, ATD3_RNN
+import TD3, ATD3, ATD3_CNN, ATD3_RNN, TD3_RNN
 import cv2
 import glob
 import sys
@@ -75,6 +75,7 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0):
     args = parser.parse_args()
 
     args.seed += args.ini_seed
+    args.seed = args.seed % 10
     file_name = "TD3_%s_%s_%s" % (args.env_name, args.seed, args.method_name)
 
     print("---------------------------------------")
@@ -111,6 +112,8 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0):
         policy = ATD3_CNN.ATD3_CNN(state_dim, action_dim, max_action, args.seq_len)
     elif 'ATD3_RNN' == args.policy_name:
         policy = ATD3_RNN.ATD3_RNN(state_dim, action_dim, max_action)
+    elif 'TD3_RNN' == args.policy_name:
+        policy = TD3_RNN.TD3_RNN(state_dim, action_dim, max_action)
 
     if not args.eval_only:
 
@@ -403,11 +406,11 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0):
 
 
 if __name__ == "__main__":
-    method_name_vec = ['human_angle_still_steps_seq_ATD3_RNN', 'human_angle_still_steps_ATD3',
+    method_name_vec = ['human_angle_still_steps_seq_TD3_RNN', 'human_angle_still_steps_seq_ATD3_RNN', 'human_angle_still_steps_ATD3',
                        'human_angle_still_steps', 'still_steps', '']
-    policy_name_vec = ['ATD3_RNN', 'ATD3', 'TD3', 'TD3', 'TD3']
-    for r in range(2):
-        for c in range(3):
+    policy_name_vec = ['TD3_RNN', 'ATD3_RNN', 'ATD3', 'TD3', 'TD3', 'TD3']
+    for r in range(1):
+        for c in range(2):
             for n in range(1):
                 print('r: {}, c: {}.'.format(r, c))
                 main(method_name=method_name_vec[r], policy_name = policy_name_vec[r],
