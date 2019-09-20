@@ -23,6 +23,7 @@ def evaluate_policy(env, policy, args, eval_episodes=10):
     avg_reward = 0.
     for _ in range(eval_episodes):
         obs = env.reset()
+
         if 'seq' in args.method_name:
             obs_vec = np.dot(np.ones((args.seq_len, 1)), obs.reshape((1, -1)))
         done = False
@@ -50,7 +51,7 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0):
     parser.add_argument("--env_name", default="RoboschoolWalker2d-v1")  # OpenAI gym environment name
     parser.add_argument("--log_path", default='runs/ATD3_walker2d')
 
-    parser.add_argument("--eval_only", default=False)
+    parser.add_argument("--eval_only", default=True)
     parser.add_argument("--save_video", default=False)
     parser.add_argument("--method_name", default=method_name,
                         help='Name of your method (default: )')  # Name of the method
@@ -409,7 +410,7 @@ if __name__ == "__main__":
     method_name_vec = ['human_angle_still_steps_seq_ATD3_RNN', 'human_angle_still_steps_ATD3',
                        'human_angle_still_steps', 'still_steps', '']
     policy_name_vec = ['ATD3_RNN', 'ATD3', 'TD3', 'TD3', 'TD3']
-    for r in range(5):
+    for r in range(1):
         for c in range(2):
             for n in range(1):
                 print('r: {}, c: {}.'.format(r, c))
