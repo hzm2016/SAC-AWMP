@@ -56,23 +56,6 @@ class Nao(gym.Env):
         for i in range(len(self.fsr)):
             self.fsr[i].enable(self.timeStep)
 
-        # # leg pitch motors
-        # self.shoulderMotor = [self.robot.getMotor('RShoulderPitch'),
-        #                       self.robot.getMotor('LShoulderPitch')]
-
-        motors_name = ['HeadPitch', 'HeadYaw', 'LAnklePitch', 'LAnkleRoll', 'LElbowRoll',
-                       'LElbowYaw', 'LHipPitch', 'LHipRoll', 'LHipYawPitch', 'LKneePitch','LPhalanx1',
-                       'LPhalanx2', 'LPhalanx3', 'LPhalanx4', 'LPhalanx5', 'LPhalanx6', 'LPhalanx7',
-                       'LPhalanx8', 'LShoulderRoll', 'LWristYaw', 'RAnklePitch',
-                       'RAnkleRoll', 'RElbowRoll', 'RElbowYaw', 'RHipPitch', 'RHipRoll',
-                       'RHipYawPitch', 'RKneePitch', 'RPhalanx1', 'RPhalanx2', 'RPhalanx3',
-                       'RPhalanx4', 'RPhalanx5', 'RPhalanx6', 'RPhalanx7',
-                       'RPhalanx8', 'RShoulderRoll', 'RWristYaw', 'LShoulderPitch', 'RShoulderPitch']
-
-        self.motors = []
-        for i in range(len(motors_name)):
-            self.motors.append(self.robot.getMotor(motors_name[i]))
-
         # leg pitch motors
         self.legPitchMotor = [self.robot.getMotor('RHipPitch'),
                               self.robot.getMotor('RKneePitch'),
@@ -242,38 +225,13 @@ class Nao(gym.Env):
     def run(self):
         # Main loop.
         for i in range(1000):
-            if i < 500:
-                continue
-            # print('steps: ', i)
-            action = 1.0 * np.random.uniform(-1, 1, 6)
+            action = 0.5 * np.random.uniform(-1, 1, 6)
             state, reward, done, _ = self.step(action)
             if done:
                 break
-            # print('state_{}, action_{}'.format(state, action))
-            # print('gps: {}, inertial_unit: {}'.format(self.gps.getValues(),
-            #                                           self.inertial_unit.getRollPitchYaw()))
-            # for j in range(len(self.fsr)):
-            #     print('fsr: {}_{}'.format(j, self.fsr[j].getValues()))
-            #
-            # for j in range(len(self.legPitchMotor)):
-            #     print('legPitch: {}_{}'.format(j, self.legPitchMotor[j].getVelocity()))
-            #
-            # for j in range(len(self.legPitchSensor)):
-            #     print('legPitch: {}_{}'.format(j, self.legPitchSensor[j].getValue()))
-            #
 
 
     def reset(self):
-        init_time = time.time()
-        for i in range(1000):
-            self.trans_field.setSFVec3f(self.INITIAL_TRANS)
-            self.rot_field.setSFRotation(self.INITIAL_ROT)
-            for j in self.motors[:-2]:
-                j.setPosition(0)
-            for j in self.motors[-2:]:
-                j.setPosition(1.57)
-            # self.robot.simulationResetPhysics()
-            self.robot.step(self.timeStep)
         self.initial_z = None
         self.body_xyz = None
-        print('Resetting time: ', time.time() -  init_time)
+        self.robot.simulationReset()
