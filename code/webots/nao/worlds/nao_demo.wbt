@@ -30,7 +30,7 @@ TexturedBackground {
 TexturedBackgroundLight {
 }
 DEF Nao Nao {
-  hidden rotation_11 -9.28211512716202e-09 0.015034486849424586 -0.9998869757153427 1.234909853643238e-06
+  hidden rotation_11 -9.282115127162021e-09 0.015034486849424588 -0.9998869757153427 1.234909853643238e-06
   hidden rotation_19 0 -0.7071067811865476 -0.7071067811865476 2.9802322387695313e-08
   hidden rotation_29 0 0.7071067811865476 -0.7071067811865476 2.9802322387695313e-08
   translation -0.005622232982088406 0.33376146361819015 5.923072585299928
@@ -61,15 +61,6 @@ DEF BoomBase Robot {
           translation 0 0.25 0
           children [
             DEF BoomBaseJoint BallJoint {
-              jointParameters BallJointParameters {
-                position 0.002946906189375309
-              }
-              jointParameters2 JointParameters {
-                position -0.0013765973048914775
-              }
-              jointParameters3 JointParameters {
-                position -0.07799790800494931
-              }
               device [
                 PositionSensor {
                 }
@@ -83,8 +74,8 @@ DEF BoomBase Robot {
                 }
               ]
               endPoint DEF BoomBody Solid {
-                translation -0.0034045105008786935 0.001665028333596265 2.4998871808243583
-                rotation 0.849805129606559 -0.3732683245700377 -0.3721585677732764 1.731977838253094
+                translation -0.0032644226975756534 0.0019252416871199669 2.499887180824358
+                rotation 0.8241422476058747 -0.4010261744865573 -0.3999594518045725 1.7620997210380351
                 children [
                   DEF BoomBody Group {
                     children [

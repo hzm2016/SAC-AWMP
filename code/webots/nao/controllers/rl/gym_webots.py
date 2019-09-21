@@ -107,7 +107,7 @@ class Nao(gym.Env):
             elif joint_angle < min_joint_angle:
                 j.setPosition(min_joint_angle + 0.1)
             else:
-                j.setTorque(0.5 * j.getMaxTorque() * float(np.clip(a[n], -1, +1)))
+                j.setTorque(1.0 * j.getMaxTorque() * float(np.clip(a[n], -1, +1)))
 
 
     def read_joint_angle(self, joint_idx):
@@ -205,7 +205,7 @@ class Nao(gym.Env):
         return np.dot(self.body_speed[[0, 2]], direction_t)
 
     def alive_bonus(self, y, pitch):
-        return +1 if y > 0.3 and abs(pitch) < 1.0 else -1
+        return +1 if y > 0.1 and abs(pitch) < 1.0 else -1
 
 
     def step(self, a):
