@@ -1,9 +1,6 @@
 import gym, gym.spaces, gym.utils, gym.utils.seeding
 import numpy as np
-import os
-import time
 from controller import Robot, Supervisor
-from roboschool import gym_forward_walker, gym_mujoco_walkers
 
 class Nao(gym.Env):
     """
@@ -20,7 +17,7 @@ class Nao(gym.Env):
 
 
     frame = 0
-    max_episode_steps = 1000
+    _max_episode_steps = 1000
 
     initial_y = None
     body_xyz = None
@@ -245,7 +242,7 @@ class Nao(gym.Env):
 
         self.frame += 1
 
-        done = (-1 == simulation_state) or (self.max_episode_steps == self.frame) \
+        done = (-1 == simulation_state) or (self._max_episode_steps <= self.frame) \
                or (alive < 0) or (not np.isfinite(state).all())
 
         return state, sum(rewards), done, {}
@@ -262,6 +259,9 @@ class Nao(gym.Env):
     def reset(self):
         self.initial_y = None
         self.body_xyz = None
+        self.joint_angles = None
+        self.frame = 0
+
         for i in range(100):
             for j in self.motors:
                 j.setPosition(0)
@@ -275,4 +275,4 @@ class Nao(gym.Env):
             self.robot.step(self.timeStep)
             # print('wait')
 
-        # self.robot.simulationReset()
+        return self.calc_state()
