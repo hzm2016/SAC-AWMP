@@ -4,10 +4,11 @@ import time
 from gym_webots import Nao
 env = Nao(action_dim=6, obs_dim=22)
 for k in range(5):
-    print(k)
+    init_time = time.time()
     env.run()
     env.reset()
-    # time.sleep(1)
+    print('time: ', time.time() - init_time)
+    # time.sleep(10)
 
 # file_name = 'temp_data/k.npy'
 # for i in range(5):
