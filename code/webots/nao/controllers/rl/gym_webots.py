@@ -86,7 +86,7 @@ class Nao(gym.Env):
             elif joint_angle < min_joint_angle:
                 j.setPosition(min_joint_angle + 0.1)
             else:
-                j.setTorque(j.getMaxTorque() * float(np.clip(a[n], -1, +1)))
+                j.setTorque(0.5 * j.getMaxTorque() * float(np.clip(a[n], -1, +1)))
 
     def read_joint_angle(self, joint_idx):
         joint_angle = self.legPitchSensor[joint_idx].getValue() % (2.0 * np.pi)
@@ -225,7 +225,7 @@ class Nao(gym.Env):
     def run(self):
         # Main loop.
         for i in range(1000):
-            action = 0.5 * np.random.uniform(-1, 1, 6)
+            action = np.random.uniform(-1, 1, 6)
             state, reward, done, _ = self.step(action)
             if done:
                 break
