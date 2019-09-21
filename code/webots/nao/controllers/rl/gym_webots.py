@@ -1,8 +1,10 @@
 import gym, gym.spaces, gym.utils, gym.utils.seeding
 import numpy as np
 import os
+import time
 from controller import Robot, Supervisor
 from roboschool import gym_forward_walker
+
 
 class Nao(gym.Env):
     """
@@ -16,9 +18,20 @@ class Nao(gym.Env):
     foot_collision_cost = -1.0  # touches another leg, or other objects, that cost makes robot avoid smashing feet into itself
     joints_at_limit_cost = -0.2  # discourage stuck joints
 
+
+    INITIAL_TRANS = [-0.00562297, 0.333728, 5.92306]
+    INITIAL_ROT = [1, 0.000785667, 0.000310304, -1.57172]
+
+    initial_z = None
+    body_xyz = None
+    joint_angles = None
+
+
     def __init__(self, action_dim, obs_dim):
         self.robot = Supervisor()
-        self.robot_Node = self.robot.getFromDef('Nao')
+        self.robot_node = self.robot.getFromDef('Nao')
+        self.trans_field = self.robot_node.getField("translation")
+        self.rot_field = self.robot_node.getField("rotation")
         self.timeStep = int(self.robot.getBasicTimeStep()) # ms
         self.find_and_enable_devices()
 
@@ -27,9 +40,9 @@ class Nao(gym.Env):
         high = np.ones([obs_dim])
         self.observation_space = gym.spaces.Box(-high, high, dtype=np.float32)
 
-        self.reset()
 
     def find_and_enable_devices(self):
+
         # inertial unit
         self.inertial_unit = self.robot.getInertialUnit("inertial unit")
         self.inertial_unit.enable(self.timeStep)
@@ -43,9 +56,22 @@ class Nao(gym.Env):
         for i in range(len(self.fsr)):
             self.fsr[i].enable(self.timeStep)
 
-        # leg pitch motors
-        self.shoulderMotor = [self.robot.getMotor('RShoulderPitch'),
-                              self.robot.getMotor('LShoulderPitch')]
+        # # leg pitch motors
+        # self.shoulderMotor = [self.robot.getMotor('RShoulderPitch'),
+        #                       self.robot.getMotor('LShoulderPitch')]
+
+        motors_name = ['HeadPitch', 'HeadYaw', 'LAnklePitch', 'LAnkleRoll', 'LElbowRoll',
+                       'LElbowYaw', 'LHipPitch', 'LHipRoll', 'LHipYawPitch', 'LKneePitch','LPhalanx1',
+                       'LPhalanx2', 'LPhalanx3', 'LPhalanx4', 'LPhalanx5', 'LPhalanx6', 'LPhalanx7',
+                       'LPhalanx8', 'LShoulderRoll', 'LWristYaw', 'RAnklePitch',
+                       'RAnkleRoll', 'RElbowRoll', 'RElbowYaw', 'RHipPitch', 'RHipRoll',
+                       'RHipYawPitch', 'RKneePitch', 'RPhalanx1', 'RPhalanx2', 'RPhalanx3',
+                       'RPhalanx4', 'RPhalanx5', 'RPhalanx6', 'RPhalanx7',
+                       'RPhalanx8', 'RShoulderRoll', 'RWristYaw', 'LShoulderPitch', 'RShoulderPitch']
+
+        self.motors = []
+        for i in range(len(motors_name)):
+            self.motors.append(self.robot.getMotor(motors_name[i]))
 
         # leg pitch motors
         self.legPitchMotor = [self.robot.getMotor('RHipPitch'),
@@ -69,35 +95,55 @@ class Nao(gym.Env):
     def apply_action(self, a):
         assert (np.isfinite(a).all())
         for n, j in enumerate(self.legPitchMotor):
-            j.setTorque(j.getMaxTorque() * float(np.clip(a[n], -1, +1)))
+            joint_angle = self.read_joint_angle(joint_idx=n)
+            max_joint_angle = j.getMaxPosition()
+            min_joint_angle = j.getMinPosition()
+            if joint_angle > max_joint_angle:
+                j.setPosition(max_joint_angle - 0.1)
+            elif joint_angle < min_joint_angle:
+                j.setPosition(min_joint_angle + 0.1)
+            else:
+                j.setTorque(j.getMaxTorque() * float(np.clip(a[n], -1, +1)))
+
+    def read_joint_angle(self, joint_idx):
+        joint_angle = self.legPitchSensor[joint_idx].getValue() % (2.0 * np.pi)
+        if joint_angle > np.pi:
+            joint_angle -= 2.0 * np.pi
+        return joint_angle
 
 
     def calc_state(self):
         joint_states = np.zeros(2*len(self.legPitchMotor))
         # even elements [0::2] position, scaled to -1..+1 between limits
         for r in range(6):
-            joint_angle = self.legPitchSensor[r].getValue()
+            joint_angle = self.legPitchSensor[r].getValue() % (2.0 * np.pi)
+            if joint_angle > np.pi:
+                joint_angle -= 2.0 * np.pi
+
             max_joint_angle = self.legPitchMotor[r].getMaxPosition()
             min_joint_angle = self.legPitchMotor[r].getMinPosition()
-            print('max_q_{}, min_q_{}'.format(max_joint_angle, min_joint_angle))
+            # print('joint_angle: {}, max_q_{}, min_q_{}'.format(joint_angle, max_joint_angle, min_joint_angle))
             joint_states[2 * r] = -(joint_angle - 0.5 * (max_joint_angle + min_joint_angle)) \
                               / (0.5 * (max_joint_angle - min_joint_angle))
             if r in [1, 4]: # only the direction of the knee is the same as human
                 joint_states[r] = -joint_states[r]
         # odd elements  [1::2] angular speed, scaled to show -1..+1
         for r in range(6):
-            joint_states[2 * r + 1] = self.legPitchMotor[r].getVelocity() \
-                              / abs(self.legPitchMotor[r].getMaxVelocity())
+            if self.joint_angles is None:
+                joint_states[2 * r + 1] = 0.0
+            else:
+                joint_states[2 * r + 1] = 0.5 * (joint_states[2*r] - self.joint_angles[r])
 
+        self.joint_angles = np.copy(joint_states[0::2])
         self.joint_speeds = joint_states[1::2]
         self.joints_at_limit = np.count_nonzero(np.abs(joint_states[0::2]) > 0.99)
 
         if self.body_xyz is None:
-            self.body_xyz = self.gps.getValues()
+            self.body_xyz = np.asarray(self.gps.getValues())
             self.body_speed = np.zeros(3)
         else:
-            self.body_speed = (self.gps.getValues() - self.body_xyz)/ (self.timeStep * 1e-3)
-            self.body_xyz = self.gps.getValues()
+            self.body_speed = (np.asarray(self.gps.getValues()) - self.body_xyz)/ (self.timeStep * 1e-3)
+            self.body_xyz = np.asarray(self.gps.getValues())
 
         z = self.body_xyz[2]
         if self.initial_z is None:
@@ -147,7 +193,7 @@ class Nao(gym.Env):
     def step(self, a):
         done = False
         reward = 0
-        # self.apply_action(a)
+        self.apply_action(a)
         if -1 == self.robot.step(self.timeStep):
             done = True
         state = self.calc_state()  # also calculates self.joints_at_limit
@@ -196,11 +242,14 @@ class Nao(gym.Env):
     def run(self):
         # Main loop.
         for i in range(1000):
-            action = 0.1 * np.random.uniform(0, 0, 6)
+            if i < 500:
+                continue
+            # print('steps: ', i)
+            action = 1.0 * np.random.uniform(-1, 1, 6)
             state, reward, done, _ = self.step(action)
             if done:
                 break
-            print('state_{}, action_{}'.format(state, action))
+            # print('state_{}, action_{}'.format(state, action))
             # print('gps: {}, inertial_unit: {}'.format(self.gps.getValues(),
             #                                           self.inertial_unit.getRollPitchYaw()))
             # for j in range(len(self.fsr)):
@@ -212,10 +261,19 @@ class Nao(gym.Env):
             # for j in range(len(self.legPitchSensor)):
             #     print('legPitch: {}_{}'.format(j, self.legPitchSensor[j].getValue()))
             #
-            # for j in range(len(self.shoulderMotor)):
-            #     self.shoulderMotor[j].setPosition(1.57)
+
 
     def reset(self):
-        # self.robot.simulationReset()
+        init_time = time.time()
+        for i in range(1000):
+            self.trans_field.setSFVec3f(self.INITIAL_TRANS)
+            self.rot_field.setSFRotation(self.INITIAL_ROT)
+            for j in self.motors[:-2]:
+                j.setPosition(0)
+            for j in self.motors[-2:]:
+                j.setPosition(1.57)
+            # self.robot.simulationResetPhysics()
+            self.robot.step(self.timeStep)
         self.initial_z = None
         self.body_xyz = None
+        print('Resetting time: ', time.time() -  init_time)
