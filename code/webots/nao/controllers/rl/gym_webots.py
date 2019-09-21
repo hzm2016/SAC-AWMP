@@ -3,15 +3,15 @@ import numpy as np
 import os
 import time
 from controller import Robot, Supervisor
-from roboschool import gym_forward_walker
-
+from roboschool import gym_forward_walker, gym_mujoco_walkers
 
 class Nao(gym.Env):
     """
+        Y axis is the vertical axis.
         Base class for Webots actors in a Scene.
         These environments create single-player scenes and behave like normal Gym environments, if
         you don't use multiplayer.
-        """
+    """
 
     electricity_cost = -2.0  # cost for using motors -- this parameter should be carefully tuned against reward for making progress, other values less improtant
     stall_torque_cost = -0.1  # cost for running electric current through a motor even at zero rotational speed, small
@@ -19,10 +19,10 @@ class Nao(gym.Env):
     joints_at_limit_cost = -0.2  # discourage stuck joints
 
 
-    INITIAL_TRANS = [-0.00562297, 0.333728, 5.92306]
-    INITIAL_ROT = [1, 0.000785667, 0.000310304, -1.57172]
+    frame = 0
+    max_episode_steps = 1000
 
-    initial_z = None
+    initial_y = None
     body_xyz = None
     joint_angles = None
 
@@ -30,8 +30,12 @@ class Nao(gym.Env):
     def __init__(self, action_dim, obs_dim):
         self.robot = Supervisor()
         self.robot_node = self.robot.getFromDef('Nao')
-        self.trans_field = self.robot_node.getField("translation")
-        self.rot_field = self.robot_node.getField("rotation")
+        self.robot_trans_field = self.robot_node.getField("translation")
+        self.robot_rot_field = self.robot_node.getField("rotation")
+        self.INITIAL_TRANS = self.robot_trans_field.getSFVec3f()
+        self.INITIAL_ROT = self.robot_rot_field.getSFRotation()
+        self.boom_base = self.robot.getFromDef('BoomBase')
+        self.boom_base_trans_field = self.boom_base.getField("translation")
         self.timeStep = int(self.robot.getBasicTimeStep()) # ms
         self.find_and_enable_devices()
 
@@ -55,6 +59,17 @@ class Nao(gym.Env):
         self.fsr = [self.robot.getTouchSensor("RFsr"), self.robot.getTouchSensor("LFsr")]
         for i in range(len(self.fsr)):
             self.fsr[i].enable(self.timeStep)
+
+        # all motors
+        motor_names = [# 'HeadPitch', 'HeadYaw',
+                       'LAnklePitch', 'LAnkleRoll', 'LKneePitch',
+                       'LHipPitch', 'LHipRoll', 'LHipYawPitch',
+                       'RAnklePitch', 'RAnkleRoll', 'RKneePitch',
+                       'RHipPitch', 'RHipRoll', 'RHipYawPitch',
+                       ]
+        self.motors = []
+        for i in range(len(motor_names)):
+            self.motors.append(self.robot.getMotor(motor_names[i]))
 
         # leg pitch motors
         self.legPitchMotor = [self.robot.getMotor('RHipPitch'),
@@ -88,12 +103,12 @@ class Nao(gym.Env):
             else:
                 j.setTorque(0.5 * j.getMaxTorque() * float(np.clip(a[n], -1, +1)))
 
+
     def read_joint_angle(self, joint_idx):
         joint_angle = self.legPitchSensor[joint_idx].getValue() % (2.0 * np.pi)
         if joint_angle > np.pi:
             joint_angle -= 2.0 * np.pi
         return joint_angle
-
 
     def calc_state(self):
         joint_states = np.zeros(2*len(self.legPitchMotor))
@@ -125,12 +140,12 @@ class Nao(gym.Env):
             self.body_xyz = np.asarray(self.gps.getValues())
             self.body_speed = np.zeros(3)
         else:
-            self.body_speed = (np.asarray(self.gps.getValues()) - self.body_xyz)/ (self.timeStep * 1e-3)
+            self.body_speed = (np.asarray(self.gps.getValues()) - self.body_xyz) / (self.timeStep * 1e-3)
             self.body_xyz = np.asarray(self.gps.getValues())
 
-        z = self.body_xyz[2]
-        if self.initial_z is None:
-            self.initial_z = z
+        y = self.body_xyz[1]
+        if self.initial_y is None:
+            self.initial_y = y
 
         self.body_rpy = self.inertial_unit.getRollPitchYaw()
         '''
@@ -154,7 +169,7 @@ class Nao(gym.Env):
         '''
 
         more = np.array([
-            z - self.initial_z,
+            y - self.initial_y,
             0, 0,
             0.3 * self.body_speed[0], 0.3 * self.body_speed[1], 0.3 * self.body_speed[2],
             # 0.3 is just scaling typical speed into -1..+1, no physical sense here
@@ -162,76 +177,92 @@ class Nao(gym.Env):
 
         self.feet_contact = np.zeros(2)
         for j in range(len(self.fsr)):
-            foot_forces = self.fsr[j].getValues()
-            if abs(foot_forces[2]) > 3:
+            foot_forces = np.asarray(self.fsr[j].getValues())
+            # print('foot_forces: {}'.format(foot_forces))
+            if foot_forces[2] > 3:
                 self.feet_contact[j] = 1
 
         return np.clip(np.concatenate([more] + [joint_states] + [self.feet_contact]), -5, +5)
 
-    # def calc_potential(self):
-    #     # progress in potential field is speed*dt, typical speed is about 2-3 meter per second, this potential will change 2-3 per frame (not per second),
-    #     # all rewards have rew/frame units and close to 1.0
-    #     return - self.walk_target_dist / self.scene.dt
+    def calc_forward_speed(self):
+        '''
+        # progress in potential field is speed*dt, typical speed is about 2-3 meter per second,
+        this potential will change 2-3 per frame (not per second),
+        # all rewards have rew/frame units and close to 1.0
+        '''
+        direction_r = self.body_xyz - np.asarray(self.boom_base_trans_field.getSFVec3f())
+        # print('robot_xyz: {}, boom_base_xyz: {}'.format(self.body_xyz,
+        #                                                 np.asarray(self.boom_base_trans_field.getSFVec3f())))
+        direction_r = direction_r[[0, 2]] / np.linalg.norm(direction_r[[0, 2]])
+        direction_t = np.dot(np.asarray([[0, 1],
+                                  [-1, 0]]), direction_r.reshape((-1, 1)))
+        return np.dot(self.body_speed[[0, 2]], direction_t)
+
+    def alive_bonus(self, y, pitch):
+        return +1 if y > 0.3 and abs(pitch) < 1.0 else -1
+
 
     def step(self, a):
-        done = False
-        reward = 0
         self.apply_action(a)
-        if -1 == self.robot.step(self.timeStep):
-            done = True
+        simulation_state = self.robot.step(self.timeStep)
         state = self.calc_state()  # also calculates self.joints_at_limit
 
-        # alive = float(self.alive_bonus(state[0] + self.initial_z,
-        #                                self.body_rpy[1]))  # state[0] is body height above ground, body_rpy[1] is pitch
-        # done = alive < 0
-        # if not np.isfinite(state).all():
-        #     print("~INF~", state)
-        #     done = True
-        #
-        # potential_old = self.potential
-        # self.potential = self.calc_potential()
-        # progress = float(self.potential - potential_old)
-        #
-        # feet_collision_cost = 0.0
-        # for i, f in enumerate(self.feet):
-        #     contact_names = set(x.name for x in f.contact_list())
-        #     # print("CONTACT OF '%s' WITH %s" % (f.name, ",".join(contact_names)) )
-        #     self.feet_contact[i] = 1.0 if (self.foot_ground_object_names & contact_names) else 0.0
-        #     if contact_names - self.foot_ground_object_names:
-        #         feet_collision_cost += self.foot_collision_cost
-        #
-        # electricity_cost = self.electricity_cost * float(np.abs(
-        #     a * self.joint_speeds).mean())  # let's assume we have DC motor with controller, and reverse current braking
-        # electricity_cost += self.stall_torque_cost * float(np.square(a).mean())
-        #
-        # joints_at_limit_cost = float(self.joints_at_limit_cost * self.joints_at_limit)
-        #
-        # self.rewards = [
-        #     alive,
-        #     progress,
-        #     electricity_cost,
-        #     joints_at_limit_cost,
-        #     feet_collision_cost
-        # ]
-        #
-        # self.frame += 1
-        # if (done and not self.done) or self.frame == self.spec.max_episode_steps:
-        #     self.episode_over(self.frame)
-        # self.done += done  # 2 == 1+True
-        # self.reward += sum(self.rewards)
-        # self.HUD(state, a, done)
-        return state, reward, bool(done), {}
+        # state[0] is body height above ground, body_rpy[1] is pitch
+        alive = float(self.alive_bonus(state[0] + self.initial_y,
+                                       self.body_rpy[1]))
+
+        progress = self.calc_forward_speed()
+        # print('progress: {}'.format(progress))
+
+        feet_collision_cost = 0.0
+
+
+        '''
+        let's assume we have DC motor with controller, and reverse current braking
+        '''
+        electricity_cost = self.electricity_cost * float(np.abs(
+            a * self.joint_speeds).mean())
+        electricity_cost += self.stall_torque_cost * float(np.square(a).mean())
+
+        joints_at_limit_cost = float(self.joints_at_limit_cost * self.joints_at_limit)
+
+        rewards = [
+            alive,
+            progress,
+            electricity_cost,
+            joints_at_limit_cost,
+            feet_collision_cost
+        ]
+
+        self.frame += 1
+
+        done = (-1 == simulation_state) or (self.max_episode_steps == self.frame) \
+               or (alive < 0) or (not np.isfinite(state).all())
+
+        return state, sum(rewards), done, {}
 
     def run(self):
         # Main loop.
         for i in range(1000):
             action = np.random.uniform(-1, 1, 6)
             state, reward, done, _ = self.step(action)
+            # print('state_{} \n action_{}, reward_{}'.format(state, action, reward))
             if done:
                 break
 
-
     def reset(self):
-        self.initial_z = None
+        init_time = time.time()
+        self.initial_y = None
         self.body_xyz = None
-        self.robot.simulationReset()
+        for i in range(100):
+            for j in self.motors:
+                j.setPosition(0)
+                self.robot.step(self.timeStep)
+        self.robot.simulationResetPhysics()
+        self.robot_trans_field.setSFVec3f(self.INITIAL_TRANS)
+        self.robot_rot_field.setSFRotation(self.INITIAL_ROT)
+        for i in range(10):
+            self.robot.step(self.timeStep)
+            # print('wait')
+        print('time: ', time.time() - init_time)
+        # self.robot.simulationReset()
