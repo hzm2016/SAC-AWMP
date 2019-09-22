@@ -44,7 +44,7 @@ def evaluate_policy(env, policy, args, eval_episodes=10):
     return avg_reward
 
 
-def main(method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0):
+def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0):
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default=policy_name)  # Policy name
     parser.add_argument("--env_name", default="Webots_Nao")  # OpenAI gym environment name
@@ -91,7 +91,7 @@ def main(method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0):
     if args.save_video and not os.path.exists(video_dir):
         os.makedirs(video_dir)
 
-    env = Nao(action_dim=6, obs_dim=22)
+
     # env = gym.make(args.env_name)
 
     # Set seeds
@@ -401,12 +401,13 @@ if __name__ == "__main__":
     # for i in range(5):
     #     env.run()
     #     env.reset()
+    env = Nao(action_dim=6, obs_dim=22)
     method_name_vec = ['human_angle_still_steps_seq_ATD3_RNN', 'human_angle_still_steps_ATD3',
                        'human_angle_still_steps', 'still_steps', '']
     policy_name_vec = ['ATD3_RNN', 'ATD3', 'TD3', 'TD3', 'TD3']
     for r in range(1):
-        for c in range(2):
+        for c in range(10):
             for n in range(1):
                 print('r: {}, c: {}.'.format(r, c))
-                main(method_name=method_name_vec[r], policy_name = policy_name_vec[r],
+                main(env, method_name=method_name_vec[r], policy_name = policy_name_vec[r],
                      state_noise= 0.04 * n, seed=c)
