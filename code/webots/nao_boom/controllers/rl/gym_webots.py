@@ -34,6 +34,15 @@ class Nao(gym.Env):
         self.robot_ini_trans = self.robot_trans_field.getSFVec3f()
         self.robot_ini_rot = self.robot_rot_field.getSFRotation()
 
+        self.boom_body = self.robot.getFromDef('BoomBody')
+        self.boom_body_trans_field = self.boom_body.getField("translation")
+        self.boom_body_rot_field = self.boom_body.getField("rotation")
+        self.boom_body_ini_trans = self.boom_body_trans_field.getSFVec3f()
+        self.boom_body_ini_rot = self.boom_body_rot_field.getSFRotation()
+
+
+        self.boom_base = self.robot.getFromDef('BoomBase')
+        self.boom_base_trans_field = self.boom_base.getField("translation")
         self.timeStep = int(self.robot.getBasicTimeStep()) # ms
         self.find_and_enable_devices()
 
@@ -113,9 +122,7 @@ class Nao(gym.Env):
         joint_states = np.zeros(2*len(self.legPitchMotor))
         # even elements [0::2] position, scaled to -1..+1 between limits
         for r in range(6):
-            joint_angle = self.legPitchSensor[r].getValue() % (2.0 * np.pi)
-            if joint_angle > np.pi:
-                joint_angle -= 2.0 * np.pi
+            joint_angle = self.read_joint_angle(joint_idx=r)
 
             max_joint_angle = self.legPitchMotor[r].getMaxPosition()
             min_joint_angle = self.legPitchMotor[r].getMinPosition()
@@ -198,7 +205,13 @@ class Nao(gym.Env):
         this potential will change 2-3 per frame (not per second),
         # all rewards have rew/frame units and close to 1.0
         '''
-        return self.body_speed[0]
+        direction_r = self.body_xyz - np.asarray(self.boom_base_trans_field.getSFVec3f())
+        # print('robot_xyz: {}, boom_base_xyz: {}'.format(self.body_xyz,
+        #                                                 np.asarray(self.boom_base_trans_field.getSFVec3f())))
+        direction_r = direction_r[[0, 2]] / np.linalg.norm(direction_r[[0, 2]])
+        direction_t = np.dot(np.asarray([[0, 1],
+                                  [-1, 0]]), direction_r.reshape((-1, 1)))
+        return np.dot(self.body_speed[[0, 2]], direction_t)
 
     def alive_bonus(self, y, pitch):
         return +1 if y > 0.1 and abs(pitch) < 1.0 else -1
@@ -268,6 +281,8 @@ class Nao(gym.Env):
         self.robot.simulationResetPhysics()
         self.robot_trans_field.setSFVec3f(self.robot_ini_trans)
         self.robot_rot_field.setSFRotation(self.robot_ini_rot)
+        self.boom_body_trans_field.setSFVec3f(self.boom_body_ini_trans)
+        self.boom_body_rot_field.setSFRotation(self.boom_body_ini_rot)
         for i in range(10):
             self.robot.step(self.timeStep)
             # print('wait')

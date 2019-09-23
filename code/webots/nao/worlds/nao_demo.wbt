@@ -21,8 +21,8 @@ WorldInfo {
   ]
 }
 Viewpoint {
-  orientation -0.3144199926158374 0.945378586054132 0.0860197493239019 0.35431401858835765
-  position 1.5437918045201517 0.7803162147883025 8.754106269536372
+  orientation -0.9638378192128764 -0.26261246547138895 0.04529184511592675 0.17079351951057462
+  position -2.9451012293249423 2.003915299491426 16.13363523489723
   follow "NAO"
 }
 TexturedBackground {
@@ -30,105 +30,9 @@ TexturedBackground {
 TexturedBackgroundLight {
 }
 DEF Nao Nao {
-  hidden rotation_11 -9.282115127162021e-09 0.015034486849424588 -0.9998869757153427 1.234909853643238e-06
-  hidden rotation_19 0 -0.7071067811865476 -0.7071067811865476 2.9802322387695313e-08
-  hidden rotation_29 0 0.7071067811865476 -0.7071067811865476 2.9802322387695313e-08
   translation -0.005622232982088406 0.33376146361819015 5.923072585299928
   rotation 0.9999996432196487 0.0007856666411268724 0.0003103038905903106 -1.571723020672679
-  controller "rl"
-  supervisor TRUE
-  headSlot [
-    DEF RobotHead Connector {
-      translation 0 0.073 -0.01
-      rotation 0.9999999999999999 0 0 0
-      name "robot_head_connector"
-      model "boom_head"
-      rotationStep 0.261799
-      isLocked TRUE
-      autoLock TRUE
-      distanceTolerance 0.1
-      axisTolerance 0.5
-      rotationTolerance 0.5
-    }
-  ]
-}
-DEF BoomBase Robot {
-  translation 0 0.25 0.85
-  children [
-    DEF BoomBase Group {
-      children [
-        DEF BoomBaseJoint Transform {
-          translation 0 0.25 0
-          children [
-            DEF BoomBaseJoint BallJoint {
-              device [
-                PositionSensor {
-                }
-              ]
-              device2 [
-                PositionSensor {
-                }
-              ]
-              device3 [
-                PositionSensor {
-                }
-              ]
-              endPoint DEF BoomBody Solid {
-                translation -0.0032644226975756534 0.0019252416871199669 2.499887180824358
-                rotation 0.8241422476058747 -0.4010261744865573 -0.3999594518045725 1.7620997210380351
-                children [
-                  DEF BoomBody Group {
-                    children [
-                      DEF BoomBody Connector {
-                        translation 0 2.5 0
-                        rotation 0 1 0 0.523799
-                        name "boom_body_connector"
-                        model "boom_head"
-                        isLocked TRUE
-                        autoLock TRUE
-                        distanceTolerance 0.1
-                        axisTolerance 0.5
-                        rotationTolerance 0.5
-                      }
-                      DEF BoomBody Shape {
-                        appearance PBRAppearance {
-                        }
-                        geometry Cylinder {
-                          height 5
-                          radius 0.01
-                        }
-                      }
-                    ]
-                  }
-                ]
-                name "boom_body_solid"
-                boundingObject USE BoomBody
-                physics Physics {
-                  density 0.1
-                }
-              }
-            }
-            DEF BoomBaseJoint Shape {
-              appearance PBRAppearance {
-              }
-              geometry DEF BoomBaseJoint Sphere {
-                radius 0.1
-              }
-            }
-          ]
-        }
-        DEF BoomBase Shape {
-          appearance PBRAppearance {
-          }
-          geometry Cylinder {
-            height 0.5
-            radius 0.1
-          }
-        }
-      ]
-    }
-  ]
-  name "boom_base_solid"
+  controller "<extern>"
   supervisor TRUE
 }
 Floor {

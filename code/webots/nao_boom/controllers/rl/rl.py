@@ -50,7 +50,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
     parser.add_argument("--env_name", default="Webots_Nao")  # OpenAI gym environment name
     parser.add_argument("--log_path", default='runs/ATD3_walker2d')
 
-    parser.add_argument("--eval_only", default=True)
+    parser.add_argument("--eval_only", default=False)
     parser.add_argument("--save_video", default=False)
     parser.add_argument("--method_name", default=method_name,
                         help='Name of your method (default: )')  # Name of the method
@@ -333,11 +333,11 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                 else:
                     action = policy.select_action(np.array(obs))
 
-                reward_Q1_Q2 = np.zeros((1,3))
-                Q1, Q2 = policy.critic(torch.FloatTensor(np.expand_dims(obs_vec, axis=0)).to(device),
-                                       torch.FloatTensor(np.expand_dims(action, axis=0)).to(device))
-                reward_Q1_Q2[0, 1] = Q1.cpu().detach().numpy()
-                reward_Q1_Q2[0, 2] = Q2.cpu().detach().numpy()
+                # reward_Q1_Q2 = np.zeros((1,3))
+                # Q1, Q2 = policy.critic(torch.FloatTensor(np.expand_dims(obs_vec, axis=0)).to(device),
+                #                        torch.FloatTensor(np.expand_dims(action, axis=0)).to(device))
+                # reward_Q1_Q2[0, 1] = Q1.cpu().detach().numpy()
+                # reward_Q1_Q2[0, 2] = Q2.cpu().detach().numpy()
 
                 obs, reward, done, _ = env.step(action)
 
@@ -358,9 +358,9 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                                                                         joint_angle_sampled) - 0.5
                                 # print('gait_num:', gait_num, 'time steps in a gait: ', joint_angle.shape[0],
                                 #       'coefficient: ', coefficient)
-                                reward_Q1_Q2_mat[-joint_angle.shape[0]: -delay_num, 0] += coefficient
-                                if len(idx_angle) > 0:
-                                    reward_Q1_Q2_mat[idx_angle.astype(np.int)] += reward_angle.reshape((-1, 1))
+                                # reward_Q1_Q2_mat[-joint_angle.shape[0]: -delay_num, 0] += coefficient
+                                # if len(idx_angle) > 0:
+                                #     reward_Q1_Q2_mat[idx_angle.astype(np.int)] += reward_angle.reshape((-1, 1))
 
                                 idx_angle = np.r_[idx_angle, joint_angle[:-delay_num, -1]]
                                 reward_angle = np.r_[reward_angle,
@@ -369,7 +369,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                     pre_foot_contact = foot_contact
                     joint_angle_obs = np.zeros((1, 7))
                     joint_angle_obs[0, :-1] = obs[8:20:2]
-                    joint_angle_obs[0, -1] = reward_Q1_Q2_mat.shape[0]
+                    # joint_angle_obs[0, -1] = reward_Q1_Q2_mat.shape[0]
                     # print(joint_angle_obs)
                     joint_angle = np.r_[joint_angle, joint_angle_obs]
                     reward -= 0.5
@@ -380,12 +380,12 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                     else:
                         still_steps = 0
                     if still_steps > 100:
-                        reward_Q1_Q2_mat[(-still_steps + 1):, 0] += -2.0
+                        # reward_Q1_Q2_mat[(-still_steps + 1):, 0] += -2.0
                         reward -= 2.0
                         done = True
 
-                reward_Q1_Q2[0, 0] = reward
-                reward_Q1_Q2_mat = np.r_[reward_Q1_Q2_mat, reward_Q1_Q2]
+                # reward_Q1_Q2[0, 0] = reward
+                # reward_Q1_Q2_mat = np.r_[reward_Q1_Q2_mat, reward_Q1_Q2]
 
                 obs[8:20] += np.random.normal(0, args.state_noise, size=obs[8:20].shape[0]).clip(
                             -1, 1)
@@ -402,12 +402,12 @@ if __name__ == "__main__":
     #     env.run()
     #     env.reset()
     env = Nao(action_dim=6, obs_dim=22)
-    method_name_vec = ['human_angle_still_steps_seq_ATD3_RNN', 'human_angle_still_steps_ATD3',
+    method_name_vec = ['still_steps_seq_ATD3_RNN', 'human_angle_still_steps_ATD3',
                        'human_angle_still_steps', 'still_steps', '']
     policy_name_vec = ['ATD3_RNN', 'ATD3', 'TD3', 'TD3', 'TD3']
-    for r in range(1):
+    for r in [0]:
         for j in range(10):
-            for c in [1]:
+            for c in range(1):
                 for n in range(1):
                     print('r: {}, c: {}.'.format(r, c))
                     main(env, method_name=method_name_vec[r], policy_name = policy_name_vec[r],
