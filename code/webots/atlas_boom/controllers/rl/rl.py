@@ -61,10 +61,10 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
     parser.add_argument("--start_timesteps", default=1e4,
                         type=int)  # How many time steps purely random policy is run for
     parser.add_argument("--eval_freq", default=5e3, type=float)  # How often (time steps) we evaluate
-    parser.add_argument("--max_timesteps", default=3e5, type=float)  # Max time steps to run environment for
+    parser.add_argument("--max_timesteps", default=1e6, type=float)  # Max time steps to run environment for
     parser.add_argument("--save_models", default=True)  # Whether or not models are saved
 
-    parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
+    parser.add_argument("--expl_noise", default=0.2, type=float)  # Std of Gaussian exploration noise
     parser.add_argument("--state_noise", default=state_noise, type=float)  # Std of Gaussian exploration noise
     parser.add_argument("--batch_size", default=100, type=int)  # Batch size for both actor and critic
     parser.add_argument("--discount", default=0.99, type=float)  # Discount factor
@@ -159,7 +159,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
         while total_timesteps < args.max_timesteps:
             if done:
                 if len(replay_buffer.storage) > env.frame:
-                    replay_buffer.add_final_reward(1e-3 * (env.episode_reward + env.frame - env._max_episode_steps),
+                    replay_buffer.add_final_reward(1e-3 * env.episode_reward,
                                                    env.frame)
                 pbar.update(total_timesteps - pre_num_steps)
                 pre_num_steps = total_timesteps
@@ -242,15 +242,15 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                             # The ATD3 seems to prefer the negative similarity reward
                             coefficient = utils.calc_cos_similarity(human_joint_angle,
                                                                     joint_angle_sampled) - 0.5
-                            # print('gait_num:', gait_num, 'time steps in a gait: ', joint_angle.shape[0],
-                            #       'coefficient: ', coefficient)
+                            print('gait_num:', gait_num, 'time steps in a gait: ', joint_angle.shape[0],
+                                  'coefficient: ', coefficient)
                             replay_buffer.add_final_reward(coefficient, joint_angle.shape[0] - delay_num,
                                                            delay=delay_num)
 
                             replay_buffer.add_specific_reward(reward_angle, idx_angle)
                             idx_angle = np.r_[idx_angle, joint_angle[:-delay_num, -1]]
                             reward_angle = np.r_[reward_angle,
-                                                 0.05 * np.ones(joint_angle[:-delay_num, -1].shape[0])]
+                                                 0.2 * np.ones(joint_angle[:-delay_num, -1].shape[0])]
                     joint_angle = joint_angle[-delay_num:]
                 pre_foot_contact = foot_contact
                 joint_angle_obs = np.zeros((1, 7))
@@ -410,7 +410,7 @@ if __name__ == "__main__":
                        'human_angle_still_steps', 'still_steps', '']
     policy_name_vec = ['ATD3_RNN', 'ATD3', 'TD3', 'TD3', 'TD3']
     for r in [0]:
-        for j in range(1):
+        for j in range(10):
             for c in range(1):
                 for n in range(1):
                     print('r: {}, c: {}.'.format(r, c))

@@ -102,15 +102,15 @@ class Atlas(gym.Env):
     def apply_action(self, a):
         assert (np.isfinite(a).all())
         for n, j in enumerate(self.legPitchMotor):
-            joint_angle = self.read_joint_angle(joint_idx=n)
-            max_joint_angle = j.getMaxPosition()
-            min_joint_angle = j.getMinPosition()
-            if joint_angle > max_joint_angle:
-                j.setPosition(max_joint_angle - 0.01)
-            elif joint_angle < min_joint_angle:
-                j.setPosition(min_joint_angle + 0.01)
-            else:
-                j.setTorque(1.0 * j.getMaxTorque() * float(np.clip(a[n], -1, +1)))
+            # joint_angle = self.read_joint_angle(joint_idx=n)
+            # max_joint_angle = j.getMaxPosition()
+            # min_joint_angle = j.getMinPosition()
+            # if joint_angle > max_joint_angle:
+            #     j.setPosition(max_joint_angle - 0.01)
+            # elif joint_angle < min_joint_angle:
+            #     j.setPosition(min_joint_angle + 0.01)
+            # else:
+            j.setTorque(1.0 * j.getMaxTorque() * float(np.clip(a[n], -1, +1)))
 
 
     def read_joint_angle(self, joint_idx):
@@ -221,7 +221,7 @@ class Atlas(gym.Env):
         return np.dot(self.body_speed[[0, 2]], direction_t)
 
     def alive_bonus(self, y, pitch):
-        return +1 if abs(y) > 0.4 and abs(pitch) < 1.0 else -1
+        return +1 if abs(y) > 0.5 and abs(pitch) < 1.0 else -1
 
 
     def step(self, action):
