@@ -123,14 +123,20 @@ class Nao(gym.Env):
         # even elements [0::2] position, scaled to -1..+1 between limits
         for r in range(6):
             joint_angle = self.read_joint_angle(joint_idx=r)
-
-            max_joint_angle = self.legPitchMotor[r].getMaxPosition()
-            min_joint_angle = self.legPitchMotor[r].getMinPosition()
-            # print('joint_angle: {}, max_q_{}, min_q_{}'.format(joint_angle, max_joint_angle, min_joint_angle))
-            joint_states[2 * r] = -(joint_angle - 0.5 * (max_joint_angle + min_joint_angle)) \
-                              / (0.5 * (max_joint_angle - min_joint_angle))
-            if r in [1, 4]: # only the direction of the knee is the same as human
-                joint_states[2 * r] = -joint_states[2 * r]
+            #
+            # max_joint_angle = self.legPitchMotor[r].getMaxPosition()
+            # min_joint_angle = self.legPitchMotor[r].getMinPosition()
+            # # print('joint_angle: {}, max_q_{}, min_q_{}'.format(joint_angle, max_joint_angle, min_joint_angle))
+            # joint_states[2 * r] = -(joint_angle - 0.5 * (max_joint_angle + min_joint_angle)) \
+            #                   / (0.5 * (max_joint_angle - min_joint_angle))
+            # if r in [1, 4]: # only the direction of the knee is the same as human
+            #     joint_states[2 * r] = -joint_states[2 * r]
+            if r in [0, 3]:
+                joint_states[2 * r] = (-joint_angle - np.deg2rad(35)) / np.deg2rad(80)
+            elif r in [1, 4]:
+                joint_states[2 * r] = 1 - joint_angle / np.deg2rad(75)
+            elif r in [2, 5]:
+                joint_states[2 * r] = -joint_angle / np.deg2rad(45)
         # odd elements  [1::2] angular speed, scaled to show -1..+1
         for r in range(6):
             if self.joint_angles is None:

@@ -50,7 +50,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
     parser.add_argument("--env_name", default="Webots_Nao")  # OpenAI gym environment name
     parser.add_argument("--log_path", default='runs/ATD3_walker2d')
 
-    parser.add_argument("--eval_only", default=False)
+    parser.add_argument("--eval_only", default=True)
     parser.add_argument("--save_video", default=False)
     parser.add_argument("--method_name", default=method_name,
                         help='Name of your method (default: )')  # Name of the method
@@ -402,7 +402,7 @@ if __name__ == "__main__":
     #     env.run()
     #     env.reset()
     env = Nao(action_dim=6, obs_dim=22)
-    method_name_vec = ['still_steps_seq_ATD3_RNN', 'human_angle_still_steps_ATD3',
+    method_name_vec = ['human_angle_still_steps_seq_ATD3_RNN', 'human_angle_still_steps_ATD3',
                        'human_angle_still_steps', 'still_steps', '']
     policy_name_vec = ['ATD3_RNN', 'ATD3', 'TD3', 'TD3', 'TD3']
     for r in [0]:

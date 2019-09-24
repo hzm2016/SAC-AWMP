@@ -7,7 +7,7 @@ centralWidgetVisible: 1
 selectionDisabled: 0
 viewpointLocked: 0
 orthographicViewHeight: 1
-textFiles: 1 "../../../../../../../../usr/local/webots/lib/python36/controller.py" "controllers/rl/gym_webots.py" "controllers/rl/rl.py" "../../../../../../anaconda3/lib/python3.7/site-packages/torch/serialization.py"
+textFiles: 2 "../../../../../../../../usr/local/webots/lib/python36/controller.py" "controllers/rl/gym_webots.py" "controllers/rl/rl.py" "../../../../../../anaconda3/lib/python3.7/site-packages/torch/serialization.py"
 globalOptionalRendering: JointAxes::CoordinateSystem
-renderingDevicePerspectives: NAO:CameraBottom;0;1;0;0
 renderingDevicePerspectives: NAO:CameraTop;0;1;0;0
+renderingDevicePerspectives: NAO:CameraBottom;0;1;0;0

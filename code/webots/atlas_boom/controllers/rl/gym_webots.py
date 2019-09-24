@@ -16,6 +16,7 @@ class Atlas(gym.Env):
     foot_collision_cost = -1.0  # touches another leg, or other objects, that cost makes robot avoid smashing feet into itself
     joints_at_limit_cost = -0.2  # discourage stuck joints
 
+    episode_reward = 0
 
     frame = 0
     _max_episode_steps = 1000
@@ -105,9 +106,9 @@ class Atlas(gym.Env):
             max_joint_angle = j.getMaxPosition()
             min_joint_angle = j.getMinPosition()
             if joint_angle > max_joint_angle:
-                j.setPosition(max_joint_angle - 0.1)
+                j.setPosition(max_joint_angle - 0.01)
             elif joint_angle < min_joint_angle:
-                j.setPosition(min_joint_angle + 0.1)
+                j.setPosition(min_joint_angle + 0.01)
             else:
                 j.setTorque(1.0 * j.getMaxTorque() * float(np.clip(a[n], -1, +1)))
 
@@ -123,14 +124,19 @@ class Atlas(gym.Env):
         # even elements [0::2] position, scaled to -1..+1 between limits
         for r in range(6):
             joint_angle = self.read_joint_angle(joint_idx=r)
-
-            max_joint_angle = self.legPitchMotor[r].getMaxPosition()
-            min_joint_angle = self.legPitchMotor[r].getMinPosition()
+            # max_joint_angle = self.legPitchMotor[r].getMaxPosition()
+            # min_joint_angle = self.legPitchMotor[r].getMinPosition()
             # print('joint_angle: {}, max_q_{}, min_q_{}'.format(joint_angle, max_joint_angle, min_joint_angle))
-            joint_states[2 * r] = -(joint_angle - 0.5 * (max_joint_angle + min_joint_angle)) \
-                              / (0.5 * (max_joint_angle - min_joint_angle))
-            if r in [1, 4]: # only the direction of the knee is the same as human
-                joint_states[2 * r] = -joint_states[2 * r]
+            # joint_states[2 * r] = -(joint_angle - 0.5 * (max_joint_angle + min_joint_angle)) \
+            #                   / (0.5 * (max_joint_angle - min_joint_angle))
+            # if r in [1, 4]: # only the direction of the knee is the same as human
+            #     joint_states[2 * r] = -joint_states[2 * r]
+            if r in [0, 3]:
+                joint_states[2 * r] = (-joint_angle - np.deg2rad(35)) / np.deg2rad(80)
+            elif r in [1, 4]:
+                joint_states[2 * r] = 1 - joint_angle / np.deg2rad(75)
+            elif r in [2, 5]:
+                joint_states[2 * r] = -joint_angle / np.deg2rad(45)
         # odd elements  [1::2] angular speed, scaled to show -1..+1
         for r in range(6):
             if self.joint_angles is None:
@@ -179,7 +185,7 @@ class Atlas(gym.Env):
             0, 0,
             0.3 * self.body_speed[0], 0.3 * self.body_speed[1], 0.3 * self.body_speed[2],
             # 0.3 is just scaling typical speed into -1..+1, no physical sense here
-            self.body_rpy[0] / np.pi, self.body_rpy[1] / (0.5 * np.pi)], dtype=np.float32)
+            self.body_rpy[0] / np.pi, self.body_rpy[1] / np.pi], dtype=np.float32)
 
         self.feet_contact = np.zeros(2)
         for j in range(len(self.fsr)):
@@ -215,7 +221,7 @@ class Atlas(gym.Env):
         return np.dot(self.body_speed[[0, 2]], direction_t)
 
     def alive_bonus(self, y, pitch):
-        return +1 if abs(y) > 0.6 and abs(pitch) < 1.0 else -1
+        return +1 if abs(y) > 0.4 and abs(pitch) < 1.0 else -1
 
 
     def step(self, action):
@@ -226,7 +232,6 @@ class Atlas(gym.Env):
         # state[0] is body height above ground, body_rpy[1] is pitch
         alive = float(self.alive_bonus(state[0] + self.initial_y,
                                        self.body_rpy[1]))
-
 
 
         progress = self.calc_forward_speed()
@@ -252,6 +257,8 @@ class Atlas(gym.Env):
             feet_collision_cost
         ]
 
+        self.episode_reward += progress
+
         self.frame += 1
 
         done = (-1 == simulation_state) or (self._max_episode_steps <= self.frame) \
@@ -274,6 +281,7 @@ class Atlas(gym.Env):
         self.body_xyz = None
         self.joint_angles = None
         self.frame = 0
+        self.episode_reward = 0
 
         for i in range(100):
             for j in self.motors:

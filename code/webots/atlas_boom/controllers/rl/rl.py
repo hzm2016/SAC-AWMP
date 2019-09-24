@@ -158,6 +158,9 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
 
         while total_timesteps < args.max_timesteps:
             if done:
+                if len(replay_buffer.storage) > env.frame:
+                    replay_buffer.add_final_reward(1e-3 * (env.episode_reward + env.frame - env._max_episode_steps),
+                                                   env.frame)
                 pbar.update(total_timesteps - pre_num_steps)
                 pre_num_steps = total_timesteps
                 if total_timesteps != 0:
@@ -243,6 +246,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                             #       'coefficient: ', coefficient)
                             replay_buffer.add_final_reward(coefficient, joint_angle.shape[0] - delay_num,
                                                            delay=delay_num)
+
                             replay_buffer.add_specific_reward(reward_angle, idx_angle)
                             idx_angle = np.r_[idx_angle, joint_angle[:-delay_num, -1]]
                             reward_angle = np.r_[reward_angle,
@@ -253,7 +257,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                 joint_angle_obs[0, :-1] = obs[8:20:2]
                 joint_angle_obs[0, -1] = total_timesteps
                 joint_angle = np.r_[joint_angle, joint_angle_obs]
-                reward -= 0.5
+                # reward -= 0.5
 
             if 'still_steps' in args.method_name:
                 if np.array_equal(new_obs[-2:], np.asarray([1., 1.])):
@@ -402,7 +406,7 @@ if __name__ == "__main__":
     #     env.run()
     #     env.reset()
     env = Atlas(action_dim=6, obs_dim=22)
-    method_name_vec = ['still_steps_seq_ATD3_RNN', 'human_angle_still_steps_ATD3',
+    method_name_vec = ['human_angle_still_steps_seq_ATD3_RNN', 'human_angle_still_steps_ATD3',
                        'human_angle_still_steps', 'still_steps', '']
     policy_name_vec = ['ATD3_RNN', 'ATD3', 'TD3', 'TD3', 'TD3']
     for r in [0]:
