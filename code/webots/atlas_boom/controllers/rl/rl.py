@@ -159,7 +159,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
         while total_timesteps < args.max_timesteps:
             if done:
                 if len(replay_buffer.storage) > env.frame:
-                    replay_buffer.add_final_reward(1e-3 * (env.episode_reward + env.frame),
+                    replay_buffer.add_final_reward(1e-3 * (env.episode_reward),
                                                    env.frame)
                 pbar.update(total_timesteps - pre_num_steps)
                 pre_num_steps = total_timesteps
@@ -257,7 +257,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                 joint_angle_obs[0, :-1] = obs[8:20:2]
                 joint_angle_obs[0, -1] = total_timesteps
                 joint_angle = np.r_[joint_angle, joint_angle_obs]
-                # reward -= 0.5
+                reward -= 0.5
 
             if 'still_steps' in args.method_name:
                 if np.array_equal(new_obs[-2:], np.asarray([1., 1.])):
