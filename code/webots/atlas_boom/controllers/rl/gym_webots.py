@@ -88,6 +88,9 @@ class Atlas(gym.Env):
                               self.robot.getMotor('LLegKny'),
                               self.robot.getMotor('LLegUay')]
 
+        for i in range(len(self.legPitchMotor)):
+            self.legPitchMotor[i].enableTorqueFeedback(self.timeStep)
+
         # leg pitch sensors
         self.legPitchSensor =[self.robot.getPositionSensor('RLegLhyS'),
                               self.robot.getPositionSensor('RLegKnyS'),
@@ -102,15 +105,22 @@ class Atlas(gym.Env):
     def apply_action(self, a):
         assert (np.isfinite(a).all())
         for n, j in enumerate(self.legPitchMotor):
+            max_joint_angle = j.getMaxPosition()
+            min_joint_angle = j.getMinPosition()
+            mean_angle = 0.5 * (max_joint_angle + min_joint_angle)
+            half_range_angle = 0.5 * (max_joint_angle - min_joint_angle)
+            j.setPosition(mean_angle + half_range_angle * float(np.clip(a[n], -1, +1)))
+
             # joint_angle = self.read_joint_angle(joint_idx=n)
-            # max_joint_angle = j.getMaxPosition()
-            # min_joint_angle = j.getMinPosition()
+            # torque = 0.5 * j.getMaxTorque() * float(np.clip(a[n], -1, +1))
             # if joint_angle > max_joint_angle:
-            #     j.setPosition(max_joint_angle - 0.01)
+            #     j.setPosition(max_joint_angle - 0.1)
+            #     # j.setTorque(-1.0 * abs(torque))
             # elif joint_angle < min_joint_angle:
-            #     j.setPosition(min_joint_angle + 0.01)
+            #     j.setPosition(min_joint_angle + 0.1)
+            #     # j.setTorque(abs(torque))
             # else:
-            j.setTorque(1.0 * j.getMaxTorque() * float(np.clip(a[n], -1, +1)))
+            #     j.setTorque(torque)
 
 
     def read_joint_angle(self, joint_idx):
@@ -147,6 +157,11 @@ class Atlas(gym.Env):
         self.joint_angles = np.copy(joint_states[0::2])
         self.joint_speeds = joint_states[1::2]
         self.joints_at_limit = np.count_nonzero(np.abs(joint_states[0::2]) > 0.99)
+
+        self.joint_torques = np.zeros(len(self.legPitchMotor))
+        for i in range(len(self.legPitchMotor)):
+            self.joint_torques[i] = self.legPitchMotor[i].getTorqueFeedback() \
+                                    / self.legPitchMotor[i].getAvailableTorque()
 
         if self.body_xyz is None:
             self.body_xyz = np.asarray(self.gps.getValues())
@@ -244,8 +259,8 @@ class Atlas(gym.Env):
         let's assume we have DC motor with controller, and reverse current braking
         '''
         electricity_cost = self.electricity_cost * float(np.abs(
-            action * self.joint_speeds).mean())
-        electricity_cost += self.stall_torque_cost * float(np.square(action).mean())
+            self.joint_torques * self.joint_speeds).mean())
+        electricity_cost += self.stall_torque_cost * float(np.square(self.joint_torques).mean())
 
         joints_at_limit_cost = float(self.joints_at_limit_cost * self.joints_at_limit)
 

@@ -13,9 +13,9 @@ WorldInfo {
     ContactProperties {
       material1 "NAO foot material"
       coulombFriction [
-        7
+        100
       ]
-      bounce 0.3
+      bounce 0.001
       bounceVelocity 0.003
     }
   ]
@@ -1081,8 +1081,6 @@ DEF Atlas Robot {
                                                   0 0 0
                                                 ]
                                               }
-                                              linearVelocity -7.031144148275045e-07 1.0930047741250821e-07 8.755450764718456e-06
-                                              angularVelocity -4.453513353269643e-06 -1.062382414960704e-06 -5.500031860687377e-07
                                             }
                                             Group {
                                               children [
@@ -1276,8 +1274,6 @@ DEF Atlas Robot {
                                           0 0 0
                                         ]
                                       }
-                                      linearVelocity -6.756072584124985e-07 1.1341807060601672e-07 8.495920020764514e-06
-                                      angularVelocity -4.45031857286883e-06 -1.1212371459034876e-06 -5.499245798510291e-07
                                     }
                                   }
                                 ]
@@ -1292,8 +1288,6 @@ DEF Atlas Robot {
                                     0 0 0
                                   ]
                                 }
-                                linearVelocity -5.854036938222981e-07 1.3727154877724256e-07 7.635542562311158e-06
-                                angularVelocity -4.254922244855009e-06 -1.2313967830099305e-06 -5.46805325421395e-07
                               }
                             }
                           ]
@@ -1308,8 +1302,6 @@ DEF Atlas Robot {
                               0 0 0
                             ]
                           }
-                          linearVelocity -4.126720746834521e-07 1.4803033010206235e-07 6.118191287081425e-06
-                          angularVelocity -4.221340434944049e-06 -1.3446882048776307e-06 -5.12446920187793e-07
                         }
                       }
                     ]
@@ -1842,7 +1834,7 @@ DEF Atlas Robot {
                       }
                       DEF RLegKny HingeJoint {
                         jointParameters HingeJointParameters {
-                          position -2.5895709212520046e-05
+                          position -2.58957e-05
                           axis 0 1 0
                           anchor -0.05 0 -0.374
                           dampingConstant 0.1
@@ -1854,14 +1846,14 @@ DEF Atlas Robot {
                           RotationalMotor {
                             name "RLegKny"
                             maxVelocity 12
-                            minPosition -1.8714716063961134e-05
+                            minPosition -2.5895709212520046e-05
                             maxPosition 2.45
                             maxTorque 220
                           }
                         ]
                         endPoint Solid {
                           translation -0.05 0 -0.374
-                          rotation 0 -1 0 2.5895714501810113e-05
+                          rotation 0 -0.9999999999999999 0 2.5895697352665344e-05
                           children [
                             Solid {
                               children [
@@ -2156,8 +2148,6 @@ DEF Atlas Robot {
                                                   0 0 0
                                                 ]
                                               }
-                                              linearVelocity 7.439413550404562e-07 1.9928509156349816e-07 8.53095081847597e-06
-                                              angularVelocity -4.301217180425955e-06 -2.6403421041572858e-06 4.029756513337174e-07
                                             }
                                             Group {
                                               children [
@@ -2351,8 +2341,6 @@ DEF Atlas Robot {
                                           0 0 0
                                         ]
                                       }
-                                      linearVelocity 7.157582672434646e-07 2.0756592354705293e-07 8.277767501030431e-06
-                                      angularVelocity -4.298090599451371e-06 -2.813194549497747e-06 4.0294043071698227e-07
                                     }
                                   }
                                 ]
@@ -2367,8 +2355,6 @@ DEF Atlas Robot {
                                     0 0 0
                                   ]
                                 }
-                                linearVelocity 6.378748243614349e-07 2.1467238214711836e-07 7.403150570026252e-06
-                                angularVelocity -4.094736582447464e-06 -3.16158038125098e-06 4.021101658116036e-07
                               }
                             }
                           ]
@@ -2383,8 +2369,6 @@ DEF Atlas Robot {
                               0 0 0
                             ]
                           }
-                          linearVelocity 4.940056346945304e-07 2.35167489343555e-07 5.949252477356081e-06
-                          angularVelocity -4.0728072924887964e-06 -3.515263426045451e-06 3.9202786950484005e-07
                         }
                       }
                     ]
