@@ -70,12 +70,16 @@ class Atlas(gym.Env):
             self.fsr[i].enable(self.timeStep)
 
         # all motors
-        motor_names = [# 'HeadPitch', 'HeadYaw',
-                       'LLegUay', 'LLegLax', 'LLegKny',
-                       'LLegLhy', 'LLegMhx', 'LLegUhz',
-                       'RLegUay', 'RLegLax', 'RLegKny',
-                       'RLegLhy', 'RLegMhx', 'RLegUhz',
-                       ]
+        # motor_names = [# 'HeadPitch', 'HeadYaw',
+        #                'LLegUay', 'LLegLax', 'LLegKny',
+        #                'LLegLhy', 'LLegMhx', 'LLegUhz',
+        #                'RLegUay', 'RLegLax', 'RLegKny',
+        #                'RLegLhy', 'RLegMhx', 'RLegUhz',
+        #                ]
+        motor_names = [  # 'HeadPitch', 'HeadYaw',
+             'LLegLax', 'LLegMhx', 'LLegUhz',
+             'RLegLax', 'RLegMhx', 'RLegUhz',
+        ]
         self.motors = []
         for i in range(len(motor_names)):
             self.motors.append(self.robot.getMotor(motor_names[i]))
@@ -272,7 +276,7 @@ class Atlas(gym.Env):
             feet_collision_cost
         ]
 
-        self.episode_reward += progress
+        self.episode_reward += (progress + electricity_cost)
 
         self.frame += 1
 
@@ -301,7 +305,13 @@ class Atlas(gym.Env):
         for i in range(100):
             for j in self.motors:
                 j.setPosition(0)
-                self.robot.step(self.timeStep)
+            for k in range(len(self.legPitchMotor)):
+                j = self.legPitchMotor[k]
+                if k in [1,4]:
+                    j.setPosition(np.random.uniform(0, 0.1))
+                else:
+                    j.setPosition(np.random.uniform(-0.1, 0.1))
+            self.robot.step(self.timeStep)
         self.robot.simulationResetPhysics()
         self.robot_trans_field.setSFVec3f(self.robot_ini_trans)
         self.robot_rot_field.setSFRotation(self.robot_ini_rot)

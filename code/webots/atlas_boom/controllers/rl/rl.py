@@ -61,7 +61,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
     parser.add_argument("--start_timesteps", default=1e4,
                         type=int)  # How many time steps purely random policy is run for
     parser.add_argument("--eval_freq", default=5e3, type=float)  # How often (time steps) we evaluate
-    parser.add_argument("--max_timesteps", default=1e6, type=float)  # Max time steps to run environment for
+    parser.add_argument("--max_timesteps", default=3e5, type=float)  # Max time steps to run environment for
     parser.add_argument("--save_models", default=True)  # Whether or not models are saved
 
     parser.add_argument("--expl_noise", default=0.2, type=float)  # Std of Gaussian exploration noise
@@ -159,7 +159,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
         while total_timesteps < args.max_timesteps:
             if done:
                 if len(replay_buffer.storage) > env.frame:
-                    replay_buffer.add_final_reward(1e-3 * (env.episode_reward),
+                    replay_buffer.add_final_reward((env.episode_reward)/float(env._max_episode_steps),
                                                    env.frame)
                 pbar.update(total_timesteps - pre_num_steps)
                 pre_num_steps = total_timesteps
@@ -234,7 +234,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                 if 0 == np.std(foot_contact_vec):
                     foot_contact = np.mean(foot_contact_vec)
                 if 1 == (foot_contact - pre_foot_contact):
-                    if joint_angle.shape[0] > 20:
+                    if joint_angle.shape[0] > int(200 / env.timeStep):
                         gait_num += 1
                         if gait_num >= 2:
                             joint_angle_sampled = signal.resample(joint_angle[:-delay_num, :-1],
@@ -264,7 +264,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                     still_steps += 1
                 else:
                     still_steps = 0
-                if still_steps > 100:
+                if still_steps > int(400 / env.timeStep):
                     replay_buffer.add_final_reward(-2.0, still_steps - 1)
                     reward -= 2.0
                     done = True
