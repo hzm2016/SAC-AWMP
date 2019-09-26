@@ -15,7 +15,7 @@ WorldInfo {
       coulombFriction [
         100
       ]
-      bounce 0.001
+      bounce 0
       bounceVelocity 0.003
     }
   ]

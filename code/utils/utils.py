@@ -67,6 +67,17 @@ def write_table(file_name, data):
     df.to_excel(file_name + '.xls', index=False)
 
 
+def calc_gait_symmetry(joint_angle):
+    joint_num = int(joint_angle.shape[-1] / 2)
+    half_num_sample = int(joint_angle.shape[0] / 2)
+    joint_angle_origin = np.copy(joint_angle)
+    joint_angle[0:half_num_sample, joint_num:] = joint_angle_origin[half_num_sample:, joint_num:]
+    joint_angle[half_num_sample:, joint_num:] = joint_angle_origin[0:half_num_sample, joint_num:]
+    dist = np.zeros(joint_num)
+    for c in range(joint_num):
+        dist[c] = 1 - distance.cosine(joint_angle[:, c], joint_angle[:, c + joint_num])
+    return np.mean(dist)
+
 def calc_cos_similarity(joint_angle_resample, human_joint_angle):
     joint_num = human_joint_angle.shape[1]
     dist = np.zeros(joint_num)

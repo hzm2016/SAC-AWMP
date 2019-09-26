@@ -247,11 +247,9 @@ class Atlas(gym.Env):
         self.apply_action(action)
         simulation_state = self.robot.step(self.timeStep)
         state = self.calc_state()  # also calculates self.joints_at_limit
-
         # state[0] is body height above ground, body_rpy[1] is pitch
         alive = float(self.alive_bonus(state[0] + self.initial_y,
                                        self.body_rpy[1]))
-
 
         progress = self.calc_forward_speed()
         # print('progress: {}'.format(progress))
@@ -276,7 +274,7 @@ class Atlas(gym.Env):
             feet_collision_cost
         ]
 
-        self.episode_reward += (progress + electricity_cost)
+        self.episode_reward += progress
 
         self.frame += 1
 
@@ -301,16 +299,16 @@ class Atlas(gym.Env):
         self.joint_angles = None
         self.frame = 0
         self.episode_reward = 0
-
         for i in range(100):
             for j in self.motors:
                 j.setPosition(0)
             for k in range(len(self.legPitchMotor)):
                 j = self.legPitchMotor[k]
-                if k in [1,4]:
-                    j.setPosition(np.random.uniform(0, 0.1))
-                else:
-                    j.setPosition(np.random.uniform(-0.1, 0.1))
+                j.setPosition(0)
+                # if k in [1, 4]:
+                #     j.setPosition(np.random.uniform(0, 0.1))
+                # else:
+                #     j.setPosition(np.random.uniform(-0.1, 0.1))
             self.robot.step(self.timeStep)
         self.robot.simulationResetPhysics()
         self.robot_trans_field.setSFVec3f(self.robot_ini_trans)

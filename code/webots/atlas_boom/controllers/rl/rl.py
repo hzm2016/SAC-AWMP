@@ -61,7 +61,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
     parser.add_argument("--start_timesteps", default=1e4,
                         type=int)  # How many time steps purely random policy is run for
     parser.add_argument("--eval_freq", default=5e3, type=float)  # How often (time steps) we evaluate
-    parser.add_argument("--max_timesteps", default=3e5, type=float)  # Max time steps to run environment for
+    parser.add_argument("--max_timesteps", default=1e6, type=float)  # Max time steps to run environment for
     parser.add_argument("--save_models", default=True)  # Whether or not models are saved
 
     parser.add_argument("--expl_noise", default=0.2, type=float)  # Std of Gaussian exploration noise
@@ -234,7 +234,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                 if 0 == np.std(foot_contact_vec):
                     foot_contact = np.mean(foot_contact_vec)
                 if 1 == (foot_contact - pre_foot_contact):
-                    if joint_angle.shape[0] > int(200 / env.timeStep):
+                    if joint_angle.shape[0] > int(100 / env.timeStep):
                         gait_num += 1
                         if gait_num >= 2:
                             joint_angle_sampled = signal.resample(joint_angle[:-delay_num, :-1],
@@ -242,6 +242,9 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                             # The ATD3 seems to prefer the negative similarity reward
                             coefficient = utils.calc_cos_similarity(human_joint_angle,
                                                                     joint_angle_sampled) - 0.5
+                            if best_reward > 1500:
+                                coefficient += utils.calc_gait_symmetry(joint_angle_sampled)
+
                             print('gait_num:', gait_num, 'time steps in a gait: ', joint_angle.shape[0],
                                   'coefficient: ', coefficient)
                             replay_buffer.add_final_reward(coefficient, joint_angle.shape[0] - delay_num,
