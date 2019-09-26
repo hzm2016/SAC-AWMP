@@ -404,7 +404,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
         env.reset()
 
 if __name__ == "__main__":
-    # env = Nao(action_dim=6, obs_dim=22)
+    # env = Atlas(action_dim=6, obs_dim=22)
     # for i in range(5):
     #     env.run()
     #     env.reset()

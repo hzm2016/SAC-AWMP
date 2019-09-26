@@ -1,131 +1,11 @@
-#VRML_SIM R2019b utf8
-WorldInfo {
-  info [
-    "Aldebaran's Nao H25 V5.0"
-    "NAO is a programmable, 57-cm tall humanoid robot."
-    "The body has 25 degrees of freedom (DOF)."
-    "The sensors include 2 cameras, 4 microphones, sonar rangefinder, 2 IR emitters and receivers, 1 inertial board, and 8 pressure sensors."
-  ]
-  title "Aldebaran's Nao"
-  basicTimeStep 4
-  FPS 20
-  contactProperties [
-    ContactProperties {
-      material1 "NAO foot material"
-      coulombFriction [
-        100
-      ]
-      bounce 0
-      bounceVelocity 0.003
-    }
-  ]
-}
-Viewpoint {
-  orientation -0.20029612509412184 0.9675759767083768 0.15387719639085795 1.2642809236426005
-  position 11.616641934305271 4.437584745903251 11.526207777524878
-}
-TexturedBackground {
-}
-TexturedBackgroundLight {
-}
-DEF BoomBase Robot {
-  translation 0 0.5 -9.38
-  children [
-    Group {
-      children [
-        DEF BoomBaseJoint Transform {
-          translation 0 0.5 0
-          children [
-            DEF BoomBaseJoint BallJoint {
-              device [
-                PositionSensor {
-                }
-              ]
-              device2 [
-                PositionSensor {
-                }
-              ]
-              device3 [
-                PositionSensor {
-                }
-              ]
-              endPoint DEF BoomBody Solid {
-                translation -0.008314864754882691 -0.029337791299416494 9.999938201603687
-                rotation 0.9355985476520634 -0.2497003944865328 -0.24960983679458515 1.6401638516866879
-                children [
-                  Group {
-                    children [
-                      DEF BoomBodyConnect Connector {
-                        translation 0 10 0
-                        rotation 0 1 0 0.523799
-                        name "boom_body_connector"
-                        model "boom_head"
-                        isLocked TRUE
-                        autoLock TRUE
-                        distanceTolerance 0.1
-                        axisTolerance 0.5
-                        rotationTolerance 0.5
-                      }
-                      DEF BoomBody Shape {
-                        appearance PBRAppearance {
-                        }
-                        geometry Cylinder {
-                          height 20
-                          radius 0.01
-                        }
-                      }
-                    ]
-                  }
-                ]
-                name "boom_body_solid"
-                boundingObject USE BoomBody
-                physics Physics {
-                  density 0.1
-                }
-                linearVelocity 4.3905115683444636e-08 1.2802186390125604e-07 8.700957326794767e-07
-                angularVelocity -1.7101233412030846e-08 7.388093630030709e-09 -1.2075669187947292e-08
-              }
-            }
-            Shape {
-              appearance PBRAppearance {
-              }
-              geometry Sphere {
-                radius 0.1
-              }
-            }
-          ]
-        }
-        Shape {
-          appearance PBRAppearance {
-          }
-          geometry Cylinder {
-            height 1
-            radius 0.1
-          }
-        }
-      ]
-    }
-  ]
-  name "boom_base_solid"
-  supervisor TRUE
-}
-Floor {
-  size 100 100
-  appearance Appearance {
-    texture ImageTexture {
-      url [
-        "textures/sand.jpg"
-      ]
-    }
-  }
-}
+#VRML_OBJ R2019b utf8
 DEF Atlas Robot {
   translation -0.0014510939708071088 0.92590587977555 10.789861562500976
   rotation 0.9999992281255246 0.0011835428892429905 -0.00037811980163607876 -1.568158556921185
   children [
-    DEF BodyIMU InertialUnit {
+    InertialUnit {
     }
-    DEF BodyGPS GPS {
+    GPS {
     }
     DEF RobotHead Connector {
       translation -0.015 0.17 0.018
@@ -139,7 +19,9 @@ DEF Atlas Robot {
       axisTolerance 0.5
       rotationTolerance 0.5
     }
-    DEF Pelvis Solid {
+    Group {
+    }
+    Solid {
       children [
         Group {
           children [
@@ -209,7 +91,7 @@ DEF Atlas Robot {
       name "pelvis"
       boundingObject Group {
         children [
-          DEF PelvisBounding1 Transform {
+          Transform {
             translation 0.046 0 -0.02
             rotation 1 0 0 3.14079632679
             children [
@@ -219,7 +101,7 @@ DEF Atlas Robot {
               }
             ]
           }
-          DEF PelvisBounding2 Transform {
+          Transform {
             translation -0.03 0 -0.02
             rotation 1 0 0 3.14079632679
             children [
@@ -229,7 +111,7 @@ DEF Atlas Robot {
               }
             ]
           }
-          DEF PelvisBounding3 Transform {
+          Transform {
             translation 0 0.042 0.06
             rotation 1 0 0 1.57
             children [
@@ -239,7 +121,7 @@ DEF Atlas Robot {
               }
             ]
           }
-          DEF PelvisBounding4 Transform {
+          Transform {
             translation 0 -0.042 0.06
             rotation 1 0 0 1.57
             children [
@@ -279,11 +161,11 @@ DEF Atlas Robot {
           maxTorque 110
         }
       ]
-      endPoint DEF LLegUhzEnd Solid {
+      endPoint Solid {
         translation 0 0.089 0
         rotation 0 0 1 8.817358436071241e-06
         children [
-          DEF LUglut Solid {
+          Solid {
             children [
               Group {
                 children [
@@ -353,7 +235,7 @@ DEF Atlas Robot {
             name "LUglut"
             boundingObject Group {
               children [
-                DEF LUglutBounding1 Transform {
+                Transform {
                   rotation 0.577196954996 0.577656775505 -0.577196954996 2.09393540394
                   children [
                     Cylinder {
@@ -362,7 +244,7 @@ DEF Atlas Robot {
                     }
                   ]
                 }
-                DEF LUglutBounding2 Transform {
+                Transform {
                   rotation 1 0 0 1.57
                   children [
                     Cylinder {
@@ -399,10 +281,10 @@ DEF Atlas Robot {
                 maxTorque 180
               }
             ]
-            endPoint DEF LLegMhxEnd Solid {
+            endPoint Solid {
               rotation 1 0 0 4.8987104524621716e-05
               children [
-                DEF LLglut Solid {
+                Solid {
                   children [
                     Group {
                       children [
@@ -614,7 +496,7 @@ DEF Atlas Robot {
                   name "LLglut"
                   boundingObject Group {
                     children [
-                      DEF LLglutBounding1 Transform {
+                      Transform {
                         translation 0.049968 0.022488 -0.0501165
                         rotation 1 0 0 3.14079632679
                         children [
@@ -624,7 +506,7 @@ DEF Atlas Robot {
                           }
                         ]
                       }
-                      DEF LLglutBounding2 Transform {
+                      Transform {
                         rotation 0.577196954996 0.577656775505 -0.577196954996 2.09393540394
                         children [
                           Cylinder {
@@ -666,11 +548,11 @@ DEF Atlas Robot {
                       maxTorque 260
                     }
                   ]
-                  endPoint DEF LLegLhyEnd Solid {
+                  endPoint Solid {
                     translation 0.05 0 -0.05
                     rotation 0 1 0 2.8609530991973745e-05
                     children [
-                      DEF LUleg Solid {
+                      Solid {
                         children [
                           Group {
                             children [
@@ -770,7 +652,7 @@ DEF Atlas Robot {
                         name "LUleg"
                         boundingObject Group {
                           children [
-                            DEF LUlegBounding1 Transform {
+                            Transform {
                               translation -0.0179 0.02085 -0.13
                               rotation 1 0 0 1.57
                               children [
@@ -780,7 +662,7 @@ DEF Atlas Robot {
                                 }
                               ]
                             }
-                            DEF LUlegBounding2 Transform {
+                            Transform {
                               translation -0.03 0.01 -0.23
                               rotation 0.97789509712 -0.147912128259 0.147794388741 1.59235120797
                               children [
@@ -790,7 +672,7 @@ DEF Atlas Robot {
                                 }
                               ]
                             }
-                            DEF LUlegBounding3 Transform {
+                            Transform {
                               translation -0.005 0.01 -0.23
                               rotation 0.97789509712 0.147912128259 -0.147794388741 1.59235120797
                               children [
@@ -800,7 +682,7 @@ DEF Atlas Robot {
                                 }
                               ]
                             }
-                            DEF LUlegBounding4 Transform {
+                            Transform {
                               translation -0.02 0.03 -0.23
                               rotation 1 0 0 1.32
                               children [
@@ -842,11 +724,11 @@ DEF Atlas Robot {
                             maxTorque 220
                           }
                         ]
-                        endPoint DEF LLegKnyEnd Solid {
+                        endPoint Solid {
                           translation -0.05 0 -0.374
                           rotation 0 1 0 1.9653722159621968e-06
                           children [
-                            DEF LLleg Solid {
+                            Solid {
                               children [
                                 Group {
                                   children [
@@ -916,7 +798,7 @@ DEF Atlas Robot {
                               name "LLleg"
                               boundingObject Group {
                                 children [
-                                  DEF LLlegBounding1 Transform {
+                                  Transform {
                                     translation -0.00345 0.00295 -0.1913
                                     children [
                                       Box {
@@ -957,11 +839,11 @@ DEF Atlas Robot {
                                   maxTorque 220
                                 }
                               ]
-                              endPoint DEF LLegUayEnd Solid {
+                              endPoint Solid {
                                 translation 0 0 -0.422
                                 rotation 0 -1 0 4.570941822538856e-06
                                 children [
-                                  DEF LTalus Solid {
+                                  Solid {
                                     children [
                                       Group {
                                         children [
@@ -1001,7 +883,7 @@ DEF Atlas Robot {
                                     name "LTalus"
                                     boundingObject Group {
                                       children [
-                                        DEF LTalusBounding1 Transform {
+                                        Transform {
                                           rotation 0.577196954996 0.577656775505 -0.577196954996 2.09393540394
                                           children [
                                             Cylinder {
@@ -1010,7 +892,7 @@ DEF Atlas Robot {
                                             }
                                           ]
                                         }
-                                        DEF LTalusBounding2 Transform {
+                                        Transform {
                                           rotation 1 0 0 3.14079632679
                                           children [
                                             Cylinder {
@@ -1047,18 +929,18 @@ DEF Atlas Robot {
                                         maxTorque 90
                                       }
                                     ]
-                                    endPoint DEF LLegLaxEnd Solid {
+                                    endPoint Solid {
                                       rotation -0.9999999999999999 0 0 7.554932811432343e-06
                                       children [
-                                        DEF LFoot Solid {
+                                        Solid {
                                           children [
-                                            DEF LFootTouch TouchSensor {
+                                            DEF LFoot TouchSensor {
                                               translation -3.8607678424194825e-07 6.722238214962317e-06 7.052379717001345e-05
                                               rotation -0.6044427242449878 0.7926530872177815 0.07968736682447261 1.9774920825125134e-06
                                               name "LFsr"
                                               boundingObject Group {
                                                 children [
-                                                  DEF LFsrBounding Transform {
+                                                  Transform {
                                                     translation 0.048 0 -0.076119
                                                     children [
                                                       Box {
@@ -1238,7 +1120,7 @@ DEF Atlas Robot {
                                           name "LFoot"
                                           boundingObject Group {
                                             children [
-                                              DEF LFootBounding1 Transform {
+                                              Transform {
                                                 translation 0.048 0 -0.076119
                                                 children [
                                                   Box {
@@ -1367,11 +1249,11 @@ DEF Atlas Robot {
           maxTorque 260
         }
       ]
-      endPoint DEF RLegUhzEnd Solid {
+      endPoint Solid {
         translation 0 -0.089 0
         rotation 0 0 -1 1.2207098188645466e-05
         children [
-          DEF RUglut Solid {
+          Solid {
             children [
               Group {
                 children [
@@ -1441,7 +1323,7 @@ DEF Atlas Robot {
             name "RUglut"
             boundingObject Group {
               children [
-                DEF RUglutBounding1 Transform {
+                Transform {
                   rotation 0.577196954996 0.577656775505 -0.577196954996 2.09393540394
                   children [
                     Cylinder {
@@ -1450,7 +1332,7 @@ DEF Atlas Robot {
                     }
                   ]
                 }
-                DEF RUglutBounding2 Transform {
+                Transform {
                   rotation 1 0 0 1.57
                   children [
                     Cylinder {
@@ -1487,10 +1369,10 @@ DEF Atlas Robot {
                 maxTorque 180
               }
             ]
-            endPoint DEF RLegMhxEnd Solid {
+            endPoint Solid {
               rotation 1 0 0 3.052537695535514e-05
               children [
-                DEF RLglut Solid {
+                Solid {
                   children [
                     Group {
                       children [
@@ -1620,7 +1502,7 @@ DEF Atlas Robot {
                   name "RLglut"
                   boundingObject Group {
                     children [
-                      DEF RLglutBounding1 Transform {
+                      Transform {
                         translation 0.049968 -0.022488 -0.0501165
                         rotation 1 0 0 3.14079632679
                         children [
@@ -1630,7 +1512,7 @@ DEF Atlas Robot {
                           }
                         ]
                       }
-                      DEF RLglutBounding2 Transform {
+                      Transform {
                         rotation 0.577196954996 0.577656775505 -0.577196954996 2.09393540394
                         children [
                           Cylinder {
@@ -1672,11 +1554,11 @@ DEF Atlas Robot {
                       maxTorque 260
                     }
                   ]
-                  endPoint DEF RLegLhyEnd Solid {
+                  endPoint Solid {
                     translation 0.05 0 -0.05
                     rotation 0 1 0 2.083169544173748e-05
                     children [
-                      DEF RUleg Solid {
+                      Solid {
                         children [
                           Group {
                             children [
@@ -1776,7 +1658,7 @@ DEF Atlas Robot {
                         name "RUleg"
                         boundingObject Group {
                           children [
-                            DEF RUlegBounding1 Transform {
+                            Transform {
                               translation -0.0179 -0.02085 -0.13
                               rotation 1 0 0 1.57
                               children [
@@ -1786,7 +1668,7 @@ DEF Atlas Robot {
                                 }
                               ]
                             }
-                            DEF RUlegBounding2 Transform {
+                            Transform {
                               translation -0.03 -0.01 -0.23
                               rotation 0.97789509712 -0.147912128259 0.147794388741 1.59235120797
                               children [
@@ -1796,7 +1678,7 @@ DEF Atlas Robot {
                                 }
                               ]
                             }
-                            DEF RUlegBounding3 Transform {
+                            Transform {
                               translation -0.005 -0.01 -0.23
                               rotation 0.97789509712 0.147912128259 -0.147794388741 1.59235120797
                               children [
@@ -1806,7 +1688,7 @@ DEF Atlas Robot {
                                 }
                               ]
                             }
-                            DEF RUlegBounding4 Transform {
+                            Transform {
                               translation -0.02 -0.03 -0.23
                               rotation 1 0 0 1.82
                               children [
@@ -1849,11 +1731,11 @@ DEF Atlas Robot {
                             maxTorque 220
                           }
                         ]
-                        endPoint DEF RLegKnyEnd Solid {
+                        endPoint Solid {
                           translation -0.05 0 -0.374
                           rotation 0 -0.9999999999999999 0 2.5895697352665344e-05
                           children [
-                            DEF RLleg Solid {
+                            Solid {
                               children [
                                 Group {
                                   children [
@@ -1923,7 +1805,7 @@ DEF Atlas Robot {
                               name "RLleg"
                               boundingObject Group {
                                 children [
-                                  DEF RLlegBounding1 Transform {
+                                  Transform {
                                     translation -0.00345 -0.00295 -0.1913
                                     children [
                                       Box {
@@ -1964,11 +1846,11 @@ DEF Atlas Robot {
                                   maxTorque 220
                                 }
                               ]
-                              endPoint DEF RLegUayEnd Solid {
+                              endPoint Solid {
                                 translation 0 0 -0.422
                                 rotation 0 -1 0 2.2927536946191034e-05
                                 children [
-                                  DEF RTalus Solid {
+                                  Solid {
                                     children [
                                       Group {
                                         children [
@@ -2068,7 +1950,7 @@ DEF Atlas Robot {
                                     name "RTalus"
                                     boundingObject Group {
                                       children [
-                                        DEF RTalusBounding1 Transform {
+                                        Transform {
                                           rotation 0.577196954996 0.577656775505 -0.577196954996 2.09393540394
                                           children [
                                             Cylinder {
@@ -2077,7 +1959,7 @@ DEF Atlas Robot {
                                             }
                                           ]
                                         }
-                                        DEF RTalusBounding2 Transform {
+                                        Transform {
                                           rotation 1 0 0 3.14079632679
                                           children [
                                             Cylinder {
@@ -2114,18 +1996,18 @@ DEF Atlas Robot {
                                         maxTorque 90
                                       }
                                     ]
-                                    endPoint DEF RLegLaxEnd Solid {
+                                    endPoint Solid {
                                       rotation -0.9999999999999999 0 0 7.161182428560267e-06
                                       children [
-                                        DEF RFoot Solid {
+                                        Solid {
                                           children [
-                                            DEF RFootTouch TouchSensor {
+                                            DEF RFoot TouchSensor {
                                               translation 8.159359975324493e-07 4.687684242554724e-06 0.00010711091005768947
                                               rotation -0.8078831228771253 0.5832723801509345 0.0843693683949778 1.5015763726058312e-06
                                               name "RFsr"
                                               boundingObject Group {
                                                 children [
-                                                  DEF RFsrBounding Transform {
+                                                  Transform {
                                                     translation 0.048 0 -0.076119
                                                     children [
                                                       Box {
@@ -2305,7 +2187,7 @@ DEF Atlas Robot {
                                           name "RFoot"
                                           boundingObject Group {
                                             children [
-                                              DEF RFootBounding1 Transform {
+                                              Transform {
                                                 translation 0.048 0 -0.076119
                                                 children [
                                                   Box {
