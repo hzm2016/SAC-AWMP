@@ -252,9 +252,9 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                             replay_buffer.add_final_reward(coefficient, joint_angle.shape[0] - delay_num,
                                                            delay=delay_num)
 
-                        if len(reward_angle) > int(1000 / env.timeStep):
-                            replay_buffer.add_specific_reward(reward_angle[-100:], idx_angle[-100:])
-
+                        reward_steps = int(4000 / env.timeStep)
+                        if len(reward_angle) > reward_steps:
+                            replay_buffer.add_specific_reward(reward_angle[-reward_steps:], idx_angle[-reward_steps:])
                         idx_angle = np.r_[idx_angle, joint_angle[:-delay_num, -1]]
                         reward_angle = np.r_[reward_angle,
                                              0.1 * np.ones(joint_angle[:-delay_num, -1].shape[0])]

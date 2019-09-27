@@ -24,6 +24,7 @@ class Atlas(gym.Env):
     initial_y = None
     body_xyz = None
     joint_angles = None
+    joint_exceed_limit = False
 
 
     def __init__(self, action_dim, obs_dim):
@@ -166,6 +167,10 @@ class Atlas(gym.Env):
         joint_angle = self.legPitchSensor[joint_idx].getValue() % (2.0 * np.pi)
         if joint_angle > np.pi:
             joint_angle -= 2.0 * np.pi
+        max_joint_angle = self.legPitchMotor[joint_idx].getMaxPosition()
+        min_joint_angle = self.legPitchMotor[joint_idx].getMinPosition()
+        if joint_angle > max_joint_angle + 0.05 or joint_angle < min_joint_angle - 0.05:
+            self.joint_exceed_limit = True
         return joint_angle
 
     def calc_state(self):
@@ -294,7 +299,7 @@ class Atlas(gym.Env):
         self.frame += 1
 
         done = (-1 == simulation_state) or (self._max_episode_steps <= self.frame) \
-               or (alive < 0) or (not np.isfinite(state).all())
+               or (alive < 0) or (not np.isfinite(state).all()) or self.joint_exceed_limit
         # print('frame: {}, alive: {}, done: {}, body_xyz: {}'.format(self.frame, alive, done, self.body_xyz))
         # print('state_{} \n action_{}, reward_{}'.format(state, action, sum(rewards)))
         return state, sum(rewards), done, {}
@@ -314,6 +319,8 @@ class Atlas(gym.Env):
         self.joint_angles = None
         self.frame = 0
         self.episode_reward = 0
+        self.joint_exceed_limit = False
+
         for i in range(100):
             for j in self.motors:
                 j.setPosition(0)
