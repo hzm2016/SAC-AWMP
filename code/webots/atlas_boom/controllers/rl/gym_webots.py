@@ -19,7 +19,7 @@ class Atlas(gym.Env):
     episode_reward = 0
 
     frame = 0
-    _max_episode_steps = 1000
+    _max_episode_steps = 10000
 
     initial_y = None
     body_xyz = None
@@ -32,18 +32,7 @@ class Atlas(gym.Env):
         solid_def_names = self.read_all_def()
         self.def_node_field_list = self.get_all_fields(solid_def_names)
 
-        # self.robot_node = self.robot.getFromDef('Atlas')
-        # print(self.robot_node.getID())
-        # self.robot_trans_field = self.robot_node.getField("translation")
-        # self.robot_rot_field = self.robot_node.getField("rotation")
-        # self.robot_ini_trans = self.robot_trans_field.getSFVec3f()
-        # self.robot_ini_rot = self.robot_rot_field.getSFRotation()
-        #
-        # self.boom_body = self.robot.getFromDef('BoomBody')
-        # self.boom_body_trans_field = self.boom_body.getField("translation")
-        # self.boom_body_rot_field = self.boom_body.getField("rotation")
-        # self.boom_body_ini_trans = self.boom_body_trans_field.getSFVec3f()
-        # self.boom_body_ini_rot = self.boom_body_rot_field.getSFRotation()
+        self.robot_node = self.robot.getFromDef('Atlas')
 
         self.boom_base = self.robot.getFromDef('BoomBase')
         self.boom_base_trans_field = self.boom_base.getField("translation")
@@ -184,13 +173,6 @@ class Atlas(gym.Env):
         # even elements [0::2] position, scaled to -1..+1 between limits
         for r in range(6):
             joint_angle = self.read_joint_angle(joint_idx=r)
-            # max_joint_angle = self.legPitchMotor[r].getMaxPosition()
-            # min_joint_angle = self.legPitchMotor[r].getMinPosition()
-            # print('joint_angle: {}, max_q_{}, min_q_{}'.format(joint_angle, max_joint_angle, min_joint_angle))
-            # joint_states[2 * r] = -(joint_angle - 0.5 * (max_joint_angle + min_joint_angle)) \
-            #                   / (0.5 * (max_joint_angle - min_joint_angle))
-            # if r in [1, 4]: # only the direction of the knee is the same as human
-            #     joint_states[2 * r] = -joint_states[2 * r]
             if r in [0, 3]:
                 joint_states[2 * r] = (-joint_angle - np.deg2rad(35)) / np.deg2rad(80)
             elif r in [1, 4]:
@@ -255,19 +237,6 @@ class Atlas(gym.Env):
         self.feet_contact = np.zeros(2)
         for j in range(len(self.fsr)):
             self.feet_contact[j] = self.fsr[j].getValue()
-            # fsv = np.asarray(self.fsr[j].getValues())
-            # # '''
-            # # Left Foot Front Left, Left Foot Front Right,
-            # # Left Foot Rear Right, Left Foot Rear Left
-            # # '''
-            # # foot_forces = np.zeros(4)
-            # # foot_forces[0] = fsv[2] / 3.4 + 1.5 * fsv[0] + 1.15 * fsv[1]
-            # # foot_forces[1] = fsv[2] / 3.4 + 1.5 * fsv[0] - 1.15 * fsv[1]
-            # # foot_forces[2] = fsv[2] / 3.4 - 1.5 * fsv[0] - 1.15 * fsv[1]
-            # # foot_forces[3] = fsv[2] / 3.4 - 1.5 * fsv[0] + 1.15 * fsv[1]
-            # # print('foot_forces: {}'.format(foot_forces))
-            # if fsv[2] > 10:
-            #     self.feet_contact[j] = 1
 
         return np.clip(np.concatenate([more] + [joint_states] + [self.feet_contact]), -5, +5)
 
@@ -339,7 +308,7 @@ class Atlas(gym.Env):
             if done:
                 break
 
-    def reset(self):
+    def reset(self, is_eval_only = False):
         self.initial_y = None
         self.body_xyz = None
         self.joint_angles = None
@@ -351,18 +320,14 @@ class Atlas(gym.Env):
             for k in range(len(self.legPitchMotor)):
                 j = self.legPitchMotor[k]
                 j.setPosition(0)
-                # if k in [1, 4]:
-                #     j.setPosition(np.random.uniform(0, 0.1))
-                # else:
-                #     j.setPosition(np.random.uniform(-0.1, 0.1))
             self.robot.step(self.timeStep)
         self.robot.simulationResetPhysics()
         self.reset_all_fields()
-        # self.robot_trans_field.setSFVec3f(self.robot_ini_trans)
-        # self.robot_rot_field.setSFRotation(self.robot_ini_rot)
-        # self.boom_body_trans_field.setSFVec3f(self.boom_body_ini_trans)
-        # self.boom_body_rot_field.setSFRotation(self.boom_body_ini_rot)
-        for i in range(10):
-            self.robot.step(self.timeStep)
-            # print('wait')
+        if is_eval_only:
+            for i in range(100):
+                self.robot_node.moveViewpoint()
+                self.robot.step(self.timeStep)
+        else:
+            for i in range(10):
+                self.robot.step(self.timeStep)
         return self.calc_state()

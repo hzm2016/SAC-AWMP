@@ -61,7 +61,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
     parser.add_argument("--start_timesteps", default=1e4,
                         type=int)  # How many time steps purely random policy is run for
     parser.add_argument("--eval_freq", default=5e3, type=float)  # How often (time steps) we evaluate
-    parser.add_argument("--max_timesteps", default=1e6, type=float)  # Max time steps to run environment for
+    parser.add_argument("--max_timesteps", default=5e5, type=float)  # Max time steps to run environment for
     parser.add_argument("--save_models", default=True)  # Whether or not models are saved
 
     parser.add_argument("--expl_noise", default=0.2, type=float)  # Std of Gaussian exploration noise
@@ -252,10 +252,13 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                             replay_buffer.add_final_reward(coefficient, joint_angle.shape[0] - delay_num,
                                                            delay=delay_num)
 
-                            replay_buffer.add_specific_reward(reward_angle, idx_angle)
-                            idx_angle = np.r_[idx_angle, joint_angle[:-delay_num, -1]]
-                            reward_angle = np.r_[reward_angle,
-                                                 0.05 * np.ones(joint_angle[:-delay_num, -1].shape[0])]
+                        if len(reward_angle) > int(1000 / env.timeStep):
+                            replay_buffer.add_specific_reward(reward_angle[-100:], idx_angle[-100:])
+
+                        idx_angle = np.r_[idx_angle, joint_angle[:-delay_num, -1]]
+                        reward_angle = np.r_[reward_angle,
+                                             0.1 * np.ones(joint_angle[:-delay_num, -1].shape[0])]
+
                     joint_angle = joint_angle[-delay_num:]
                 pre_foot_contact = foot_contact
                 joint_angle_obs = np.zeros((1, 7))
@@ -269,7 +272,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                     still_steps += 1
                 else:
                     still_steps = 0
-                if still_steps > int(400 / env.timeStep):
+                if still_steps > int(1000 / env.timeStep):
                     replay_buffer.add_final_reward(-2.0, still_steps - 1)
                     reward -= 2.0
                     done = True
@@ -280,11 +283,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                 # Store data in replay buffer
                 new_obs_vec = utils.fifo_data(np.copy(obs_vec), new_obs)
                 replay_buffer.add((np.copy(obs_vec), new_obs_vec, action, reward, done_bool))
-                # print('train obs_vec: ', obs_vec)
-                # print('train new_obs_vec: ', new_obs_vec)
-                # print('1 obs_vec: ', replay_buffer.get(-1))
                 obs_vec = utils.fifo_data(obs_vec, new_obs)
-                # print('2 obs_vec: ', replay_buffer.get(-1))
             else:
                 replay_buffer.add((obs, new_obs, action, reward, done_bool))
 
@@ -300,9 +299,9 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
         utils.write_table(log_dir + "/test_accuracy", np.asarray(evaluations))
         env.reset()
     else:
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        # for i in range(10):
-        # for i in [0]:
         model_path = result_path + '/runs/ATD3_walker2d/{}_{}'.format(args.method_name, args.seed+1)
         print(model_path)
         policy.load("%s" % (file_name), directory=model_path)
@@ -403,7 +402,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                 utils.write_table(video_name + '_state', np.transpose(obs_mat))
                 utils.write_table(video_name + '_reward_Q', reward_Q1_Q2_mat)
                 out_video.release()
-        env.reset()
+        env.reset(is_eval_only=True)
 
 if __name__ == "__main__":
     # env = Atlas(action_dim=6, obs_dim=22)
