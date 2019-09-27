@@ -21,15 +21,15 @@ WorldInfo {
   ]
 }
 Viewpoint {
-  orientation -0.38405901215606275 0.9116434661731074 0.14630401828245004 0.7046832231361063
-  position 4.355241245341082 1.7172094924740942 14.515174505959491
+  orientation -0.0763443036856281 0.9659989765483059 0.24701725567737598 2.514918424719732
+  position 1.830024066897498 1.934454894447751 9.008928726535762
 }
 TexturedBackground {
 }
 TexturedBackgroundLight {
 }
 DEF BoomBase Robot {
-  translation 0 0.5 -9.38
+  translation 0 0.51 -9.38
   children [
     Group {
       children [
@@ -50,8 +50,8 @@ DEF BoomBase Robot {
                 }
               ]
               endPoint DEF BoomBody Solid {
-                translation -0.008314864754882691 -0.029337791299416494 9.999938201603687
-                rotation 0.9355985476520634 -0.2497003944865328 -0.24960983679458515 1.6401638516866879
+                translation -0.007857180896713199 -0.02998026510769236 9.999970518763316
+                rotation 0.9353786726508522 -0.25008185799835947 -0.25005160077475713 1.6404503203502936
                 children [
                   Group {
                     children [
@@ -82,8 +82,8 @@ DEF BoomBase Robot {
                 physics Physics {
                   density 0.1
                 }
-                linearVelocity 4.3905115683444636e-08 1.2802186390125604e-07 8.700957326794767e-07
-                angularVelocity -1.7101233412030846e-08 7.388093630030709e-09 -1.2075669187947292e-08
+                linearVelocity -6.5181999358319464e-06 -1.7994039788807528e-06 -7.977312915984345e-06
+                angularVelocity 1.8174227805664429e-07 -9.391567187403366e-07 4.89952801389717e-05
               }
             }
             Shape {
@@ -120,8 +120,8 @@ Floor {
   }
 }
 DEF Atlas Robot {
-  translation -0.0014510939708071088 0.92590587977555 10.789861562500976
-  rotation 0.9999992281255246 0.0011835428892429905 -0.00037811980163607876 -1.568158556921185
+  translation -0.0005381849910356968 0.9345049613519194 10.789929862444932
+  rotation 0.9999997635640986 0.0006834686462384924 7.577833794914334e-05 -1.5681339270183892
   children [
     DEF BodyIMU InertialUnit {
     }
@@ -265,7 +265,7 @@ DEF Atlas Robot {
     }
     DEF LLegUhz HingeJoint {
       jointParameters HingeJointParameters {
-        position 8.8173564497437e-06
+        position -7.102289427332299e-06
         axis 0 0 1
         anchor 0 0.089 0
         dampingConstant 0.1
@@ -281,7 +281,7 @@ DEF Atlas Robot {
       ]
       endPoint DEF LLegUhzEnd Solid {
         translation 0 0.089 0
-        rotation 0 0 1 0
+        rotation 0 0 -1 1.5919099573953193e-05
         children [
           DEF LUglut Solid {
             children [
@@ -387,7 +387,7 @@ DEF Atlas Robot {
           }
           DEF LLegMhx HingeJoint {
             jointParameters HingeJointParameters {
-              position 4.898710809312618e-05
+              position -3.3962784876300235e-05
               dampingConstant 0.1
             }
             device [
@@ -400,7 +400,7 @@ DEF Atlas Robot {
               }
             ]
             endPoint DEF LLegMhxEnd Solid {
-              rotation 1 0 0 0
+              rotation -1 0 0 8.295002514818033e-05
               children [
                 DEF LLglut Solid {
                   children [
@@ -649,7 +649,7 @@ DEF Atlas Robot {
                 }
                 DEF LLegLhy HingeJoint {
                   jointParameters HingeJointParameters {
-                    position 2.8609529776787906e-05
+                    position 4.63157156005098e-05
                     axis 0 1 0
                     anchor 0.05 0 -0.05
                     dampingConstant 0.1
@@ -668,6 +668,7 @@ DEF Atlas Robot {
                   ]
                   endPoint DEF LLegLhyEnd Solid {
                     translation 0.05 0 -0.05
+                    rotation 0 1 0 1.770619153256278e-05
                     children [
                       DEF LUleg Solid {
                         children [
@@ -825,7 +826,7 @@ DEF Atlas Robot {
                       }
                       DEF LLegKny HingeJoint {
                         jointParameters HingeJointParameters {
-                          position 1.9654847052511147e-06
+                          position -9.531517321598998e-06
                           axis 0 1 0
                           anchor -0.05 0 -0.374
                           dampingConstant 0.1
@@ -837,12 +838,14 @@ DEF Atlas Robot {
                           RotationalMotor {
                             name "LLegKny"
                             maxVelocity 12
+                            minPosition -9.531517321598998e-06
                             maxPosition 2.45
                             maxTorque 220
                           }
                         ]
                         endPoint DEF LLegKnyEnd Solid {
                           translation -0.05 0 -0.374
+                          rotation 0 -1 0 1.1496900122212797e-05
                           children [
                             DEF LLleg Solid {
                               children [
@@ -938,7 +941,7 @@ DEF Atlas Robot {
                             }
                             DEF LLegUay HingeJoint {
                               jointParameters HingeJointParameters {
-                                position -4.5709247586955826e-06
+                                position -9.513011455904886e-06
                                 axis 0 1 0
                                 anchor 0 0 -0.422
                                 dampingConstant 0.1
@@ -957,7 +960,7 @@ DEF Atlas Robot {
                               ]
                               endPoint DEF LLegUayEnd Solid {
                                 translation 0 0 -0.422
-                                rotation 0 -1 0 0
+                                rotation 0 -0.9999999999999999 0 4.9421560620609575e-06
                                 children [
                                   DEF LTalus Solid {
                                     children [
@@ -1033,7 +1036,7 @@ DEF Atlas Robot {
                                   }
                                   DEF LLegLax HingeJoint {
                                     jointParameters HingeJointParameters {
-                                      position -7.554932813569337e-06
+                                      position -3.1641498624779274e-05
                                       dampingConstant 0.1
                                     }
                                     device [
@@ -1046,26 +1049,77 @@ DEF Atlas Robot {
                                       }
                                     ]
                                     endPoint DEF LLegLaxEnd Solid {
-                                      rotation -0.9999999999999999 0 0 0
+                                      rotation -1 0 0 2.408656440107706e-05
                                       children [
                                         DEF LFoot Solid {
                                           children [
-                                            DEF LFootTouch TouchSensor {
-                                              translation -3.8607678424194825e-07 6.722238214962317e-06 7.052379717001345e-05
-                                              rotation -0.6044427242449878 0.7926530872177815 0.07968736682447261 1.9774920825125134e-06
-                                              name "LFsr"
-                                              boundingObject Group {
-                                                children [
-                                                  DEF LFsrBounding Transform {
-                                                    translation 0.048 0 -0.076119
-                                                    children [
-                                                      Box {
-                                                        size 0.26 0.124887 0.01
+                                            DEF LFootSmooth Group {
+                                              children [
+                                                DEF LFootHead Transform {
+                                                  translation 0.175 0 -0.079
+                                                  children [
+                                                    Shape {
+                                                      appearance PBRAppearance {
+                                                        baseColorMap ImageTexture {
+                                                          url [
+                                                            "/usr/local/webots/projects/robots/boston_dynamics/atlas/protos/textures/atlas_carbon_fiber.jpg"
+                                                          ]
+                                                        }
+                                                        roughness 0.3
+                                                        metalness 0
                                                       }
-                                                    ]
-                                                  }
-                                                ]
-                                              }
+                                                      geometry Cylinder {
+                                                        height 0.15
+                                                        radius 0.01
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                                DEF LFootTail Transform {
+                                                  translation -0.075 0 -0.079
+                                                  children [
+                                                    Shape {
+                                                      appearance PBRAppearance {
+                                                        baseColorMap ImageTexture {
+                                                          url [
+                                                            "/usr/local/webots/projects/robots/boston_dynamics/atlas/protos/textures/atlas_carbon_fiber.jpg"
+                                                          ]
+                                                        }
+                                                        roughness 0.3
+                                                        metalness 0
+                                                      }
+                                                      geometry Cylinder {
+                                                        height 0.15
+                                                        radius 0.01
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                                DEF LFootBody Transform {
+                                                  translation 0.05 0 -0.079
+                                                  children [
+                                                    Shape {
+                                                      appearance PBRAppearance {
+                                                        baseColorMap ImageTexture {
+                                                          url [
+                                                            "/usr/local/webots/projects/robots/boston_dynamics/atlas/protos/textures/atlas_carbon_fiber.jpg"
+                                                          ]
+                                                        }
+                                                        roughness 0.3
+                                                        metalness 0
+                                                      }
+                                                      geometry Box {
+                                                        size 0.25 0.15 0.02
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                            DEF LFootTouch TouchSensor {
+                                              rotation 1 0 0 0
+                                              name "LFsr"
+                                              boundingObject USE LFootSmooth
                                               physics Physics {
                                                 density -1
                                                 mass 0.817
@@ -1144,36 +1198,6 @@ DEF Atlas Robot {
                                                   appearance PBRAppearance {
                                                     baseColorMap ImageTexture {
                                                       url [
-                                                        "/usr/local/webots/projects/robots/boston_dynamics/atlas/protos/textures/atlas_carbon_fiber.jpg"
-                                                      ]
-                                                    }
-                                                    roughness 0.3
-                                                    metalness 0
-                                                  }
-                                                  geometry IndexedFaceSet {
-                                                    coord Coordinate {
-                                                      point [
-                                                        -0.081627 -0.037043 -0.069272, -0.079127 -0.042581 -0.069272, -0.08246 -0.030753 -0.069272, -0.08246 0.031812 -0.069272, -0.07496 -0.047367 -0.069272, -0.066266 -0.055032 -0.069272, -0.081627 0.038103 -0.069272, -0.060433 -0.057237 -0.069272, -0.079127 0.043641 -0.069272, -0.0546 0.060502 -0.069272, -0.07496 0.048426 -0.069272, -0.060433 0.058298 -0.069272, -0.066266 0.056093 -0.069272, 0.17939 0.026279 -0.070066, 0.178316 0.03212 -0.070058, 0.17939 -0.025219 -0.070066, 0.175095 -0.035252 -0.070032, 0.178316 -0.03106 -0.070058, 0.175095 0.036311 -0.070032, 0.169727 0.038853 -0.069989, 0.169727 -0.037793 -0.069989, 0.080193 -0.061646 -0.069272, 0.080193 0.062707 -0.069272, -0.048767 -0.061646 -0.069272, -0.048767 0.062707 -0.069272, -0.0546 -0.059442 -0.069272, -0.07496 0.048426 -0.081119, -0.066266 0.056093 -0.069272, -0.066266 0.056093 -0.08112, -0.07496 0.048426 -0.069272, -0.08246 -0.030753 -0.081119, -0.08246 0.031812 -0.069272, -0.08246 0.031812 -0.081119, -0.08246 -0.030753 -0.069272, -0.08246 0.031812 -0.069272, -0.066266 -0.055032 -0.081119, -0.07496 -0.047367 -0.069272, -0.07496 -0.047367 -0.081119, -0.066266 -0.055032 -0.069272, 0.080193 -0.061646 -0.081119, -0.048767 -0.061646 -0.069272, -0.048767 -0.061646 -0.081119, 0.080193 -0.061646 -0.069272, 0.169727 -0.037793 -0.080403, 0.169727 -0.037793 -0.069989, 0.17939 0.026279 -0.080325, 0.17939 -0.025219 -0.070066, 0.17939 -0.025219 -0.080325, 0.17939 0.026279 -0.070066, 0.080193 0.062707 -0.08112, 0.080193 0.062707 -0.069272, 0.169727 0.038853 -0.080403, 0.169727 0.038853 -0.069989, -0.048767 0.062707 -0.08112, -0.048767 0.062707 -0.069272, 0.175095 -0.035252 -0.08036, 0.17939 -0.025219 -0.080325, 0.178316 -0.03106 -0.080334, 0.169727 -0.037793 -0.080403, 0.17939 0.026279 -0.080325, 0.080193 -0.061646 -0.081119, 0.169727 0.038853 -0.080403, -0.048767 -0.061646 -0.081119, 0.175095 0.036311 -0.08036, 0.178316 0.03212 -0.080334, -0.0546 -0.059442 -0.081119, -0.060433 -0.057237 -0.081119, 0.080193 0.062707 -0.08112, -0.0546 0.060502 -0.08112, -0.048767 0.062707 -0.08112, -0.081627 0.038103 -0.081119, -0.079127 0.043641 -0.081119, -0.08246 0.031812 -0.081119, -0.08246 -0.030753 -0.081119, -0.07496 0.048426 -0.081119, -0.066266 0.056093 -0.08112, -0.081627 -0.037043 -0.081119, -0.060433 0.058298 -0.08112, -0.079127 -0.042581 -0.081119, -0.07496 -0.047367 -0.081119, -0.066266 -0.055032 -0.081119
-                                                      ]
-                                                    }
-                                                    texCoord TextureCoordinate {
-                                                      point [
-                                                        0.792129 0.003181, 0.797388 0.012729, 0.783963 0, 0.049663 0, 0.800971 0.028642, 0.805439 0.061845, 0.041496 0.003181, 0.806507 0.084121, 0.036236 0.012729, 0.026127 0.106397, 0.032654 0.028642, 0.027117 0.084121, 0.028185 0.061845, 0.052184 1, 0.042784 0.995898, 0.781442 1, 0.795592 0.983598, 0.790841 0.995898, 0.038034 0.983598, 0.035835 0.963097, 0.79779 0.963097, 0.808418 0.621169, 0.025206 0.621169, 0.808418 0.128673, 0.025206 0.128673, 0.807497 0.106397, 1.634598 0.028642, 1.695432 0.061845, 1.639062 0.061845, 1.699902 0.028642, 0.883276 0, 1.71691 0, 1.617592 0, 0.783963 0, 0.049663 0, 0.861804 0.061845, 0.800971 0.028642, 0.866271 0.028642, 0.805439 0.061845, 0.858825 0.621169, 0.808418 0.128673, 0.858825 0.128673, 0.808418 0.621169, 0.869457 0.963097, 0.79779 0.963097, 1.615073 1, 2.448689 1, 0.885795 1, 1.719431 1, 1.642041 0.621169, 1.692453 0.621169, 1.631413 0.963097, 1.703082 0.963097, 1.642041 0.128673, 1.692453 0.128673, 0.871656 0.983598, 0.885795 1, 0.876407 0.995898, 0.869457 0.963097, 1.615073 1, 0.858825 0.621169, 1.631413 0.963097, 0.858825 0.128673, 1.629213 0.983598, 1.624463 0.995898, 0.859745 0.106397, 0.860736 0.084121, 1.642041 0.621169, 1.641121 0.106397, 1.642041 0.128673, 1.625758 0.003181, 1.631017 0.012729, 1.617592 0, 0.883276 0, 1.634598 0.028642, 1.639062 0.061845, 0.875111 0.003181, 1.640131 0.084121, 0.869853 0.012729, 0.866271 0.028642, 0.861804 0.061845
-                                                      ]
-                                                    }
-                                                    coordIndex [
-                                                      0, 1, 2, -1, 1, 3, 2, -1, 1, 4, 3, -1, 4, 5, 3, -1, 3, 5, 6, -1, 5, 7, 6, -1, 6, 7, 8, -1, 7, 9, 8, -1, 8, 9, 10, -1, 10, 11, 12, -1, 9, 11, 10, -1, 13, 14, 15, -1, 14, 16, 15, -1, 15, 16, 17, -1, 18, 16, 14, -1, 18, 19, 16, -1, 19, 20, 16, -1, 19, 21, 20, -1, 22, 21, 19, -1, 22, 23, 21, -1, 24, 7, 25, -1, 22, 24, 23, -1, 9, 7, 24, -1, 23, 24, 25, -1, 26, 27, 28, -1, 26, 29, 27, -1, 30, 31, 32, -1, 30, 33, 34, -1, 35, 36, 37, -1, 35, 38, 36, -1, 39, 40, 41, -1, 39, 42, 40, -1, 43, 42, 39, -1, 43, 44, 42, -1, 45, 46, 47, -1, 45, 48, 46, -1, 49, 50, 51, -1, 51, 50, 52, -1, 53, 54, 49, -1, 49, 54, 50, -1, 55, 56, 57, -1, 58, 56, 55, -1, 58, 59, 56, -1, 60, 59, 58, -1, 60, 61, 59, -1, 62, 61, 60, -1, 59, 63, 64, -1, 65, 61, 62, -1, 59, 61, 63, -1, 66, 61, 65, -1, 66, 67, 61, -1, 68, 67, 66, -1, 68, 69, 67, -1, 70, 71, 72, -1, 71, 73, 72, -1, 71, 74, 73, -1, 74, 75, 73, -1, 73, 75, 76, -1, 75, 77, 76, -1, 76, 77, 78, -1, 77, 79, 78, -1, 77, 80, 79, -1, 68, 80, 77, -1, 68, 66, 80, -1
-                                                    ]
-                                                    texCoordIndex [
-                                                      0, 1, 2, -1, 1, 3, 2, -1, 1, 4, 3, -1, 4, 5, 3, -1, 3, 5, 6, -1, 5, 7, 6, -1, 6, 7, 8, -1, 7, 9, 8, -1, 8, 9, 10, -1, 10, 11, 12, -1, 9, 11, 10, -1, 13, 14, 15, -1, 14, 16, 15, -1, 15, 16, 17, -1, 18, 16, 14, -1, 18, 19, 16, -1, 19, 20, 16, -1, 19, 21, 20, -1, 22, 21, 19, -1, 22, 23, 21, -1, 24, 7, 25, -1, 22, 24, 23, -1, 9, 7, 24, -1, 23, 24, 25, -1, 26, 27, 28, -1, 26, 29, 27, -1, 30, 31, 32, -1, 30, 33, 34, -1, 35, 36, 37, -1, 35, 38, 36, -1, 39, 40, 41, -1, 39, 42, 40, -1, 43, 42, 39, -1, 43, 44, 42, -1, 45, 46, 47, -1, 45, 48, 46, -1, 49, 50, 51, -1, 51, 50, 52, -1, 53, 54, 49, -1, 49, 54, 50, -1, 55, 56, 57, -1, 58, 56, 55, -1, 58, 59, 56, -1, 60, 59, 58, -1, 60, 61, 59, -1, 62, 61, 60, -1, 59, 63, 64, -1, 65, 61, 62, -1, 59, 61, 63, -1, 66, 61, 65, -1, 66, 67, 61, -1, 68, 67, 66, -1, 68, 69, 67, -1, 70, 71, 72, -1, 71, 73, 72, -1, 71, 74, 73, -1, 74, 75, 73, -1, 73, 75, 76, -1, 75, 77, 76, -1, 76, 77, 78, -1, 77, 79, 78, -1, 77, 80, 79, -1, 68, 80, 77, -1, 68, 66, 80, -1
-                                                    ]
-                                                    creaseAngle 1
-                                                  }
-                                                }
-                                                Shape {
-                                                  appearance PBRAppearance {
-                                                    baseColorMap ImageTexture {
-                                                      url [
                                                         "/usr/local/webots/projects/robots/boston_dynamics/atlas/protos/textures/atlas.jpg"
                                                       ]
                                                     }
@@ -1200,52 +1224,11 @@ DEF Atlas Robot {
                                                     creaseAngle 1
                                                   }
                                                 }
-                                                Shape {
-                                                  appearance PBRAppearance {
-                                                    baseColorMap ImageTexture {
-                                                      url [
-                                                        "/usr/local/webots/projects/robots/boston_dynamics/atlas/protos/textures/atlas_carbon_fiber.jpg"
-                                                      ]
-                                                    }
-                                                    roughness 0.3
-                                                    metalness 0
-                                                  }
-                                                  geometry IndexedFaceSet {
-                                                    coord Coordinate {
-                                                      point [
-                                                        0.175095 -0.035252 -0.070032, 0.169727 -0.037793 -0.080403, 0.175095 -0.035252 -0.08036, 0.169727 -0.037793 -0.069989, 0.178316 0.03212 -0.070058, 0.17939 0.026279 -0.080325, 0.178316 0.03212 -0.080334, 0.17939 0.026279 -0.070066, 0.178316 -0.03106 -0.070058, 0.178316 -0.03106 -0.080334, 0.17939 -0.025219 -0.070066, 0.17939 -0.025219 -0.080325, 0.175095 0.036311 -0.070032, 0.175095 0.036311 -0.08036, 0.169727 0.038853 -0.069989, 0.169727 0.038853 -0.080403, -0.0546 0.060502 -0.08112, -0.048767 0.062707 -0.069272, -0.048767 0.062707 -0.08112, -0.0546 0.060502 -0.069272, -0.060433 0.058298 -0.069272, -0.066266 0.056093 -0.069272, -0.060433 0.058298 -0.08112, -0.066266 0.056093 -0.08112, -0.060433 -0.057237 -0.069272, -0.066266 -0.055032 -0.081119, -0.0546 -0.059442 -0.081119, -0.066266 -0.055032 -0.069272, -0.0546 -0.059442 -0.069272, -0.048767 -0.061646 -0.081119, -0.048767 -0.061646 -0.069272, -0.079127 0.043641 -0.069272, -0.07496 0.048426 -0.081119, -0.079127 0.043641 -0.081119, -0.07496 0.048426 -0.069272, -0.081627 -0.037043 -0.069272, -0.08246 -0.030753 -0.081119, -0.081627 -0.037043 -0.081119, -0.08246 -0.030753 -0.069272, -0.081627 0.038103 -0.069272, -0.081627 0.038103 -0.081119, -0.08246 0.031812 -0.069272, -0.08246 0.031812 -0.081119, -0.079127 -0.042581 -0.069272, -0.079127 -0.042581 -0.081119, -0.07496 -0.047367 -0.069272, -0.07496 -0.047367 -0.081119
-                                                      ]
-                                                    }
-                                                    texCoord TextureCoordinate {
-                                                      point [
-                                                        0.816381 0.63076, 0.80208 0.608069, 0.816381 0.608163, 0.80208 0.630854, 1.073383 0.630703, 1.051118 0.608239, 1.073383 0.60822, 1.051118 0.630686, 0.834407 0.630703, 0.834407 0.60822, 0.856776 0.630686, 0.856776 0.608239, 1.091526 0.63076, 1.091526 0.608163, 1.106208 0.630854, 1.106208 0.608069, 2.424977 0.6065, 2.390717 0.632423, 2.390717 0.6065, 2.424977 0.632423, 2.457125 0.632423, 2.487192 0.632423, 2.457125 0.6065, 2.487192 0.6065, 3.198722 0.632423, 3.168697 0.606502, 3.230998 0.606502, 3.168697 0.632423, 3.230998 0.632423, 3.265578 0.606502, 3.265578 0.632423, 2.583243 0.632423, 2.549468 0.606502, 2.583243 0.606502, 2.549468 0.632423, 3.038329 0.632423, 3.003531 0.606502, 3.038329 0.606502, 3.003531 0.632423, 2.616463 0.632423, 2.616463 0.606502, 2.650599 0.632423, 2.650599 0.606502, 3.07197 0.632423, 3.07197 0.606502, 3.105958 0.632423, 3.105958 0.606502
-                                                      ]
-                                                    }
-                                                    coordIndex [
-                                                      0, 1, 2, -1, 0, 3, 1, -1, 4, 5, 6, -1, 4, 7, 5, -1, 8, 2, 9, -1, 8, 0, 2, -1, 10, 9, 11, -1, 10, 8, 9, -1, 12, 6, 13, -1, 12, 4, 6, -1, 14, 13, 15, -1, 14, 12, 13, -1, 16, 17, 18, -1, 16, 19, 17, -1, 20, 19, 16, -1, 21, 22, 23, -1, 20, 22, 21, -1, 20, 16, 22, -1, 24, 25, 26, -1, 24, 27, 25, -1, 28, 29, 30, -1, 24, 29, 28, -1, 24, 26, 29, -1, 31, 32, 33, -1, 31, 34, 32, -1, 35, 36, 37, -1, 35, 38, 36, -1, 39, 33, 40, -1, 39, 31, 33, -1, 41, 40, 42, -1, 41, 39, 40, -1, 43, 37, 44, -1, 43, 35, 37, -1, 45, 44, 46, -1, 45, 43, 44, -1
-                                                    ]
-                                                    texCoordIndex [
-                                                      0, 1, 2, -1, 0, 3, 1, -1, 4, 5, 6, -1, 4, 7, 5, -1, 8, 2, 9, -1, 8, 0, 2, -1, 10, 9, 11, -1, 10, 8, 9, -1, 12, 6, 13, -1, 12, 4, 6, -1, 14, 13, 15, -1, 14, 12, 13, -1, 16, 17, 18, -1, 16, 19, 17, -1, 20, 19, 16, -1, 21, 22, 23, -1, 20, 22, 21, -1, 20, 16, 22, -1, 24, 25, 26, -1, 24, 27, 25, -1, 28, 29, 30, -1, 24, 29, 28, -1, 24, 26, 29, -1, 31, 32, 33, -1, 31, 34, 32, -1, 35, 36, 37, -1, 35, 38, 36, -1, 39, 33, 40, -1, 39, 31, 33, -1, 41, 40, 42, -1, 41, 39, 40, -1, 43, 37, 44, -1, 43, 35, 37, -1, 45, 44, 46, -1, 45, 43, 44, -1
-                                                    ]
-                                                    creaseAngle 1
-                                                  }
-                                                }
                                               ]
                                             }
                                           ]
                                           name "LFoot"
-                                          boundingObject Group {
-                                            children [
-                                              DEF LFootBounding1 Transform {
-                                                translation 0.048 0 -0.076119
-                                                children [
-                                                  Box {
-                                                    size 0.26 0.124887 0.01
-                                                  }
-                                                ]
-                                              }
-                                            ]
-                                          }
+                                          boundingObject USE LFootSmooth
                                           physics Physics {
                                             density -1
                                             mass 0.817
@@ -1312,6 +1295,8 @@ DEF Atlas Robot {
                         0 0 0
                       ]
                     }
+                    linearVelocity 2.6325450938443273e-05 1.4206281759255381e-06 -4.537627439931691e-05
+                    angularVelocity 4.079472936042509e-05 7.579749534699792e-05 -7.156355872946694e-05
                   }
                 }
               ]
@@ -1326,6 +1311,8 @@ DEF Atlas Robot {
                   0 0 0
                 ]
               }
+              linearVelocity 2.265627529959055e-05 -8.012051471451556e-07 -2.8239280015089758e-05
+              angularVelocity 3.640825061460393e-05 8.488202009443975e-05 8.175907332972791e-05
             }
           }
         ]
@@ -1341,11 +1328,13 @@ DEF Atlas Robot {
             0 0 0
           ]
         }
+        linearVelocity 5.982137711376938e-06 -2.0420057160968087e-06 -2.1677287996964722e-05
+        angularVelocity 1.233284071111401e-05 9.441139854063527e-05 6.5437442748234e-05
       }
     }
     DEF RLegUhz HingeJoint {
       jointParameters HingeJointParameters {
-        position -1.2207090751384625e-05
+        position 1.08595903833708e-05
         axis 0 0 1
         anchor 0 -0.089 0
         dampingConstant 0.1
@@ -1361,7 +1350,7 @@ DEF Atlas Robot {
       ]
       endPoint DEF RLegUhzEnd Solid {
         translation 0 -0.089 0
-        rotation 0 0 1 0
+        rotation 0 0 1 2.3066785753623187e-05
         children [
           DEF RUglut Solid {
             children [
@@ -1467,7 +1456,7 @@ DEF Atlas Robot {
           }
           DEF RLegMhx HingeJoint {
             jointParameters HingeJointParameters {
-              position 3.052537991058663e-05
+              position -8.54901087471081e-05
               dampingConstant 0.1
             }
             device [
@@ -1480,7 +1469,7 @@ DEF Atlas Robot {
               }
             ]
             endPoint DEF RLegMhxEnd Solid {
-              rotation 1 0 0 3.052537695535514e-05
+              rotation -1 0 0 8.549011107940937e-05
               children [
                 DEF RLglut Solid {
                   children [
@@ -1647,7 +1636,7 @@ DEF Atlas Robot {
                 }
                 DEF RLegLhy HingeJoint {
                   jointParameters HingeJointParameters {
-                    position 2.0831701436392616e-05
+                    position 4.4942689331801646e-05
                     axis 0 1 0
                     anchor 0.05 0 -0.05
                     dampingConstant 0.1
@@ -1666,7 +1655,7 @@ DEF Atlas Robot {
                   ]
                   endPoint DEF RLegLhyEnd Solid {
                     translation 0.05 0 -0.05
-                    rotation 0 1 0 2.083169544173748e-05
+                    rotation 0 0.9999999999999999 0 4.4942692667168005e-05
                     children [
                       DEF RUleg Solid {
                         children [
@@ -1824,7 +1813,7 @@ DEF Atlas Robot {
                       }
                       DEF RLegKny HingeJoint {
                         jointParameters HingeJointParameters {
-                          position -2.58957e-05
+                          position -2.0572301179921808e-05
                           axis 0 1 0
                           anchor -0.05 0 -0.374
                           dampingConstant 0.1
@@ -1836,14 +1825,14 @@ DEF Atlas Robot {
                           RotationalMotor {
                             name "RLegKny"
                             maxVelocity 12
-                            minPosition -2.5895709212520046e-05
+                            minPosition -3.3081671135470485e-05
                             maxPosition 2.45
                             maxTorque 220
                           }
                         ]
                         endPoint DEF RLegKnyEnd Solid {
                           translation -0.05 0 -0.374
-                          rotation 0 -0.9999999999999999 0 0
+                          rotation 0 1 0 5.323448960719791e-06
                           children [
                             DEF RLleg Solid {
                               children [
@@ -1939,7 +1928,7 @@ DEF Atlas Robot {
                             }
                             DEF RLegUay HingeJoint {
                               jointParameters HingeJointParameters {
-                                position -2.292754559185539e-05
+                                position -3.713249285386411e-05
                                 axis 0 1 0
                                 anchor 0 0 -0.422
                                 dampingConstant 0.1
@@ -1958,7 +1947,7 @@ DEF Atlas Robot {
                               ]
                               endPoint DEF RLegUayEnd Solid {
                                 translation 0 0 -0.422
-                                rotation 0 -1 0 0
+                                rotation 0 -1 0 1.420498864690996e-05
                                 children [
                                   DEF RTalus Solid {
                                     children [
@@ -2094,7 +2083,7 @@ DEF Atlas Robot {
                                   }
                                   DEF RLegLax HingeJoint {
                                     jointParameters HingeJointParameters {
-                                      position -7.161170581631277e-06
+                                      position -3.73078231452542e-05
                                       dampingConstant 0.1
                                     }
                                     device [
@@ -2107,26 +2096,78 @@ DEF Atlas Robot {
                                       }
                                     ]
                                     endPoint DEF RLegLaxEnd Solid {
-                                      rotation -0.9999999999999999 0 0 0
+                                      rotation -1 0 0 3.0146636399292767e-05
                                       children [
                                         DEF RFoot Solid {
                                           children [
-                                            DEF RFootTouch TouchSensor {
-                                              translation 8.159359975324493e-07 4.687684242554724e-06 0.00010711091005768947
-                                              rotation -0.8078831228771253 0.5832723801509345 0.0843693683949778 1.5015763726058312e-06
-                                              name "RFsr"
-                                              boundingObject Group {
-                                                children [
-                                                  DEF RFsrBounding Transform {
-                                                    translation 0.048 0 -0.076119
-                                                    children [
-                                                      Box {
-                                                        size 0.26 0.124887 0.01
+                                            DEF RFootSmooth Group {
+                                              children [
+                                                DEF RFootHead Transform {
+                                                  translation 0.175 0 -0.079
+                                                  children [
+                                                    Shape {
+                                                      appearance PBRAppearance {
+                                                        baseColorMap ImageTexture {
+                                                          url [
+                                                            "/usr/local/webots/projects/robots/boston_dynamics/atlas/protos/textures/atlas_carbon_fiber.jpg"
+                                                          ]
+                                                        }
+                                                        roughness 0.3
+                                                        metalness 0
                                                       }
-                                                    ]
-                                                  }
-                                                ]
-                                              }
+                                                      geometry Cylinder {
+                                                        height 0.15
+                                                        radius 0.01
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                                DEF RFootTail Transform {
+                                                  translation -0.075 0 -0.079
+                                                  children [
+                                                    Shape {
+                                                      appearance PBRAppearance {
+                                                        baseColorMap ImageTexture {
+                                                          url [
+                                                            "/usr/local/webots/projects/robots/boston_dynamics/atlas/protos/textures/atlas_carbon_fiber.jpg"
+                                                          ]
+                                                        }
+                                                        roughness 0.3
+                                                        metalness 0
+                                                      }
+                                                      geometry Cylinder {
+                                                        height 0.15
+                                                        radius 0.01
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                                DEF RFootBody Transform {
+                                                  translation 0.05 0 -0.079
+                                                  children [
+                                                    Shape {
+                                                      appearance PBRAppearance {
+                                                        baseColorMap ImageTexture {
+                                                          url [
+                                                            "/usr/local/webots/projects/robots/boston_dynamics/atlas/protos/textures/atlas_carbon_fiber.jpg"
+                                                          ]
+                                                        }
+                                                        roughness 0.3
+                                                        metalness 0
+                                                      }
+                                                      geometry Box {
+                                                        size 0.25 0.15 0.02
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                            DEF RFootTouch TouchSensor {
+                                              translation 8.244840087254235e-07 -4.2117657947926546e-06 0.00015168428743160545
+                                              rotation -0.9442420828698734 0.32634248185820963 0.04367463190671711 3.7322374939821347e-06
+                                              name "RFsr"
+                                              boundingObject USE RFootSmooth
                                               physics Physics {
                                                 density -1
                                                 mass 0.817
@@ -2167,66 +2208,6 @@ DEF Atlas Robot {
                                                     ]
                                                     texCoordIndex [
                                                       0, 1, 2, -1, 3, 4, 5, -1, 2, 6, 7, -1, 8, 6, 2, -1, 2, 1, 8, -1, 9, 10, 5, -1, 5, 4, 9, -1, 4, 11, 9, -1, 12, 7, 6, -1, 12, 13, 7, -1, 14, 6, 8, -1, 14, 12, 6, -1, 15, 10, 9, -1, 15, 16, 10, -1, 17, 9, 11, -1, 17, 15, 9, -1, 18, 13, 12, -1, 18, 19, 13, -1, 20, 12, 14, -1, 20, 18, 12, -1, 21, 16, 15, -1, 21, 22, 16, -1, 23, 15, 17, -1, 23, 21, 15, -1, 24, 19, 18, -1, 24, 25, 19, -1, 26, 18, 20, -1, 26, 24, 18, -1, 27, 22, 21, -1, 27, 28, 22, -1, 29, 21, 23, -1, 29, 27, 21, -1, 30, 31, 32, -1, 33, 31, 30, -1, 33, 34, 31, -1, 35, 34, 33, -1, 35, 36, 34, -1, 37, 36, 35, -1, 37, 38, 36, -1, 39, 38, 37, -1, 39, 40, 38, -1, 28, 41, 22, -1, 28, 42, 41, -1, 22, 35, 16, -1, 22, 41, 35, -1, 16, 33, 10, -1, 16, 35, 33, -1, 10, 33, 30, -1, 30, 5, 10, -1, 5, 32, 3, -1, 5, 30, 32, -1, 0, 31, 1, -1, 0, 32, 31, -1, 1, 31, 34, -1, 34, 8, 1, -1, 8, 36, 43, -1, 8, 34, 36, -1, 43, 44, 45, -1, 43, 36, 44, -1, 45, 46, 26, -1, 45, 44, 46, -1, 47, 39, 48, -1, 47, 49, 39, -1
-                                                    ]
-                                                    creaseAngle 1
-                                                  }
-                                                }
-                                                Shape {
-                                                  appearance PBRAppearance {
-                                                    baseColorMap ImageTexture {
-                                                      url [
-                                                        "/usr/local/webots/projects/robots/boston_dynamics/atlas/protos/textures/atlas_carbon_fiber.jpg"
-                                                      ]
-                                                    }
-                                                    roughness 0.3
-                                                    metalness 0
-                                                  }
-                                                  geometry IndexedFaceSet {
-                                                    coord Coordinate {
-                                                      point [
-                                                        -0.081627 -0.037043 -0.069272, -0.079127 -0.042581 -0.069272, -0.08246 -0.030753 -0.069272, -0.08246 0.031812 -0.069272, -0.07496 -0.047367 -0.069272, -0.066266 -0.055032 -0.069272, -0.081627 0.038103 -0.069272, -0.060433 -0.057237 -0.069272, -0.079127 0.043641 -0.069272, -0.0546 0.060502 -0.069272, -0.07496 0.048426 -0.069272, -0.060433 0.058298 -0.069272, -0.066266 0.056093 -0.069272, 0.17939 0.026279 -0.070066, 0.178316 0.03212 -0.070058, 0.17939 -0.025219 -0.070066, 0.175095 -0.035252 -0.070032, 0.178316 -0.03106 -0.070058, 0.175095 0.036311 -0.070032, 0.169727 0.038853 -0.069989, 0.169727 -0.037793 -0.069989, 0.080193 -0.061646 -0.069272, 0.080193 0.062707 -0.069272, -0.048767 -0.061646 -0.069272, -0.048767 0.062707 -0.069272, -0.0546 -0.059442 -0.069272, -0.07496 0.048426 -0.081119, -0.066266 0.056093 -0.069272, -0.066266 0.056093 -0.08112, -0.07496 0.048426 -0.069272, -0.08246 -0.030753 -0.081119, -0.08246 0.031812 -0.069272, -0.08246 0.031812 -0.081119, -0.08246 -0.030753 -0.069272, -0.08246 0.031812 -0.069272, -0.066266 -0.055032 -0.081119, -0.07496 -0.047367 -0.069272, -0.07496 -0.047367 -0.081119, -0.066266 -0.055032 -0.069272, 0.080193 -0.061646 -0.081119, -0.048767 -0.061646 -0.069272, -0.048767 -0.061646 -0.081119, 0.080193 -0.061646 -0.069272, 0.169727 -0.037793 -0.080403, 0.169727 -0.037793 -0.069989, 0.17939 0.026279 -0.080325, 0.17939 -0.025219 -0.070066, 0.17939 -0.025219 -0.080325, 0.17939 0.026279 -0.070066, 0.080193 0.062707 -0.08112, 0.080193 0.062707 -0.069272, 0.169727 0.038853 -0.080403, 0.169727 0.038853 -0.069989, -0.048767 0.062707 -0.08112, -0.048767 0.062707 -0.069272, 0.175095 -0.035252 -0.08036, 0.17939 -0.025219 -0.080325, 0.178316 -0.03106 -0.080334, 0.169727 -0.037793 -0.080403, 0.17939 0.026279 -0.080325, 0.080193 -0.061646 -0.081119, 0.169727 0.038853 -0.080403, -0.048767 -0.061646 -0.081119, 0.175095 0.036311 -0.08036, 0.178316 0.03212 -0.080334, -0.0546 -0.059442 -0.081119, -0.060433 -0.057237 -0.081119, 0.080193 0.062707 -0.08112, -0.0546 0.060502 -0.08112, -0.048767 0.062707 -0.08112, -0.081627 0.038103 -0.081119, -0.079127 0.043641 -0.081119, -0.08246 0.031812 -0.081119, -0.08246 -0.030753 -0.081119, -0.07496 0.048426 -0.081119, -0.066266 0.056093 -0.08112, -0.081627 -0.037043 -0.081119, -0.060433 0.058298 -0.08112, -0.079127 -0.042581 -0.081119, -0.07496 -0.047367 -0.081119, -0.066266 -0.055032 -0.081119
-                                                      ]
-                                                    }
-                                                    texCoord TextureCoordinate {
-                                                      point [
-                                                        0.792129 0.003181, 0.797388 0.012729, 0.783963 0, 0.049663 0, 0.800971 0.028642, 0.805439 0.061845, 0.041496 0.003181, 0.806507 0.084121, 0.036236 0.012729, 0.026127 0.106397, 0.032654 0.028642, 0.027117 0.084121, 0.028185 0.061845, 0.052184 1, 0.042784 0.995898, 0.781442 1, 0.795592 0.983598, 0.790841 0.995898, 0.038034 0.983598, 0.035835 0.963097, 0.79779 0.963097, 0.808418 0.621169, 0.025206 0.621169, 0.808418 0.128673, 0.025206 0.128673, 0.807497 0.106397, 1.634598 0.028642, 1.695432 0.061845, 1.639062 0.061845, 1.699902 0.028642, 0.883276 0, 1.71691 0, 1.617592 0, 0.783963 0, 0.049663 0, 0.861804 0.061845, 0.800971 0.028642, 0.866271 0.028642, 0.805439 0.061845, 0.858825 0.621169, 0.808418 0.128673, 0.858825 0.128673, 0.808418 0.621169, 0.869457 0.963097, 0.79779 0.963097, 1.615073 1, 2.448689 1, 0.885795 1, 1.719431 1, 1.642041 0.621169, 1.692453 0.621169, 1.631413 0.963097, 1.703082 0.963097, 1.642041 0.128673, 1.692453 0.128673, 0.871656 0.983598, 0.885795 1, 0.876407 0.995898, 0.869457 0.963097, 1.615073 1, 0.858825 0.621169, 1.631413 0.963097, 0.858825 0.128673, 1.629213 0.983598, 1.624463 0.995898, 0.859745 0.106397, 0.860736 0.084121, 1.642041 0.621169, 1.641121 0.106397, 1.642041 0.128673, 1.625758 0.003181, 1.631017 0.012729, 1.617592 0, 0.883276 0, 1.634598 0.028642, 1.639062 0.061845, 0.875111 0.003181, 1.640131 0.084121, 0.869853 0.012729, 0.866271 0.028642, 0.861804 0.061845
-                                                      ]
-                                                    }
-                                                    coordIndex [
-                                                      0, 1, 2, -1, 1, 3, 2, -1, 1, 4, 3, -1, 4, 5, 3, -1, 3, 5, 6, -1, 5, 7, 6, -1, 6, 7, 8, -1, 7, 9, 8, -1, 8, 9, 10, -1, 10, 11, 12, -1, 9, 11, 10, -1, 13, 14, 15, -1, 14, 16, 15, -1, 15, 16, 17, -1, 18, 16, 14, -1, 18, 19, 16, -1, 19, 20, 16, -1, 19, 21, 20, -1, 22, 21, 19, -1, 22, 23, 21, -1, 24, 7, 25, -1, 22, 24, 23, -1, 9, 7, 24, -1, 23, 24, 25, -1, 26, 27, 28, -1, 26, 29, 27, -1, 30, 31, 32, -1, 30, 33, 34, -1, 35, 36, 37, -1, 35, 38, 36, -1, 39, 40, 41, -1, 39, 42, 40, -1, 43, 42, 39, -1, 43, 44, 42, -1, 45, 46, 47, -1, 45, 48, 46, -1, 49, 50, 51, -1, 51, 50, 52, -1, 53, 54, 49, -1, 49, 54, 50, -1, 55, 56, 57, -1, 58, 56, 55, -1, 58, 59, 56, -1, 60, 59, 58, -1, 60, 61, 59, -1, 62, 61, 60, -1, 59, 63, 64, -1, 65, 61, 62, -1, 59, 61, 63, -1, 66, 61, 65, -1, 66, 67, 61, -1, 68, 67, 66, -1, 68, 69, 67, -1, 70, 71, 72, -1, 71, 73, 72, -1, 71, 74, 73, -1, 74, 75, 73, -1, 73, 75, 76, -1, 75, 77, 76, -1, 76, 77, 78, -1, 77, 79, 78, -1, 77, 80, 79, -1, 68, 80, 77, -1, 68, 66, 80, -1
-                                                    ]
-                                                    texCoordIndex [
-                                                      0, 1, 2, -1, 1, 3, 2, -1, 1, 4, 3, -1, 4, 5, 3, -1, 3, 5, 6, -1, 5, 7, 6, -1, 6, 7, 8, -1, 7, 9, 8, -1, 8, 9, 10, -1, 10, 11, 12, -1, 9, 11, 10, -1, 13, 14, 15, -1, 14, 16, 15, -1, 15, 16, 17, -1, 18, 16, 14, -1, 18, 19, 16, -1, 19, 20, 16, -1, 19, 21, 20, -1, 22, 21, 19, -1, 22, 23, 21, -1, 24, 7, 25, -1, 22, 24, 23, -1, 9, 7, 24, -1, 23, 24, 25, -1, 26, 27, 28, -1, 26, 29, 27, -1, 30, 31, 32, -1, 30, 33, 34, -1, 35, 36, 37, -1, 35, 38, 36, -1, 39, 40, 41, -1, 39, 42, 40, -1, 43, 42, 39, -1, 43, 44, 42, -1, 45, 46, 47, -1, 45, 48, 46, -1, 49, 50, 51, -1, 51, 50, 52, -1, 53, 54, 49, -1, 49, 54, 50, -1, 55, 56, 57, -1, 58, 56, 55, -1, 58, 59, 56, -1, 60, 59, 58, -1, 60, 61, 59, -1, 62, 61, 60, -1, 59, 63, 64, -1, 65, 61, 62, -1, 59, 61, 63, -1, 66, 61, 65, -1, 66, 67, 61, -1, 68, 67, 66, -1, 68, 69, 67, -1, 70, 71, 72, -1, 71, 73, 72, -1, 71, 74, 73, -1, 74, 75, 73, -1, 73, 75, 76, -1, 75, 77, 76, -1, 76, 77, 78, -1, 77, 79, 78, -1, 77, 80, 79, -1, 68, 80, 77, -1, 68, 66, 80, -1
-                                                    ]
-                                                    creaseAngle 1
-                                                  }
-                                                }
-                                                Shape {
-                                                  appearance PBRAppearance {
-                                                    baseColorMap ImageTexture {
-                                                      url [
-                                                        "/usr/local/webots/projects/robots/boston_dynamics/atlas/protos/textures/atlas_carbon_fiber.jpg"
-                                                      ]
-                                                    }
-                                                    roughness 0.3
-                                                    metalness 0
-                                                  }
-                                                  geometry IndexedFaceSet {
-                                                    coord Coordinate {
-                                                      point [
-                                                        0.175095 -0.035252 -0.070032, 0.169727 -0.037793 -0.080403, 0.175095 -0.035252 -0.08036, 0.169727 -0.037793 -0.069989, 0.178316 0.03212 -0.070058, 0.17939 0.026279 -0.080325, 0.178316 0.03212 -0.080334, 0.17939 0.026279 -0.070066, 0.178316 -0.03106 -0.070058, 0.178316 -0.03106 -0.080334, 0.17939 -0.025219 -0.070066, 0.17939 -0.025219 -0.080325, 0.175095 0.036311 -0.070032, 0.175095 0.036311 -0.08036, 0.169727 0.038853 -0.069989, 0.169727 0.038853 -0.080403, -0.0546 0.060502 -0.08112, -0.048767 0.062707 -0.069272, -0.048767 0.062707 -0.08112, -0.0546 0.060502 -0.069272, -0.060433 0.058298 -0.069272, -0.066266 0.056093 -0.069272, -0.060433 0.058298 -0.08112, -0.066266 0.056093 -0.08112, -0.060433 -0.057237 -0.069272, -0.066266 -0.055032 -0.081119, -0.0546 -0.059442 -0.081119, -0.066266 -0.055032 -0.069272, -0.0546 -0.059442 -0.069272, -0.048767 -0.061646 -0.081119, -0.048767 -0.061646 -0.069272, -0.079127 0.043641 -0.069272, -0.07496 0.048426 -0.081119, -0.079127 0.043641 -0.081119, -0.07496 0.048426 -0.069272, -0.081627 -0.037043 -0.069272, -0.08246 -0.030753 -0.081119, -0.081627 -0.037043 -0.081119, -0.08246 -0.030753 -0.069272, -0.081627 0.038103 -0.069272, -0.081627 0.038103 -0.081119, -0.08246 0.031812 -0.069272, -0.08246 0.031812 -0.081119, -0.079127 -0.042581 -0.069272, -0.079127 -0.042581 -0.081119, -0.07496 -0.047367 -0.069272, -0.07496 -0.047367 -0.081119
-                                                      ]
-                                                    }
-                                                    texCoord TextureCoordinate {
-                                                      point [
-                                                        0.816381 0.63076, 0.80208 0.608069, 0.816381 0.608163, 0.80208 0.630854, 1.073383 0.630703, 1.051118 0.608239, 1.073383 0.60822, 1.051118 0.630686, 0.834407 0.630703, 0.834407 0.60822, 0.856776 0.630686, 0.856776 0.608239, 1.091526 0.63076, 1.091526 0.608163, 1.106208 0.630854, 1.106208 0.608069, 2.424977 0.6065, 2.390717 0.632423, 2.390717 0.6065, 2.424977 0.632423, 2.457125 0.632423, 2.487192 0.632423, 2.457125 0.6065, 2.487192 0.6065, 3.198722 0.632423, 3.168697 0.606502, 3.230998 0.606502, 3.168697 0.632423, 3.230998 0.632423, 3.265578 0.606502, 3.265578 0.632423, 2.583243 0.632423, 2.549468 0.606502, 2.583243 0.606502, 2.549468 0.632423, 3.038329 0.632423, 3.003531 0.606502, 3.038329 0.606502, 3.003531 0.632423, 2.616463 0.632423, 2.616463 0.606502, 2.650599 0.632423, 2.650599 0.606502, 3.07197 0.632423, 3.07197 0.606502, 3.105958 0.632423, 3.105958 0.606502
-                                                      ]
-                                                    }
-                                                    coordIndex [
-                                                      0, 1, 2, -1, 0, 3, 1, -1, 4, 5, 6, -1, 4, 7, 5, -1, 8, 2, 9, -1, 8, 0, 2, -1, 10, 9, 11, -1, 10, 8, 9, -1, 12, 6, 13, -1, 12, 4, 6, -1, 14, 13, 15, -1, 14, 12, 13, -1, 16, 17, 18, -1, 16, 19, 17, -1, 20, 19, 16, -1, 21, 22, 23, -1, 20, 22, 21, -1, 20, 16, 22, -1, 24, 25, 26, -1, 24, 27, 25, -1, 28, 29, 30, -1, 24, 29, 28, -1, 24, 26, 29, -1, 31, 32, 33, -1, 31, 34, 32, -1, 35, 36, 37, -1, 35, 38, 36, -1, 39, 33, 40, -1, 39, 31, 33, -1, 41, 40, 42, -1, 41, 39, 40, -1, 43, 37, 44, -1, 43, 35, 37, -1, 45, 44, 46, -1, 45, 43, 44, -1
-                                                    ]
-                                                    texCoordIndex [
-                                                      0, 1, 2, -1, 0, 3, 1, -1, 4, 5, 6, -1, 4, 7, 5, -1, 8, 2, 9, -1, 8, 0, 2, -1, 10, 9, 11, -1, 10, 8, 9, -1, 12, 6, 13, -1, 12, 4, 6, -1, 14, 13, 15, -1, 14, 12, 13, -1, 16, 17, 18, -1, 16, 19, 17, -1, 20, 19, 16, -1, 21, 22, 23, -1, 20, 22, 21, -1, 20, 16, 22, -1, 24, 25, 26, -1, 24, 27, 25, -1, 28, 29, 30, -1, 24, 29, 28, -1, 24, 26, 29, -1, 31, 32, 33, -1, 31, 34, 32, -1, 35, 36, 37, -1, 35, 38, 36, -1, 39, 33, 40, -1, 39, 31, 33, -1, 41, 40, 42, -1, 41, 39, 40, -1, 43, 37, 44, -1, 43, 35, 37, -1, 45, 44, 46, -1, 45, 43, 44, -1
                                                     ]
                                                     creaseAngle 1
                                                   }
@@ -2295,18 +2276,7 @@ DEF Atlas Robot {
                                             }
                                           ]
                                           name "RFoot"
-                                          boundingObject Group {
-                                            children [
-                                              DEF RFootBounding1 Transform {
-                                                translation 0.048 0 -0.076119
-                                                children [
-                                                  Box {
-                                                    size 0.26 0.124887 0.01
-                                                  }
-                                                ]
-                                              }
-                                            ]
-                                          }
+                                          boundingObject USE RFootSmooth
                                           physics Physics {
                                             density -1
                                             mass 0.817
@@ -2373,6 +2343,8 @@ DEF Atlas Robot {
                         0 0 0
                       ]
                     }
+                    linearVelocity -2.573404040167117e-05 -1.0449108236952655e-06 -3.957085238180182e-05
+                    angularVelocity 3.017164652243931e-05 9.666239664652551e-05 0.00015838171944910346
                   }
                 }
               ]
@@ -2387,6 +2359,8 @@ DEF Atlas Robot {
                   0 0 0
                 ]
               }
+              linearVelocity -4.235177463805539e-05 -2.726773656140768e-06 -2.5324263006301244e-05
+              angularVelocity 2.73463017060563e-05 0.00011249229540519476 1.7174202113003883e-05
             }
           }
         ]
@@ -2402,6 +2376,8 @@ DEF Atlas Robot {
             0 0 0
           ]
         }
+        linearVelocity -3.0434713459903316e-05 -2.8291378113379066e-06 -2.0362878256128595e-05
+        angularVelocity 1.0920766314903982e-05 0.0001280228583276952 3.324932544020234e-05
       }
     }
   ]
@@ -2420,6 +2396,6 @@ DEF Atlas Robot {
   }
   controller "<extern>"
   supervisor TRUE
-  linearVelocity 8.920810362389827e-08 2.5863528900295186e-07 1.739798072304719e-06
-  angularVelocity -8.453680767584802e-07 6.132008160031815e-07 -1.0271393250108622e-08
+  linearVelocity -1.37630218478566e-05 -2.343154042794335e-06 -1.5927859256431837e-05
+  angularVelocity 7.92439388991283e-06 -2.935170994932079e-05 4.8923015135717745e-05
 }

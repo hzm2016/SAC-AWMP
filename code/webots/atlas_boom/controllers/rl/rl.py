@@ -240,10 +240,12 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                             joint_angle_sampled = signal.resample(joint_angle[:-delay_num, :-1],
                                                                   num=human_joint_angle.shape[0])
                             # The ATD3 seems to prefer the negative similarity reward
+                            # coefficient = utils.calc_gait_symmetry(joint_angle_sampled)
                             coefficient = utils.calc_cos_similarity(human_joint_angle,
-                                                                    joint_angle_sampled) - 0.5
-                            if best_reward > 1500:
-                                coefficient += utils.calc_gait_symmetry(joint_angle_sampled)
+                                                                     joint_angle_sampled) - 0.5
+
+                            # if best_reward > 1500:
+                                # coefficient += utils.calc_gait_symmetry(joint_angle_sampled)
 
                             print('gait_num:', gait_num, 'time steps in a gait: ', joint_angle.shape[0],
                                   'coefficient: ', coefficient)
@@ -253,7 +255,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                             replay_buffer.add_specific_reward(reward_angle, idx_angle)
                             idx_angle = np.r_[idx_angle, joint_angle[:-delay_num, -1]]
                             reward_angle = np.r_[reward_angle,
-                                                 0.2 * np.ones(joint_angle[:-delay_num, -1].shape[0])]
+                                                 0.05 * np.ones(joint_angle[:-delay_num, -1].shape[0])]
                     joint_angle = joint_angle[-delay_num:]
                 pre_foot_contact = foot_contact
                 joint_angle_obs = np.zeros((1, 7))

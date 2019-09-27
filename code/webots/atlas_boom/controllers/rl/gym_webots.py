@@ -55,7 +55,7 @@ class Atlas(gym.Env):
         high = np.inf*np.ones([obs_dim])
         self.observation_space = gym.spaces.Box(-high, high, dtype=np.float32)
 
-    def read_all_def(self, file_name ='../../worlds/atlas_leg.wbt'):
+    def read_all_def(self, file_name ='../../worlds/atlas_change_foot.wbt'):
         no_solid_str_list = ['HingeJoint', 'BallJoint', 'Hinge2Joint', 'Shape', 'Group', 'Physics']
         with open(file_name) as f:
             content = f.readlines()
@@ -84,8 +84,10 @@ class Atlas(gym.Env):
             def_node = self.robot.getFromDef(def_name)
             node_trans_field = def_node.getField("translation")
             node_rot_field = def_node.getField("rotation")
+            # print(def_name)
             node_ini_trans = node_trans_field.getSFVec3f()
             node_ini_rot = node_rot_field.getSFRotation()
+
             def_node_field_list.append({'def_node': def_node,
                                         'node_trans_field': node_trans_field,
                                         'node_rot_field': node_rot_field,
