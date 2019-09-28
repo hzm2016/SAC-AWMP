@@ -50,7 +50,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
     parser.add_argument("--env_name", default="Webots_Atlas")  # OpenAI gym environment name
     parser.add_argument("--log_path", default='runs/ATD3_walker2d')
 
-    parser.add_argument("--eval_only", default=False)
+    parser.add_argument("--eval_only", default=True)
     parser.add_argument("--save_video", default=False)
     parser.add_argument("--method_name", default=method_name,
                         help='Name of your method (default: )')  # Name of the method
@@ -159,7 +159,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
         while total_timesteps < args.max_timesteps:
             if done:
                 if len(replay_buffer.storage) > env.frame:
-                    replay_buffer.add_final_reward((env.episode_reward)/float(env._max_episode_steps),
+                    replay_buffer.add_final_reward(env.episode_reward/1000.0,
                                                    env.frame)
                 pbar.update(total_timesteps - pre_num_steps)
                 pre_num_steps = total_timesteps
@@ -252,12 +252,12 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                             replay_buffer.add_final_reward(coefficient, joint_angle.shape[0] - delay_num,
                                                            delay=delay_num)
 
-                        reward_steps = int(4000 / env.timeStep)
-                        if len(reward_angle) > reward_steps:
+                            reward_steps = min(int(2000 / env.timeStep), len(reward_angle))
                             replay_buffer.add_specific_reward(reward_angle[-reward_steps:], idx_angle[-reward_steps:])
+
                         idx_angle = np.r_[idx_angle, joint_angle[:-delay_num, -1]]
                         reward_angle = np.r_[reward_angle,
-                                             0.1 * np.ones(joint_angle[:-delay_num, -1].shape[0])]
+                                             0.2 * np.ones(joint_angle[:-delay_num, -1].shape[0])]
 
                     joint_angle = joint_angle[-delay_num:]
                 pre_foot_contact = foot_contact
@@ -272,7 +272,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
                     still_steps += 1
                 else:
                     still_steps = 0
-                if still_steps > int(1000 / env.timeStep):
+                if still_steps > int(400 / env.timeStep):
                     replay_buffer.add_final_reward(-2.0, still_steps - 1)
                     reward -= 2.0
                     done = True
@@ -413,7 +413,7 @@ if __name__ == "__main__":
     method_name_vec = ['human_angle_still_steps_seq_ATD3_RNN', 'human_angle_still_steps_ATD3',
                        'human_angle_still_steps', 'still_steps', '']
     policy_name_vec = ['ATD3_RNN', 'ATD3', 'TD3', 'TD3', 'TD3']
-    for r in [0]:
+    for r in [1]:
         for j in range(10):
             for c in range(1):
                 for n in range(1):

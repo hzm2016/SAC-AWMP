@@ -19,7 +19,7 @@ class Atlas(gym.Env):
     episode_reward = 0
 
     frame = 0
-    _max_episode_steps = 10000
+    _max_episode_steps = 1000
 
     initial_y = None
     body_xyz = None
@@ -113,6 +113,7 @@ class Atlas(gym.Env):
         #                'RLegLhy', 'RLegMhx', 'RLegUhz',
         #                ]
         motor_names = [  # 'HeadPitch', 'HeadYaw',
+             'BackLbz', 'BackMby', 'BackUbx', 'NeckAy',
              'LLegLax', 'LLegMhx', 'LLegUhz',
              'RLegLax', 'RLegMhx', 'RLegUhz',
         ]
@@ -299,14 +300,14 @@ class Atlas(gym.Env):
         self.frame += 1
 
         done = (-1 == simulation_state) or (self._max_episode_steps <= self.frame) \
-               or (alive < 0) or (not np.isfinite(state).all()) or self.joint_exceed_limit
+               or (alive < 0) or (not np.isfinite(state).all())
         # print('frame: {}, alive: {}, done: {}, body_xyz: {}'.format(self.frame, alive, done, self.body_xyz))
         # print('state_{} \n action_{}, reward_{}'.format(state, action, sum(rewards)))
         return state, sum(rewards), done, {}
 
     def run(self):
         # Main loop.
-        for i in range(1000):
+        for i in range(self._max_episode_steps):
             action = np.random.uniform(-1, 1, 6)
             state, reward, done, _ = self.step(action)
             # print('state_{} \n action_{}, reward_{}'.format(state, action, reward))
