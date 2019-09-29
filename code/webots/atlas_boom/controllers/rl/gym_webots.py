@@ -19,12 +19,13 @@ class Atlas(gym.Env):
     episode_reward = 0
 
     frame = 0
-    _max_episode_steps = 1000
+    _max_episode_steps = 4000
 
     initial_y = None
     body_xyz = None
     joint_angles = None
     joint_exceed_limit = False
+    ignore_frame = 1
 
 
     def __init__(self, action_dim, obs_dim):
@@ -37,7 +38,7 @@ class Atlas(gym.Env):
 
         self.boom_base = self.robot.getFromDef('BoomBase')
         self.boom_base_trans_field = self.boom_base.getField("translation")
-        self.timeStep = int(self.robot.getBasicTimeStep()) # ms
+        self.timeStep = int(self.robot.getBasicTimeStep() * self.ignore_frame) # ms
         self.find_and_enable_devices()
 
         high = np.ones([action_dim])
@@ -207,7 +208,7 @@ class Atlas(gym.Env):
         else:
             self.body_speed = (np.asarray(self.gps.getValues()) - self.body_xyz) / (self.timeStep * 1e-3)
             self.body_xyz = np.asarray(self.gps.getValues())
-
+        # print('speed: ', np.linalg.norm(self.body_speed))
         y = self.body_xyz[1]
         if self.initial_y is None:
             self.initial_y = y
@@ -265,8 +266,9 @@ class Atlas(gym.Env):
 
 
     def step(self, action):
-        self.apply_action(action)
-        simulation_state = self.robot.step(self.timeStep)
+        for i in range(self.ignore_frame):
+            self.apply_action(action)
+            simulation_state = self.robot.step(self.timeStep)
         state = self.calc_state()  # also calculates self.joints_at_limit
         # state[0] is body height above ground, body_rpy[1] is pitch
         alive = float(self.alive_bonus(state[0] + self.initial_y,
@@ -314,7 +316,7 @@ class Atlas(gym.Env):
             if done:
                 break
 
-    def reset(self, is_eval_only = False):
+    def reset(self):
         self.initial_y = None
         self.body_xyz = None
         self.joint_angles = None
@@ -331,11 +333,7 @@ class Atlas(gym.Env):
             self.robot.step(self.timeStep)
         self.robot.simulationResetPhysics()
         self.reset_all_fields()
-        if is_eval_only:
-            for i in range(100):
-                self.robot_node.moveViewpoint()
-                self.robot.step(self.timeStep)
-        else:
-            for i in range(10):
-                self.robot.step(self.timeStep)
+        for i in range(10):
+            self.robot_node.moveViewpoint()
+            self.robot.step(self.timeStep)
         return self.calc_state()

@@ -85,6 +85,80 @@ def calc_cos_similarity(joint_angle_resample, human_joint_angle):
         dist[c] = 1 - distance.cosine(joint_angle_resample[:, c], human_joint_angle[:, c])
     return np.mean(dist)
 
+def joint_state_to_deg(joint_state_mat):
+    joint_deg_mat = np.zeros(joint_state_mat.shape)
+    joint_deg_mat[:, [0, 3]] = joint_state_mat[:, [0, 3]] * 80.0 + 35.0
+    joint_deg_mat[:, [1, 4]] = (1 - joint_state_mat[:, [1, 4]]) * 75.0
+    joint_deg_mat[:, [2, 5]] = joint_state_mat[:, [2, 5]] * 45.0
+    return joint_deg_mat
+
+
+def calc_cross_gait_reward(gait_state_mat_sampled):
+    frame_num = gait_state_mat_sampled.shape[0]
+    cross_gait_reward = 0.0
+    '''
+    1: the left foot should contact ground between 40% to 60% gait cycle
+    Theoretical situation: 0, -1: right foot strike; 50: left foot strike
+    '''
+    l_foot_contact_vec = signal.medfilt(gait_state_mat_sampled[:, -1], 3)
+    l_foot_contact_vec[1:] -= l_foot_contact_vec[:-1]
+    l_foot_contact_vec[0] = 0
+    if 0 == np.mean(l_foot_contact_vec == 1):
+        # print(gait_state_mat_sampled)
+        return cross_gait_reward
+    l_heel_strike_idx = np.where(l_foot_contact_vec==1)[0][0]
+    if l_heel_strike_idx >= 0.4*frame_num and l_heel_strike_idx < 0.6*frame_num:
+        cross_gait_reward += 0.2
+    '''
+    2: change the leading hip in a gait
+    '''
+    joint_deg_mat = joint_state_to_deg(gait_state_mat_sampled[:, :-2])
+    ankle_to_hip_deg_mat = joint_deg_mat[:, [0, 3]] - joint_deg_mat[:, [1, 4]]
+    if ankle_to_hip_deg_mat[0, 0] > 5 \
+            and ankle_to_hip_deg_mat[l_heel_strike_idx, 0] < -5 \
+            and ankle_to_hip_deg_mat[-1, 0] > 5:
+        cross_gait_reward += 0.1
+
+    if ankle_to_hip_deg_mat[0, 1] < -5 \
+            and ankle_to_hip_deg_mat[l_heel_strike_idx, 1] > 5 \
+            and ankle_to_hip_deg_mat[-1, 1] < -5:
+        cross_gait_reward += 0.1
+    '''
+    3: foot recovery
+    '''
+    ankle_to_hip_speed_mat = np.zeros(ankle_to_hip_deg_mat.shape)
+    ankle_to_hip_speed_mat[1:] = ankle_to_hip_deg_mat[1:] - ankle_to_hip_deg_mat[:-1]
+    if ankle_to_hip_speed_mat[-1, 0] < 0:
+        cross_gait_reward += 0.1
+    if ankle_to_hip_speed_mat[l_heel_strike_idx, 1] < 0:
+        cross_gait_reward += 0.1
+    '''
+    4: push off
+    '''
+    r_foot_contact_vec = signal.medfilt(gait_state_mat_sampled[:, -2], 3)
+    r_foot_contact_vec[1:] -= r_foot_contact_vec[:-1]
+    r_foot_contact_vec[0] = 0
+    ankle_speed_mat = np.zeros(joint_deg_mat[:, [2, 5]].shape)
+    ankle_speed_mat[1:] = joint_deg_mat[1:, [2, 5]] - joint_deg_mat[:-1, [2, 5]]
+
+    if 0 == np.mean(r_foot_contact_vec == -1):
+        return cross_gait_reward
+    r_push_off_idx = np.where(r_foot_contact_vec == -1)[0][0]
+    if ankle_speed_mat[r_push_off_idx, 0] < 0:
+        cross_gait_reward += 0.1
+
+    if 0 == np.mean(l_foot_contact_vec == -1):
+        return cross_gait_reward
+    l_push_off_idx = np.where(l_foot_contact_vec == -1)[0][0]
+    if ankle_speed_mat[l_push_off_idx, 1] < 0:
+        cross_gait_reward += 0.1
+    return cross_gait_reward
+
+
+def check_cross_gait(gait_state_mat):
+    gait_num_1 = np.mean((gait_state_mat[:, 0] - gait_state_mat[:, 3]) > 0.1)
+    gait_num_2 = np.mean((gait_state_mat[:, 0] - gait_state_mat[:, 3]) < -0.1)
+    return (gait_num_1 > 0) and (gait_num_2 > 0)
 
 def plot_joint_angle(joint_angle_resample, human_joint_angle):
     fig, axs = plt.subplots(human_joint_angle.shape[1])
