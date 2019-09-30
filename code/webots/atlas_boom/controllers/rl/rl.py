@@ -2,14 +2,13 @@ import os
 import sys
 project_path = '../../../../../'
 sys.path.insert(0, project_path + 'code')
-sys.path.insert(0, project_path + 'code/TD3')
 print(os.getcwd())
 print(sys.path)
 import numpy as np
 import torch
 import argparse
 import datetime
-import TD3, ATD3, ATD3_CNN, ATD3_RNN, TD3_RNN
+from methods import TD3, ATD3, ATD3_CNN, ATD3_RNN, TD3_RNN
 import cv2
 import glob
 from utils import utils
@@ -48,9 +47,9 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default=policy_name)  # Policy name
     parser.add_argument("--env_name", default="Webots_Atlas")  # OpenAI gym environment name
-    parser.add_argument("--log_path", default='runs/ATD3_walker2d')
+    parser.add_argument("--log_path", default='runs/ATD3_Atlas')
 
-    parser.add_argument("--eval_only", default=False)
+    parser.add_argument("--eval_only", default=True)
     parser.add_argument("--save_video", default=False)
     parser.add_argument("--method_name", default=method_name,
                         help='Name of your method (default: )')  # Name of the method
@@ -305,7 +304,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model_path = result_path + '/runs/ATD3_walker2d/{}_{}'.format(args.method_name, args.seed+1)
+        model_path = result_path + '/{}/{}_{}'.format(args.log_path, args.method_name, args.seed+1)
         print(model_path)
         policy.load("%s" % (file_name), directory=model_path)
         for _ in range(1):
