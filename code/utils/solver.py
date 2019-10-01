@@ -23,7 +23,7 @@ class Solver(object):
         print("---------------------------------------")
 
         self.project_path = project_path
-        self.result_path = "../results"
+        self.result_path = project_path + "results"
 
         # Set seeds
         self.env.seed(args.seed)
