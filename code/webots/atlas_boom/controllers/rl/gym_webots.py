@@ -208,6 +208,10 @@ class Atlas(gym.Env):
         else:
             self.body_speed = (np.asarray(self.gps.getValues()) - self.body_xyz) / (self.timeStep * 1e-3)
             self.body_xyz = np.asarray(self.gps.getValues())
+
+        body_local_speed = np.copy(self.body_speed)
+        body_local_speed[0], body_local_speed[2] = self.calc_local_speed()
+
         # print('speed: ', np.linalg.norm(self.body_speed))
         y = self.body_xyz[1]
         if self.initial_y is None:
@@ -237,7 +241,7 @@ class Atlas(gym.Env):
         more = np.array([
             y - self.initial_y,
             0, 0,
-            0.3 * self.body_speed[0], 0.3 * self.body_speed[1], 0.3 * self.body_speed[2],
+            0.3 * body_local_speed[0], 0.3 * body_local_speed[1], 0.3 * body_local_speed[2],
             # 0.3 is just scaling typical speed into -1..+1, no physical sense here
             self.body_rpy[0] / np.pi, self.body_rpy[1] / np.pi], dtype=np.float32)
 
@@ -247,7 +251,7 @@ class Atlas(gym.Env):
 
         return np.clip(np.concatenate([more] + [joint_states] + [self.feet_contact]), -5, +5)
 
-    def calc_forward_speed(self):
+    def calc_local_speed(self):
         '''
         # progress in potential field is speed*dt, typical speed is about 2-3 meter per second,
         this potential will change 2-3 per frame (not per second),
@@ -259,7 +263,7 @@ class Atlas(gym.Env):
         direction_r = direction_r[[0, 2]] / np.linalg.norm(direction_r[[0, 2]])
         direction_t = np.dot(np.asarray([[0, 1],
                                   [-1, 0]]), direction_r.reshape((-1, 1)))
-        return np.dot(self.body_speed[[0, 2]], direction_t)
+        return np.dot(self.body_speed[[0, 2]], direction_t), np.dot(self.body_speed[[0, 2]], direction_r)
 
     def alive_bonus(self, y, pitch):
         return +1 if abs(y) > 0.5 and abs(pitch) < 1.0 else -1
@@ -274,7 +278,7 @@ class Atlas(gym.Env):
         alive = float(self.alive_bonus(state[0] + self.initial_y,
                                        self.body_rpy[1]))
 
-        progress = self.calc_forward_speed()
+        progress, _ = self.calc_local_speed()
         # print('progress: {}'.format(progress))
 
         feet_collision_cost = 0.0

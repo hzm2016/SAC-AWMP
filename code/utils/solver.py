@@ -46,14 +46,6 @@ class Solver(object):
         else:
             policy = TD3.TD3(state_dim, action_dim, max_action)
         self.policy = policy
-
-        self.log_dir = '{}/{}/seed_{}_{}_{}_{}_{}'.format(self.result_path, self.args.log_path, self.args.seed,
-                                                          datetime.datetime.now().strftime("%d_%H-%M-%S"),
-                                                          self.args.policy_name, self.args.env_name,
-                                                          self.args.method_name)
-        if not os.path.exists(self.log_dir):
-            os.makedirs(self.log_dir)
-
         self.replay_buffer = utils.ReplayBuffer()
 
         # Evaluate untrained policy
@@ -63,8 +55,7 @@ class Solver(object):
         self.timesteps_since_eval = 0
         self.episode_progress = 0.0
         self.best_reward = 0.0
-        # TesnorboardX
-        self.writer = SummaryWriter(logdir=self.log_dir)
+
         self.env_timeStep = 4
 
     def train_once(self):
@@ -110,13 +101,22 @@ class Solver(object):
         self.foot_contact_vec = np.asarray([1, 1, 1])
         self.delay_num = self.foot_contact_vec.shape[0] - 1
         self.gait_num = 0
-        self.gait_state_mat = np.zeros((0, 9))
+        self.gait_state_mat = np.zeros((0, 10))
         self.idx_angle = np.zeros(0)
         self.reward_angle = np.zeros(0)
 
         self.still_steps = 0
 
     def train(self):
+        self.log_dir = '{}/{}/seed_{}_{}_{}_{}_{}'.format(self.result_path, self.args.log_path, self.args.seed,
+                                                          datetime.datetime.now().strftime("%d_%H-%M-%S"),
+                                                          self.args.policy_name, self.args.env_name,
+                                                          self.args.method_name)
+        if not os.path.exists(self.log_dir):
+            os.makedirs(self.log_dir)
+        # TesnorboardX
+        self.writer = SummaryWriter(logdir=self.log_dir)
+
         self.pbar = tqdm(total=self.args.max_timesteps, initial=self.total_timesteps, position=0, leave=True)
         if 'human_angle' in self.args.method_name:
             human_joint_angle = utils.read_table(file_name=self.project_path + 'data/joint_angle.xls')
@@ -188,12 +188,13 @@ class Solver(object):
             if self.gait_state_mat.shape[0] > int(100 / self.env_timeStep):
                 self.gait_num += 1
                 if self.gait_num >= 2:
+                    coefficient = utils.calc_cross_gait_reward(self.gait_state_mat[:-self.delay_num + 1, :-2],
+                                                               self.gait_state_mat[:-self.delay_num + 1, -2])
                     # # The ATD3 seems to prefer the negative similarity reward
-                    joint_angle_sampled = signal.resample(self.gait_state_mat[:-self.delay_num, 0:6],
-                                                          num=human_joint_angle.shape[0])
-                    coefficient = utils.calc_cos_similarity(human_joint_angle,
-                                                            joint_angle_sampled) - 0.5
-
+                    # joint_angle_sampled = signal.resample(self.gait_state_mat[:-self.delay_num, 0:6],
+                    #                                       num=human_joint_angle.shape[0])
+                    # coefficient = utils.calc_cos_similarity(human_joint_angle,
+                    #                                         joint_angle_sampled) - 0.5
                     print('gait_num:', self.gait_num, 'time steps in a gait: ', self.gait_state_mat.shape[0],
                           # 'cross_gait_reward: ', np.round(cross_gait_reward, 2),
                           'coefficient: ', np.round(coefficient, 2),
@@ -207,13 +208,14 @@ class Solver(object):
 
                 self.idx_angle = np.r_[self.idx_angle, self.gait_state_mat[:-self.delay_num, -1]]
                 self.reward_angle = np.r_[self.reward_angle,
-                                          0.2 * np.ones(self.gait_state_mat[:-self.delay_num, -1].shape[0])]
+                                          0.05 * np.ones(self.gait_state_mat[:-self.delay_num, -1].shape[0])]
             self.gait_state_mat = self.gait_state_mat[-self.delay_num:]
 
         self.pre_foot_contact = self.foot_contact
-        gait_state = np.zeros((1, 9))
+        gait_state = np.zeros((1, 10))
         gait_state[0, 0:6] = new_obs[8:20:2]
-        gait_state[0, 6:-1] = new_obs[-2:]
+        gait_state[0, 6:-2] = new_obs[-2:]
+        gait_state[0, -2] = new_obs[3]
         gait_state[0, -1] = self.total_timesteps
         self.gait_state_mat = np.r_[self.gait_state_mat, gait_state]
         reward -= 0.5
