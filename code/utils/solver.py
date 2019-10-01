@@ -47,9 +47,8 @@ class Solver(object):
             policy = TD3.TD3(state_dim, action_dim, max_action)
         self.policy = policy
         self.replay_buffer = utils.ReplayBuffer()
-
         # Evaluate untrained policy
-        self.evaluations = [evaluate_policy(self.env, self.policy, self.args)]
+
         self.total_timesteps = 0
         self.pre_num_steps = self.total_timesteps
         self.timesteps_since_eval = 0
@@ -108,6 +107,7 @@ class Solver(object):
         self.still_steps = 0
 
     def train(self):
+        self.evaluations = [evaluate_policy(self.env, self.policy, self.args)]
         self.log_dir = '{}/{}/seed_{}_{}_{}_{}_{}'.format(self.result_path, self.args.log_path, self.args.seed,
                                                           datetime.datetime.now().strftime("%d_%H-%M-%S"),
                                                           self.args.policy_name, self.args.env_name,

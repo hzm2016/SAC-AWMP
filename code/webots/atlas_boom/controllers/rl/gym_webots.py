@@ -268,6 +268,8 @@ class Atlas(gym.Env):
     def alive_bonus(self, y, pitch):
         return +1 if abs(y) > 0.5 and abs(pitch) < 1.0 else -1
 
+    def render(self, mode='human'):
+        mode = mode
 
     def step(self, action):
         for i in range(self.ignore_frame):

@@ -14,7 +14,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
     parser.add_argument("--env_name", default="RoboschoolWalker2d-v1")  # OpenAI gym environment name
     parser.add_argument("--log_path", default='runs/ATD3_Atlas')
 
-    parser.add_argument("--eval_only", default=False)
+    parser.add_argument("--eval_only", default=True)
     parser.add_argument("--save_video", default=False)
     parser.add_argument("--method_name", default=method_name,
                         help='Name of your method (default: )')  # Name of the method
