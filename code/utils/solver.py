@@ -47,7 +47,7 @@ class Solver(object):
             policy = TD3.TD3(state_dim, action_dim, max_action)
         self.policy = policy
         self.replay_buffer = utils.ReplayBuffer()
-        # Evaluate untrained policy
+
 
         self.total_timesteps = 0
         self.pre_num_steps = self.total_timesteps
@@ -107,6 +107,7 @@ class Solver(object):
         self.still_steps = 0
 
     def train(self):
+        # Evaluate untrained policy
         self.evaluations = [evaluate_policy(self.env, self.policy, self.args)]
         self.log_dir = '{}/{}/seed_{}_{}_{}_{}_{}'.format(self.result_path, self.args.log_path, self.args.seed,
                                                           datetime.datetime.now().strftime("%d_%H-%M-%S"),
@@ -229,13 +230,13 @@ class Solver(object):
                                                            self.args.seed + 1)
         print(model_path)
         self.policy.load("%s" % (self.file_name), directory=model_path)
-        for _ in range(10):
+        for _ in range(1):
             if self.args.save_video:
                 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
                 video_name = video_dir + '/{}_{}_{}.mp4'.format(
                     datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
                     self.file_name, self.args.state_noise)
-                out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (640, 480))
+                out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (600, 400))
             obs = self.env.reset()
             if 'seq' in self.args.method_name:
                 obs_vec = np.dot(np.ones((self.args.seq_len, 1)), obs.reshape((1, -1)))

@@ -7,18 +7,10 @@ WorldInfo {
     "The sensors include 2 cameras, 4 microphones, sonar rangefinder, 2 IR emitters and receivers, 1 inertial board, and 8 pressure sensors."
   ]
   title "Aldebaran's Nao"
+  CFM 1e-07
+  ERP 0.8
   basicTimeStep 4
   FPS 20
-  contactProperties [
-    ContactProperties {
-      material1 "NAO foot material"
-      coulombFriction [
-        100
-      ]
-      bounce 0
-      bounceVelocity 0.003
-    }
-  ]
 }
 Viewpoint {
   orientation -0.6060328055914644 0.7870049598445945 0.11553108554387737 0.3368428065224672
