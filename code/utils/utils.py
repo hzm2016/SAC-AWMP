@@ -207,6 +207,8 @@ def calc_cross_gait_reward(gait_state_mat, gait_velocity, reward_name):
 
 
 def connect_str_list(str_list):
+    if 0 >= len(str_list):
+        return ''
     str_out = str_list[0]
     for i in range(1, len(str_list)):
         str_out = str_out + '_' + str_list[i]
