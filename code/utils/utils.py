@@ -95,86 +95,122 @@ def joint_state_to_deg(joint_state_mat):
     return joint_deg_mat
 
 
-def calc_array_symmetry(array_A, array_B):
-    cols = array_A.shape[-1]
+def calc_array_symmetry(array_a, array_b):
+    cols = array_a.shape[-1]
     dist = np.zeros(cols)
     for c in range(cols):
-        dist[c] = 1 - distance.cosine(array_A[:, c], array_B[:, c])
+        dist[c] = 1 - distance.cosine(array_a[:, c], array_b[:, c])
     return np.mean(dist)
 
 
-def calc_cross_gait_reward(gait_state_mat, gait_velocity):
+def calc_cross_gait_reward(gait_state_mat, gait_velocity, reward_name):
+    """
+    reward_name_vec =['r_d', 'r_s', 'r_f', 'r_n', 'r_gv', 'r_lhs', 'r_gs', 'r_cg', 'r_fr', 'r_po']
+    """
+    cross_gait_reward = 0.0
+    reward_str_list = []
     frame_num = gait_state_mat.shape[0]
-    cross_gait_reward = 0.2 * np.mean(gait_velocity)
-    '''
-    0: the left foot should contact ground between 40% to 60% gait cycle
-    Theoretical situation: 0, -1: right foot strike; 50: left foot strike
-    '''
-    l_foot_contact_vec = signal.medfilt(gait_state_mat[:, -1], 3)
-    l_foot_contact_vec[1:] -= l_foot_contact_vec[:-1]
-    l_foot_contact_vec[0] = 0
-    if 0 == np.mean(l_foot_contact_vec == 1):
-        # print(gait_state_mat_sampled)
-        return cross_gait_reward
-    l_heel_strike_idx = np.where(l_foot_contact_vec == 1)[0][0]
-    cross_gait_reward += 0.2 * (1.0 - np.tanh((l_heel_strike_idx / (frame_num + 0.0) - 0.5) ** 2))
-    '''
-    1: gait symmetry
-    '''
-    r_gait_state_origin = gait_state_mat[:, np.r_[0:3, -2]]
-    l_gait_state_origin = gait_state_mat[:, np.r_[3:6, -1]]
-    l_gait_state = np.zeros(l_gait_state_origin.shape)
-    l_gait_state[0:(frame_num - l_heel_strike_idx), :] = l_gait_state_origin[l_heel_strike_idx:, :]
-    l_gait_state[(frame_num - l_heel_strike_idx):, :] = l_gait_state_origin[0:l_heel_strike_idx, :]
-    cross_gait_reward += 0.2 * calc_array_symmetry(r_gait_state_origin, l_gait_state)
-    '''
-    2: change the leading hip in a gait
-    '''
     joint_deg_mat = joint_state_to_deg(gait_state_mat[:, :-2])
     ankle_to_hip_deg_mat = joint_deg_mat[:, [0, 3]] - joint_deg_mat[:, [1, 4]]
-    cross_gait_reward += (0.2 / 4.0) * (np.tanh(ankle_to_hip_deg_mat[0, 0]) +
-                                        np.tanh(- ankle_to_hip_deg_mat[l_heel_strike_idx, 0]) +
-                                        # np.tanh(ankle_to_hip_deg_mat[-1, 0]) + \
-                                        np.tanh(-ankle_to_hip_deg_mat[0, 1])
-                                        + np.tanh(ankle_to_hip_deg_mat[l_heel_strike_idx, 1])
-                                        # + np.tanh(-ankle_to_hip_deg_mat[-1, 1])
-                                        )
+    if 'r_gv' in reward_name:
+        '''
+        gait velocity
+        '''
+        reward_str_list.append('r_gv')
+        cross_gait_reward += 0.2 * np.mean(gait_velocity)
 
-    # if ankle_to_hip_deg_mat[0, 0] > 5 \
-    #         and ankle_to_hip_deg_mat[l_heel_strike_idx, 0] < -5 \
-    #         and ankle_to_hip_deg_mat[-1, 0] > 5:
-    #     cross_gait_reward += 0.1
-    #
-    # if ankle_to_hip_deg_mat[0, 1] < -5 \
-    #         and ankle_to_hip_deg_mat[l_heel_strike_idx, 1] > 5 \
-    #         and ankle_to_hip_deg_mat[-1, 1] < -5:
-    #     cross_gait_reward += 0.1
-    '''
-    3: foot recovery
-    '''
-    ankle_to_hip_speed_mat = np.zeros(ankle_to_hip_deg_mat.shape)
-    ankle_to_hip_speed_mat[1:] = ankle_to_hip_deg_mat[1:] - ankle_to_hip_deg_mat[:-1]
-    cross_gait_reward += -0.1 * (np.tanh(ankle_to_hip_speed_mat[-1, 0]) +
-                                 np.tanh(ankle_to_hip_speed_mat[l_heel_strike_idx, 1]))
-    '''
-    4: push off
-    '''
-    r_foot_contact_vec = signal.medfilt(gait_state_mat[:, -2], 3)
-    r_foot_contact_vec[1:] -= r_foot_contact_vec[:-1]
-    r_foot_contact_vec[0] = 0
-    ankle_speed_mat = np.zeros(joint_deg_mat[:, [2, 5]].shape)
-    ankle_speed_mat[1:] = joint_deg_mat[1:, [2, 5]] - joint_deg_mat[:-1, [2, 5]]
+    if 'r_lhs' in reward_name:
+        '''
+        0: left heel strike: the left foot should contact ground between 40% to 60% gait cycle
+        Theoretical situation: 0, -1: right foot strike; 50: left foot strike
+        '''
+        reward_str_list.append('r_lhs')
 
-    if 0 == np.mean(r_foot_contact_vec == -1):
-        return cross_gait_reward
-    r_push_off_idx = np.where(r_foot_contact_vec == -1)[0][0]
-    cross_gait_reward += -0.1 * np.tanh(ankle_speed_mat[r_push_off_idx, 0])
+        l_foot_contact_vec = signal.medfilt(gait_state_mat[:, -1], 3)
+        l_foot_contact_vec[1:] -= l_foot_contact_vec[:-1]
+        l_foot_contact_vec[0] = 0
+        if 0 == np.mean(l_foot_contact_vec == 1):
+            # print(gait_state_mat_sampled)
+            return cross_gait_reward
+        l_heel_strike_idx = np.where(l_foot_contact_vec == 1)[0][0]
+        cross_gait_reward += 0.2 * (1.0 - np.tanh((l_heel_strike_idx / (frame_num + 0.0) - 0.5) ** 2))
 
-    if 0 == np.mean(l_foot_contact_vec == -1):
-        return cross_gait_reward
-    l_push_off_idx = np.where(l_foot_contact_vec == -1)[0][0]
-    cross_gait_reward += -0.1 * np.tanh(ankle_speed_mat[l_push_off_idx, 1])
-    return cross_gait_reward
+
+        if 'r_gs' in reward_name:
+            '''
+            1: gait symmetry
+            '''
+            reward_str_list.append('r_gs')
+
+            r_gait_state_origin = gait_state_mat[:, np.r_[0:3, -2]]
+            l_gait_state_origin = gait_state_mat[:, np.r_[3:6, -1]]
+            l_gait_state = np.zeros(l_gait_state_origin.shape)
+            l_gait_state[0:(frame_num - l_heel_strike_idx), :] = l_gait_state_origin[l_heel_strike_idx:, :]
+            l_gait_state[(frame_num - l_heel_strike_idx):, :] = l_gait_state_origin[0:l_heel_strike_idx, :]
+            cross_gait_reward += 0.2 * calc_array_symmetry(r_gait_state_origin, l_gait_state)
+
+
+        if 'r_cg' in reward_name:
+            '''
+            2: cross gait
+            '''
+            reward_str_list.append('r_cg')
+            cross_gait_reward += (0.2 / 4.0) * (np.tanh(ankle_to_hip_deg_mat[0, 0]) +
+                                                np.tanh(- ankle_to_hip_deg_mat[l_heel_strike_idx, 0]) +
+                                                # np.tanh(ankle_to_hip_deg_mat[-1, 0]) + \
+                                                np.tanh(-ankle_to_hip_deg_mat[0, 1])
+                                                + np.tanh(ankle_to_hip_deg_mat[l_heel_strike_idx, 1])
+                                                # + np.tanh(-ankle_to_hip_deg_mat[-1, 1])
+                                                )
+
+        # if ankle_to_hip_deg_mat[0, 0] > 5 \
+        #         and ankle_to_hip_deg_mat[l_heel_strike_idx, 0] < -5 \
+        #         and ankle_to_hip_deg_mat[-1, 0] > 5:
+        #     cross_gait_reward += 0.1
+        #
+        # if ankle_to_hip_deg_mat[0, 1] < -5 \
+        #         and ankle_to_hip_deg_mat[l_heel_strike_idx, 1] > 5 \
+        #         and ankle_to_hip_deg_mat[-1, 1] < -5:
+        #     cross_gait_reward += 0.1
+        if 'r_fr' in reward_name:
+            '''
+            3: foot recovery
+            '''
+            reward_str_list.append('r_fr')
+
+            ankle_to_hip_speed_mat = np.zeros(ankle_to_hip_deg_mat.shape)
+            ankle_to_hip_speed_mat[1:] = ankle_to_hip_deg_mat[1:] - ankle_to_hip_deg_mat[:-1]
+            cross_gait_reward += -0.1 * (np.tanh(ankle_to_hip_speed_mat[-1, 0]) +
+                                         np.tanh(ankle_to_hip_speed_mat[l_heel_strike_idx, 1]))
+        if 'r_po' in reward_name:
+            '''
+            4: push off
+            '''
+            reward_str_list.append('r_po')
+
+            r_foot_contact_vec = signal.medfilt(gait_state_mat[:, -2], 3)
+            r_foot_contact_vec[1:] -= r_foot_contact_vec[:-1]
+            r_foot_contact_vec[0] = 0
+            ankle_speed_mat = np.zeros(joint_deg_mat[:, [2, 5]].shape)
+            ankle_speed_mat[1:] = joint_deg_mat[1:, [2, 5]] - joint_deg_mat[:-1, [2, 5]]
+
+            if 0 == np.mean(r_foot_contact_vec == -1):
+                return cross_gait_reward
+            r_push_off_idx = np.where(r_foot_contact_vec == -1)[0][0]
+            cross_gait_reward += -0.1 * np.tanh(ankle_speed_mat[r_push_off_idx, 0])
+
+            if 0 == np.mean(l_foot_contact_vec == -1):
+                return cross_gait_reward
+            l_push_off_idx = np.where(l_foot_contact_vec == -1)[0][0]
+            cross_gait_reward += -0.1 * np.tanh(ankle_speed_mat[l_push_off_idx, 1])
+    return cross_gait_reward, reward_str_list
+
+
+def connect_str_list(str_list):
+    str_out = str_list[0]
+    for i in range(1, len(str_list)):
+        str_out = str_out + '_' + str_list[i]
+    return str_out
 
 
 def check_cross_gait(gait_state_mat):
@@ -200,9 +236,9 @@ def fifo_data(data_mat, data):
 
 def create_log_gaussian(mean, log_std, t):
     quadratic = -((0.5 * (t - mean) / (log_std.exp())).pow(2))
-    l = mean.shape
+    len_mean = mean.shape
     log_z = log_std
-    z = l[-1] * math.log(2 * math.pi)
+    z = len_mean[-1] * math.log(2 * math.pi)
     log_p = quadratic.sum(dim=-1) - log_z.sum(dim=-1) - 0.5 * z
     return log_p
 

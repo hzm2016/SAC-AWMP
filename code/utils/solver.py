@@ -16,8 +16,9 @@ class Solver(object):
         args.seed = args.seed % 10
         self.args = args
         self.env = env
+        self.reward_str_list = []
 
-        self.file_name = "TD3_%s_%s_%s" % (args.env_name, args.seed, args.method_name)
+        self.file_name = "TD3_%s_%s_%s_%s" % (args.env_name, args.seed, args.reward_name, args.policy_name)
         print("---------------------------------------")
         print("Settings: %s" % self.file_name)
         print("---------------------------------------")
@@ -37,8 +38,6 @@ class Solver(object):
         # Initialize policy
         if 'ATD3' == args.policy_name:
             policy = ATD3.ATD3(state_dim, action_dim, max_action)
-        elif 'ATD3_CNN' == args.policy_name:
-            policy = ATD3_CNN.ATD3_CNN(state_dim, action_dim, max_action, args.seq_len)
         elif 'ATD3_RNN' == args.policy_name:
             policy = ATD3_RNN.ATD3_RNN(state_dim, action_dim, max_action)
         elif 'TD3_RNN' == args.policy_name:
@@ -61,9 +60,11 @@ class Solver(object):
         self.pbar.update(self.total_timesteps - self.pre_num_steps)
         self.pre_num_steps = self.total_timesteps
 
-        if len(self.replay_buffer.storage) > self.env.frame:
-            self.replay_buffer.add_final_reward(self.episode_progress / 1000.0,
-                                                self.env.frame)
+        if 'r_f' in self.args.reward_name:
+            self.reward_str_list.append('r_f')
+            if len(self.replay_buffer.storage) > self.env.frame:
+                self.replay_buffer.add_final_reward(self.episode_progress / 1000.0,
+                                                    self.env.frame)
         if self.total_timesteps != 0:
             self.writer.add_scalar('ave_reward/train', self.episode_reward, self.total_timesteps)
             self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount,
@@ -112,15 +113,12 @@ class Solver(object):
         self.log_dir = '{}/{}/seed_{}_{}_{}_{}_{}'.format(self.result_path, self.args.log_path, self.args.seed,
                                                           datetime.datetime.now().strftime("%d_%H-%M-%S"),
                                                           self.args.policy_name, self.args.env_name,
-                                                          self.args.method_name)
+                                                          self.args.reward_name)
         if not os.path.exists(self.log_dir):
             os.makedirs(self.log_dir)
         # TesnorboardX
         self.writer = SummaryWriter(logdir=self.log_dir)
-
         self.pbar = tqdm(total=self.args.max_timesteps, initial=self.total_timesteps, position=0, leave=True)
-        if 'human_angle' in self.args.method_name:
-            human_joint_angle = utils.read_table(file_name=self.project_path + 'data/joint_angle.xls')
         done = True
         while self.total_timesteps < self.args.max_timesteps:
             if done:
@@ -131,7 +129,7 @@ class Solver(object):
             if self.total_timesteps < self.args.start_timesteps:
                 action = self.env.action_space.sample()
             else:
-                if 'seq' in self.args.method_name:
+                if 'RNN' in self.args.policy_name:
                     action = self.policy.select_action(np.array(self.obs_vec))
                 else:
                     action = self.policy.select_action(np.array(self.obs))
@@ -146,10 +144,10 @@ class Solver(object):
             self.episode_reward += reward
             self.episode_progress += new_obs[3]
 
-            if 'human_angle' in self.args.method_name:
-                reward = self.update_gait_reward(new_obs, reward, human_joint_angle)
+            reward = self.update_gait_reward(new_obs, reward)
 
-            if 'still_steps' in self.args.method_name:
+            if 'r_s' in self.args.reward_name:
+                self.reward_str_list.append('r_s')
                 if np.array_equal(new_obs[-2:], np.asarray([1., 1.])):
                     self.still_steps += 1
                 else:
@@ -161,7 +159,7 @@ class Solver(object):
 
             done_bool = 0 if self.episode_timesteps + 1 == self.env._max_episode_steps else float(done)
 
-            if 'seq' in self.args.method_name:
+            if 'RNN' in self.args.policy_name:
                 # Store data in replay buffer
                 new_obs_vec = utils.fifo_data(np.copy(self.obs_vec), new_obs)
                 self.replay_buffer.add((np.copy(self.obs_vec), new_obs_vec, action, reward, done_bool))
@@ -181,7 +179,7 @@ class Solver(object):
         utils.write_table(self.log_dir + "/test_accuracy", np.asarray(self.evaluations))
         self.env.reset()
 
-    def update_gait_reward(self, new_obs, reward, human_joint_angle):
+    def update_gait_reward(self, new_obs, reward):
         self.foot_contact_vec = utils.fifo_data(self.foot_contact_vec, new_obs[-2])
         if 0 == np.std(self.foot_contact_vec):
             self.foot_contact = np.mean(self.foot_contact_vec)
@@ -189,23 +187,28 @@ class Solver(object):
             if self.gait_state_mat.shape[0] > int(100 / self.env_timeStep):
                 self.gait_num += 1
                 if self.gait_num >= 2:
-                    coefficient = utils.calc_cross_gait_reward(self.gait_state_mat[:-self.delay_num + 1, :-2],
-                                                               self.gait_state_mat[:-self.delay_num + 1, -2])
-                    # # The ATD3 seems to prefer the negative similarity reward
-                    # joint_angle_sampled = signal.resample(self.gait_state_mat[:-self.delay_num, 0:6],
-                    #                                       num=human_joint_angle.shape[0])
-                    # coefficient = utils.calc_cos_similarity(human_joint_angle,
-                    #                                         joint_angle_sampled) - 0.5
+                    coefficient, cross_gait_reward_str = utils.calc_cross_gait_reward(self.gait_state_mat[:-self.delay_num + 1, :-2],
+                                                               self.gait_state_mat[:-self.delay_num + 1, -2],
+                                                               self.args.reward_name)
+                    self.reward_str_list += cross_gait_reward_str
+
                     print('gait_num:', self.gait_num, 'time steps in a gait: ', self.gait_state_mat.shape[0],
-                          # 'cross_gait_reward: ', np.round(cross_gait_reward, 2),
+                          'reward_str: ', utils.connect_str_list(list(set(self.reward_str_list))),
                           'coefficient: ', np.round(coefficient, 2),
                           'speed: ', np.round(np.linalg.norm(new_obs[3:6]), 2),
                           'is cross gait: ', utils.check_cross_gait(self.gait_state_mat[:-self.delay_num, :-1]))
+
+                    self.reward_str_list = []
+
                     self.replay_buffer.add_final_reward(coefficient, self.gait_state_mat.shape[0] - self.delay_num,
                                                         delay=self.delay_num)
                     reward_steps = min(int(2000 / self.env_timeStep), len(self.reward_angle))
-                    self.replay_buffer.add_specific_reward(self.reward_angle[-reward_steps:],
-                                                           self.idx_angle[-reward_steps:])
+
+                    if 'r_n' in self.args.reward_name:
+                        self.reward_str_list.append('r_n')
+
+                        self.replay_buffer.add_specific_reward(self.reward_angle[-reward_steps:],
+                                                               self.idx_angle[-reward_steps:])
 
                 self.idx_angle = np.r_[self.idx_angle, self.gait_state_mat[:-self.delay_num, -1]]
                 self.reward_angle = np.r_[self.reward_angle,
@@ -223,10 +226,10 @@ class Solver(object):
         return reward
 
     def eval_only(self):
-        video_dir = '{}/video/{}_{}'.format(self.result_path, self.args.env_name, self.args.method_name)
+        video_dir = '{}/video/{}_{}'.format(self.result_path, self.args.env_name, self.args.reward_name)
         if self.args.save_video and not os.path.exists(video_dir):
             os.makedirs(video_dir)
-        model_path = self.result_path + '/{}/{}_{}'.format(self.args.log_path, self.args.method_name,
+        model_path = self.result_path + '/{}/{}_{}'.format(self.args.log_path, self.args.reward_name,
                                                            self.args.seed + 1)
         print(model_path)
         self.policy.load("%s" % (self.file_name), directory=model_path)
@@ -238,21 +241,21 @@ class Solver(object):
                     self.file_name, self.args.state_noise)
                 out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (600, 400))
             obs = self.env.reset()
-            if 'seq' in self.args.method_name:
+            if 'RNN' in self.args.policy_name:
                 obs_vec = np.dot(np.ones((self.args.seq_len, 1)), obs.reshape((1, -1)))
 
             obs_mat = np.asarray(obs)
             done = False
 
             while not done:
-                if 'seq' in self.args.method_name:
+                if 'RNN' in self.args.policy_name:
                     action = self.policy.select_action(np.array(obs_vec))
                 else:
                     action = self.policy.select_action(np.array(obs))
 
                 obs, reward, done, _ = self.env.step(action)
 
-                if 'seq' in self.args.method_name:
+                if 'RNN' in self.args.policy_name:
                     obs_vec = utils.fifo_data(obs_vec, obs)
 
                 obs[8:20] += np.random.normal(0, self.args.state_noise, size=obs[8:20].shape[0]).clip(
@@ -278,16 +281,16 @@ def evaluate_policy(env, policy, args, eval_episodes=10):
     for _ in range(eval_episodes):
         obs = env.reset()
 
-        if 'seq' in args.method_name:
+        if 'RNN' in args.policy_name:
             obs_vec = np.dot(np.ones((args.seq_len, 1)), obs.reshape((1, -1)))
         done = False
         while not done:
-            if 'seq' in args.method_name:
+            if 'RNN' in args.policy_name:
                 action = policy.select_action(np.array(obs_vec))
             else:
                 action = policy.select_action(np.array(obs))
             obs, reward, done, _ = env.step(action)
-            if 'seq' in args.method_name:
+            if 'RNN' in args.policy_name:
                 obs_vec = utils.fifo_data(obs_vec, obs)
             avg_reward += reward
 

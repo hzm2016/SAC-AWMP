@@ -6,9 +6,9 @@ sys.path.insert(0, project_path + 'code')
 print(sys.path)
 import roboschool, gym
 import argparse
-from utils.solver import Solver
+from utils.solver import utils, Solver
 
-def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0):
+def main(env, reward_name ='', policy_name ='TD3', state_noise = 0.0, seed = 0):
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default=policy_name)  # Policy name
     parser.add_argument("--env_name", default="RoboschoolWalker2d-v1")  # OpenAI gym environment name
@@ -16,7 +16,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
 
     parser.add_argument("--eval_only", default=True)
     parser.add_argument("--save_video", default=True)
-    parser.add_argument("--method_name", default=method_name,
+    parser.add_argument("--reward_name", default=reward_name,
                         help='Name of your method (default: )')  # Name of the method
 
     parser.add_argument("--seq_len", default=2, type=int)
@@ -45,14 +45,20 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
 
 
 if __name__ == "__main__":
-    method_name_vec = ['human_angle_still_steps_seq_ATD3_RNN', 'human_angle_still_steps_ATD3',
-                       'human_angle_still_steps', 'still_steps', '']
-    policy_name_vec = ['ATD3_RNN', 'ATD3', 'TD3', 'TD3', 'TD3']
+    '''
+    Reward ablation study：default reward (r_d), still_steps (r_s), final speed (r_f), 
+    gait num (r_n), gait velocity (r_gv), left heel strike (r_lhs), 
+    gait symmetry (r_gs),  cross gait (r_cg), foot recovery (r_fr), push off (r_po)
+    '''
+    reward_name_vec =['r_d', 'r_s', 'r_f', 'r_n', 'r_gv', 'r_lhs', 'r_gs', 'r_cg', 'r_fr', 'r_po']
+    # reward_name_vec = ['human_angle_still_steps_seq_ATD3_RNN', 'human_angle_still_steps_ATD3',
+    #                    'human_angle_still_steps', 'still_steps', '']
+    policy_name_vec = ['ATD3_RNN', 'ATD3', 'TD3']
     env = gym.make('RoboschoolWalker2d-v1')
-    for r in [0]:
-        for c in range(1):
-            for n in range(1):
-                print('r: {}, c: {}.'.format(r, c))
-                main(env, method_name=method_name_vec[r], policy_name = policy_name_vec[r],
-                     state_noise= 0.04 * n, seed=c)
+    for r in range(len(reward_name_vec)):
+        main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
+             policy_name = policy_name_vec[0])
+    for p in range(len(policy_name_vec)):
+        main(env, reward_name=utils.connect_str_list(reward_name_vec),
+             policy_name = policy_name_vec[0])
     env.close()

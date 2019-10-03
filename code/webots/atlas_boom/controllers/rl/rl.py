@@ -6,9 +6,9 @@ sys.path.insert(0, project_path + 'code')
 print(sys.path)
 from gym_webots import Atlas
 import argparse
-from utils.solver import Solver
+from utils.solver import utils, Solver
 
-def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0):
+def main(env, reward_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0):
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default=policy_name)  # Policy name
     parser.add_argument("--env_name", default="RoboschoolWalker2d-v1")  # OpenAI gym environment name
@@ -16,7 +16,7 @@ def main(env, method_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
 
     parser.add_argument("--eval_only", default=False)
     parser.add_argument("--save_video", default=False)
-    parser.add_argument("--method_name", default=method_name,
+    parser.add_argument("--reward_name", default=reward_name,
                         help='Name of your method (default: )')  # Name of the method
 
     parser.add_argument("--seq_len", default=2, type=int)
@@ -50,13 +50,13 @@ if __name__ == "__main__":
     #     env.run()
     #     env.reset()
     env = Atlas(action_dim=6, obs_dim=22)
-    method_name_vec = ['human_angle_still_steps_seq_ATD3_RNN', 'human_angle_still_steps_ATD3',
-                       'human_angle_still_steps', 'still_steps', '']
-    policy_name_vec = ['ATD3_RNN', 'ATD3', 'TD3', 'TD3', 'TD3']
-    for r in [0]:
-        for c in range(1):
+    reward_name_vec = ['r_d', 'r_s', 'r_f', 'r_n', 'r_gv', 'r_lhs', 'r_gs', 'r_cg', 'r_fr', 'r_po']
+    policy_name_vec = ['ATD3_RNN', 'ATD3', 'TD3']
+    for r in [len(reward_name_vec) - 1]:
+        for c in range(5):
             for n in range(1):
                 print('r: {}, c: {}.'.format(r, c))
-                main(env, method_name=method_name_vec[r], policy_name = policy_name_vec[r],
+                main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
+                     policy_name = policy_name_vec[0],
                      state_noise= 0.04 * n, seed=c)
     env.close()
