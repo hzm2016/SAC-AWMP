@@ -55,10 +55,10 @@ if __name__ == "__main__":
     #                    'human_angle_still_steps', 'still_steps', '']
     policy_name_vec = ['ATD3_RNN', 'ATD3', 'TD3']
     env = gym.make('RoboschoolWalker2d-v1')
-    for r in range(len(reward_name_vec)):
+    for r in range(5, len(reward_name_vec)):
         main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
              policy_name = policy_name_vec[0])
     for p in range(len(policy_name_vec)):
         main(env, reward_name=utils.connect_str_list(reward_name_vec),
-             policy_name = policy_name_vec[0])
+             policy_name = policy_name_vec[p])
     env.close()

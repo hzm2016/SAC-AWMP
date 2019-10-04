@@ -131,7 +131,7 @@ def calc_cross_gait_reward(gait_state_mat, gait_velocity, reward_name):
         l_foot_contact_vec[0] = 0
         if 0 == np.mean(l_foot_contact_vec == 1):
             # print(gait_state_mat_sampled)
-            return cross_gait_reward
+            return cross_gait_reward, reward_str_list
         l_heel_strike_idx = np.where(l_foot_contact_vec == 1)[0][0]
         cross_gait_reward += 0.2 * (1.0 - np.tanh((l_heel_strike_idx / (frame_num + 0.0) - 0.5) ** 2))
 
@@ -195,12 +195,12 @@ def calc_cross_gait_reward(gait_state_mat, gait_velocity, reward_name):
             ankle_speed_mat[1:] = joint_deg_mat[1:, [2, 5]] - joint_deg_mat[:-1, [2, 5]]
 
             if 0 == np.mean(r_foot_contact_vec == -1):
-                return cross_gait_reward
+                return cross_gait_reward, reward_str_list
             r_push_off_idx = np.where(r_foot_contact_vec == -1)[0][0]
             cross_gait_reward += -0.1 * np.tanh(ankle_speed_mat[r_push_off_idx, 0])
 
             if 0 == np.mean(l_foot_contact_vec == -1):
-                return cross_gait_reward
+                return cross_gait_reward, reward_str_list
             l_push_off_idx = np.where(l_foot_contact_vec == -1)[0][0]
             cross_gait_reward += -0.1 * np.tanh(ankle_speed_mat[l_push_off_idx, 1])
     return cross_gait_reward, reward_str_list
