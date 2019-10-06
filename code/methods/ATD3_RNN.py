@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
+import glob
 if torch.cuda.is_available():
 	torch.cuda.empty_cache()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -150,5 +151,7 @@ class ATD3_RNN(object):
 
 
 	def load(self, filename, directory):
-		self.actor.load_state_dict(torch.load('%s/%s_actor.pth' % (directory, filename)))
-		self.critic.load_state_dict(torch.load('%s/%s_critic.pth' % (directory, filename)))
+		actor_path = glob.glob('%s/%s_actor.pth' % (directory, '*'))[0]
+		self.actor.load_state_dict(torch.load(actor_path))
+		critic_path = glob.glob('%s/%s_critic.pth' % (directory, '*'))[0]
+		self.critic.load_state_dict(torch.load(critic_path))

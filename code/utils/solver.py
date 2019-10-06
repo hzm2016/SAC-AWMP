@@ -3,6 +3,7 @@ import os
 import datetime
 import cv2
 import torch
+import glob
 from utils import utils
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
@@ -18,10 +19,7 @@ class Solver(object):
         self.env = env
         self.reward_str_list = []
 
-        self.file_name = "TD3_%s_%s_%s_%s" % (args.env_name, args.seed, args.reward_name, args.policy_name)
-        print("---------------------------------------")
-        print("Settings: %s" % self.file_name)
-        print("---------------------------------------")
+        self.file_name = ''
 
         self.project_path = project_path
         self.result_path = project_path + "results"
@@ -114,6 +112,9 @@ class Solver(object):
                                                           datetime.datetime.now().strftime("%d_%H-%M-%S"),
                                                           self.args.policy_name, self.args.env_name,
                                                           self.args.reward_name)
+        print("---------------------------------------")
+        print("Settings: %s" % self.log_dir)
+        print("---------------------------------------")
         if not os.path.exists(self.log_dir):
             os.makedirs(self.log_dir)
         # TesnorboardX
@@ -192,11 +193,11 @@ class Solver(object):
                                                                self.args.reward_name)
                     self.reward_str_list += cross_gait_reward_str
 
-                    print('gait_num:', self.gait_num, 'time steps in a gait: ', self.gait_state_mat.shape[0],
-                          'reward_str: ', utils.connect_str_list(list(set(self.reward_str_list))),
-                          'coefficient: ', np.round(coefficient, 2),
-                          'speed: ', np.round(np.linalg.norm(new_obs[3:6]), 2),
-                          'is cross gait: ', utils.check_cross_gait(self.gait_state_mat[:-self.delay_num, :-1]))
+                    # print('gait_num:', self.gait_num, 'time steps in a gait: ', self.gait_state_mat.shape[0],
+                    #       'reward_str: ', utils.connect_str_list(list(set(self.reward_str_list))),
+                    #       'coefficient: ', np.round(coefficient, 2),
+                    #       'speed: ', np.round(np.linalg.norm(new_obs[3:6]), 2),
+                    #       'is cross gait: ', utils.check_cross_gait(self.gait_state_mat[:-self.delay_num, :-1]))
 
                     self.reward_str_list = []
 
@@ -229,49 +230,52 @@ class Solver(object):
         video_dir = '{}/video/{}_{}'.format(self.result_path, self.args.env_name, self.args.reward_name)
         if self.args.save_video and not os.path.exists(video_dir):
             os.makedirs(video_dir)
-        model_path = self.result_path + '/{}/{}_{}'.format(self.args.log_path, self.args.reward_name,
-                                                           self.args.seed + 1)
-        print(model_path)
-        self.policy.load("%s" % (self.file_name), directory=model_path)
-        for _ in range(1):
-            if self.args.save_video:
-                fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-                video_name = video_dir + '/{}_{}_{}.mp4'.format(
-                    datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
-                    self.file_name, self.args.state_noise)
-                out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (600, 400))
-            obs = self.env.reset()
-            if 'RNN' in self.args.policy_name:
-                obs_vec = np.dot(np.ones((self.args.seq_len, 1)), obs.reshape((1, -1)))
-
-            obs_mat = np.asarray(obs)
-            done = False
-
-            while not done:
+        model_path_vec = glob.glob(self.result_path + '/{}/*_{}*_{}'.format(self.args.log_path,
+                                                                            self.args.policy_name,
+                                                                            self.args.reward_name))
+        print(model_path_vec)
+        for model_path in model_path_vec:
+            print(model_path)
+            self.policy.load("%s" % (self.file_name), directory=model_path)
+            for _ in range(1):
+                if self.args.save_video:
+                    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+                    video_name = video_dir + '/{}_{}_{}.mp4'.format(
+                        datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
+                        self.file_name, self.args.state_noise)
+                    out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (600, 400))
+                obs = self.env.reset()
                 if 'RNN' in self.args.policy_name:
-                    action = self.policy.select_action(np.array(obs_vec))
-                else:
-                    action = self.policy.select_action(np.array(obs))
+                    obs_vec = np.dot(np.ones((self.args.seq_len, 1)), obs.reshape((1, -1)))
 
-                obs, reward, done, _ = self.env.step(action)
+                obs_mat = np.asarray(obs)
+                done = False
 
-                if 'RNN' in self.args.policy_name:
-                    obs_vec = utils.fifo_data(obs_vec, obs)
+                while not done:
+                    if 'RNN' in self.args.policy_name:
+                        action = self.policy.select_action(np.array(obs_vec))
+                    else:
+                        action = self.policy.select_action(np.array(obs))
 
-                obs[8:20] += np.random.normal(0, self.args.state_noise, size=obs[8:20].shape[0]).clip(
-                    -1, 1)
-                obs_mat = np.c_[obs_mat, np.asarray(obs)]
+                    obs, reward, done, _ = self.env.step(action)
+
+                    if 'RNN' in self.args.policy_name:
+                        obs_vec = utils.fifo_data(obs_vec, obs)
+
+                    obs[8:20] += np.random.normal(0, self.args.state_noise, size=obs[8:20].shape[0]).clip(
+                        -1, 1)
+                    obs_mat = np.c_[obs_mat, np.asarray(obs)]
+
+                    if self.args.save_video:
+                        img = self.env.render(mode='rgb_array')
+                        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                        out_video.write(img)
+                    else:
+                        self.env.render()
 
                 if self.args.save_video:
-                    img = self.env.render(mode='rgb_array')
-                    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-                    out_video.write(img)
-                else:
-                    self.env.render()
-
-            if self.args.save_video:
-                utils.write_table(video_name + '_state', np.transpose(obs_mat))
-                out_video.release()
+                    utils.write_table(video_name + '_state', np.transpose(obs_mat))
+                    out_video.release()
         self.env.reset()
 
 

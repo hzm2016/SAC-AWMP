@@ -50,15 +50,15 @@ if __name__ == "__main__":
     gait num (r_n), gait velocity (r_gv), left heel strike (r_lhs), 
     gait symmetry (r_gs),  cross gait (r_cg), foot recovery (r_fr), push off (r_po)
     '''
-    reward_name_vec =['r_d', 'r_s', 'r_f', 'r_n', 'r_gv', 'r_lhs', 'r_gs', 'r_cg', 'r_fr', 'r_po']
-    # reward_name_vec = ['human_angle_still_steps_seq_ATD3_RNN', 'human_angle_still_steps_ATD3',
-    #                    'human_angle_still_steps', 'still_steps', '']
-    policy_name_vec = ['ATD3_RNN', 'ATD3', 'TD3']
+    reward_name_vec =['r_d', 'r_s', 'r_n', 'r_lhs', 'r_cg', 'r_gs', 'r_fr', 'r_f', 'r_gv', 'r_po']
+    policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
     env = gym.make('RoboschoolWalker2d-v1')
-    for r in range(5, len(reward_name_vec)):
+    for r in range(len(reward_name_vec)):
         main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
              policy_name = policy_name_vec[0])
     for p in range(1, len(policy_name_vec)):
         main(env, reward_name=utils.connect_str_list(reward_name_vec),
              policy_name = policy_name_vec[p])
+    main(env, reward_name=utils.connect_str_list(['r_d', 'r_s', 'r_n', 'r_lhs', 'r_cg']),
+         policy_name=policy_name_vec[0])
     env.close()

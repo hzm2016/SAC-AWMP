@@ -5,7 +5,7 @@ Created on Thu Jul  4 10:29:32 2019
 @author: kuangen
 """
 from matplotlib import cm
-# import matplotlib
+import matplotlib
 # matplotlib.rcParams['text.usetex'] = True
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -23,31 +23,31 @@ def plot_error_line(t, acc_mean_mat, acc_std_mat = None, legend_vec = None,
                     line_vec=['-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--'],
                     marker_size=5,
                     init_idx = 0):
-    print(-1)
     if acc_std_mat is None:
         acc_std_mat = 0 * acc_mean_mat
     # acc_mean_mat, acc_std_mat: rows: methods, cols: time
-    color_vec = plt.cm.Dark2(np.arange(10))
-    print(-2)
+    color_vec = plt.cm.Dark2(np.arange(8))
     for r in range(acc_mean_mat.shape[0]):
-        print(r)
         plt.plot(t, acc_mean_mat[r, :], linestyle=line_vec[r + init_idx],
                  marker=marker_vec[r + init_idx], markersize=marker_size, linewidth=2,
-                 color=color_vec[r + init_idx])
+                 color=color_vec[(r + init_idx) % 8])
         plt.fill_between(t, acc_mean_mat[r, :] - acc_std_mat[r, :],
-                         acc_mean_mat[r, :] + acc_std_mat[r, :], alpha=0.1, color=color_vec[r+init_idx])
+                         acc_mean_mat[r, :] + acc_std_mat[r, :], alpha=0.1,
+                         color=color_vec[(r + init_idx) % 8])
     if legend_vec is not None:
-        plt.legend(legend_vec, loc = 'lower right')
+        plt.legend(legend_vec)
+        # plt.legend(legend_vec, loc = 'lower right')
 
 def plot_acc_curves():
     reward_name_vec = ['r_d', 'r_s', 'r_f', 'r_n', 'r_gv', 'r_lhs', 'r_gs', 'r_cg', 'r_fr', 'r_po']
     acc_mat = np.zeros((len(reward_name_vec), 5, 61))
     legend_vec = []
+    last_reward = 0.0
     for r in range(len(reward_name_vec)):
     # for r in [9]:
         reward_str = connect_str_list(reward_name_vec[:r+1])
         legend_vec.append(reward_str)
-        file_name_vec = glob.glob('runs/ATD3_walker2d/' + '*_ATD3_RNN*' + reward_str +
+        file_name_vec = glob.glob('runs/ATD3_walker2d_old/' + '*_ATD3_RNN*' + reward_str +
                                   '/test_accuracy.xls')
         for c in range(len(file_name_vec)):
             file_name = file_name_vec[c]
@@ -56,8 +56,9 @@ def plot_acc_curves():
             acc_mat[r, c, :] = dfs.values.astype(np.float)[:, 0]
         max_acc = np.max(acc_mat[r, :, :], axis=-1)
         # print('Max acc for {}: {}'.format(connect_str_list(reward_name_vec[:r + 1]), max_acc))
-        print('Max acc for {}, mean: {}, std: {}'.format(reward_str, np.mean(max_acc, axis=-1),
-                                                         np.std(max_acc, axis=-1)))
+        print('Max acc for {}, mean: {}, std: {}, d_reward:{}'.format(reward_str, np.mean(max_acc, axis=-1),
+                                                         np.std(max_acc, axis=-1), np.mean(max_acc, axis=-1)-last_reward))
+        last_reward = np.mean(max_acc, axis=-1)
     plot_acc_mat(acc_mat, reward_name_vec)
 
 def connect_str_list(str_list):
@@ -80,12 +81,11 @@ def plot_acc_mat(acc_mat, legend_vec):
     # mean_acc = cv2.filter2D(mean_acc, -1, kernel)
     # std_acc = cv2.filter2D(std_acc, -1, kernel)
     t = np.linspace(0, 3, 61)
-    # fig = plt.figure(figsize=(9, 6))
-    fig = plt.figure()
-    print(0)
+    fig = plt.figure(figsize=(9, 6))
+    # fig = plt.figure()
     plt.tight_layout()
     plt.rcParams.update({'font.size': 15})
-    plot_error_line(t, mean_acc, std_acc, legend_vec=legend_vec, init_idx=1)
+    plot_error_line(t, mean_acc, std_acc, legend_vec=legend_vec, init_idx=0)
     plt.xlabel(r'Time steps ($1 \times 10^{5}$)')
     plt.xlim((min(t), max(t)))
     plt.ylabel('Average reward')
