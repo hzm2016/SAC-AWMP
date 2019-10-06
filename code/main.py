@@ -58,7 +58,7 @@ if __name__ == "__main__":
     for r in range(5, len(reward_name_vec)):
         main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
              policy_name = policy_name_vec[0])
-    for p in range(len(policy_name_vec)):
+    for p in range(1, len(policy_name_vec)):
         main(env, reward_name=utils.connect_str_list(reward_name_vec),
              policy_name = policy_name_vec[p])
     env.close()

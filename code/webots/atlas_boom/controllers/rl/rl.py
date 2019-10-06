@@ -11,7 +11,7 @@ from utils.solver import utils, Solver
 def main(env, reward_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0):
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default=policy_name)  # Policy name
-    parser.add_argument("--env_name", default="RoboschoolWalker2d-v1")  # OpenAI gym environment name
+    parser.add_argument("--env_name", default="WebotsAtlas-v1")  # OpenAI gym environment name
     parser.add_argument("--log_path", default='runs/ATD3_Atlas')
 
     parser.add_argument("--eval_only", default=False)
@@ -52,11 +52,11 @@ if __name__ == "__main__":
     env = Atlas(action_dim=6, obs_dim=22)
     reward_name_vec = ['r_d', 'r_s', 'r_f', 'r_n', 'r_gv', 'r_lhs', 'r_gs', 'r_cg', 'r_fr', 'r_po']
     policy_name_vec = ['ATD3_RNN', 'ATD3', 'TD3']
-    for r in [len(reward_name_vec) - 1]:
+    for r in [0, 9]:
         for c in range(5):
             for n in range(1):
                 print('r: {}, c: {}.'.format(r, c))
                 main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
-                     policy_name = policy_name_vec[0],
+                     policy_name = policy_name_vec[-1],
                      state_noise= 0.04 * n, seed=c)
     env.close()
