@@ -5,37 +5,92 @@ Created on Thu Jul  4 10:29:32 2019
 @author: kuangen
 """
 from matplotlib import cm
-import matplotlib
-matplotlib.rcParams['text.usetex'] = True
+# import matplotlib
+# matplotlib.rcParams['text.usetex'] = True
 import matplotlib.pyplot as plt
-
 import pandas as pd
 import numpy as np
 import glob
 import cv2
 import sys
-sys.path.insert(0,'../')
+# sys.path.insert(0,'../')
 from code.utils.utils import *
 from scipy import stats, signal
 
 
 def plot_error_line(t, acc_mean_mat, acc_std_mat = None, legend_vec = None,
-                    marker_vec=['o', '+', 'v', 'x', 'd', '*', ''],
-                    line_vec=['-', '--', '-.', ':', '-', '--', '-.'],
-                    line_width_vec=[2, 2, 2, 2, 2, 2, 2], marker_size=5,
+                    marker_vec=['o', '+', 'v', 'x', 'd', '*', '', '+', 'v', 'x'],
+                    line_vec=['-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--'],
+                    marker_size=5,
                     init_idx = 0):
+    print(-1)
     if acc_std_mat is None:
         acc_std_mat = 0 * acc_mean_mat
     # acc_mean_mat, acc_std_mat: rows: methods, cols: time
-    color_vec = plt.cm.Dark2(np.arange(8))
+    color_vec = plt.cm.Dark2(np.arange(10))
+    print(-2)
     for r in range(acc_mean_mat.shape[0]):
+        print(r)
         plt.plot(t, acc_mean_mat[r, :], linestyle=line_vec[r + init_idx],
-                 marker=marker_vec[r + init_idx], markersize=marker_size, linewidth=line_width_vec[r + init_idx],
+                 marker=marker_vec[r + init_idx], markersize=marker_size, linewidth=2,
                  color=color_vec[r + init_idx])
         plt.fill_between(t, acc_mean_mat[r, :] - acc_std_mat[r, :],
                          acc_mean_mat[r, :] + acc_std_mat[r, :], alpha=0.1, color=color_vec[r+init_idx])
     if legend_vec is not None:
         plt.legend(legend_vec, loc = 'lower right')
+
+def plot_acc_curves():
+    reward_name_vec = ['r_d', 'r_s', 'r_f', 'r_n', 'r_gv', 'r_lhs', 'r_gs', 'r_cg', 'r_fr', 'r_po']
+    acc_mat = np.zeros((len(reward_name_vec), 5, 61))
+    legend_vec = []
+    for r in range(len(reward_name_vec)):
+    # for r in [9]:
+        reward_str = connect_str_list(reward_name_vec[:r+1])
+        legend_vec.append(reward_str)
+        file_name_vec = glob.glob('runs/ATD3_walker2d/' + '*_ATD3_RNN*' + reward_str +
+                                  '/test_accuracy.xls')
+        for c in range(len(file_name_vec)):
+            file_name = file_name_vec[c]
+            # print(file_name)
+            dfs = pd.read_excel(file_name)
+            acc_mat[r, c, :] = dfs.values.astype(np.float)[:, 0]
+        max_acc = np.max(acc_mat[r, :, :], axis=-1)
+        # print('Max acc for {}: {}'.format(connect_str_list(reward_name_vec[:r + 1]), max_acc))
+        print('Max acc for {}, mean: {}, std: {}'.format(reward_str, np.mean(max_acc, axis=-1),
+                                                         np.std(max_acc, axis=-1)))
+    plot_acc_mat(acc_mat, reward_name_vec)
+
+def connect_str_list(str_list):
+    if 0 >= len(str_list):
+        return ''
+    str_out = str_list[0]
+    for i in range(1, len(str_list)):
+        str_out = str_out + '_' + str_list[i]
+    return str_out
+
+
+def plot_acc_mat(acc_mat, legend_vec):
+    print(legend_vec)
+    for r in range(acc_mat.shape[0]):
+        for c in range(acc_mat.shape[1]):
+            acc_mat[r, c, :] = smooth(acc_mat[r, c, :], weight=0.8)
+    mean_acc = np.mean(acc_mat, axis=1)
+    std_acc = np.std(acc_mat, axis=1)
+    # kernel = np.ones((1, 1), np.float32) / 1
+    # mean_acc = cv2.filter2D(mean_acc, -1, kernel)
+    # std_acc = cv2.filter2D(std_acc, -1, kernel)
+    t = np.linspace(0, 3, 61)
+    # fig = plt.figure(figsize=(9, 6))
+    fig = plt.figure()
+    print(0)
+    plt.tight_layout()
+    plt.rcParams.update({'font.size': 15})
+    plot_error_line(t, mean_acc, std_acc, legend_vec=legend_vec, init_idx=1)
+    plt.xlabel(r'Time steps ($1 \times 10^{5}$)')
+    plt.xlim((min(t), max(t)))
+    plt.ylabel('Average reward')
+    # plt.savefig('images/test_accuracy.pdf', bbox_inches='tight')
+    plt.show()
 
 def plot_test_acc():
     method_name_vec = ['','human_angle_still_steps', 'human_angle_still_steps_ATD3']
@@ -259,7 +314,8 @@ def smooth(scalars, weight = 0.8):
 
 # # # Fig: test acc
 print('------Fig: test acc------')
-plot_test_acc()
+# plot_test_acc()
+plot_acc_curves()
 
 # # Fig: joint angle
 # print('-----Fig: joint angle-----')
