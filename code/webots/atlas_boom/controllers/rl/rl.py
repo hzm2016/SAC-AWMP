@@ -53,10 +53,9 @@ if __name__ == "__main__":
     reward_name_vec = ['r_d', 'r_s', 'r_n', 'r_lhs', 'r_cg', 'r_gs', 'r_fr', 'r_f', 'r_gv', 'r_po']
     policy_name_vec = ['ATD3_RNN', 'ATD3', 'TD3']
     for r in [4]:
-        for c in range(3, 5):
-            for n in range(1):
+        for c in range(5):
+            for p in [0]:
                 print('r: {}, c: {}.'.format(r, c))
                 main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
-                     policy_name = policy_name_vec[1],
-                     state_noise= 0.04 * n, seed=c)
+                     policy_name = policy_name_vec[p], seed=c)
     env.close()

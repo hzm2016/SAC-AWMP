@@ -115,7 +115,7 @@ def plot_error_bar(x_vec, y_mat, x_tick_vec = None):
     mean_vec = np.mean(y_mat, axis = -1)
     std_vec = np.std(y_mat, axis = -1)
     len_vec = len(x_vec)
-    fig = plt.figure(figsize=(9, 6))
+    fig = plt.figure(figsize=(9, 3))
     plt.tight_layout()
     plt.rcParams.update({'font.size': 15})
 
