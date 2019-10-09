@@ -14,8 +14,8 @@ def main(env, reward_name ='', policy_name ='TD3', state_noise = 0.0, seed = 0):
     parser.add_argument("--env_name", default="RoboschoolWalker2d-v1")  # OpenAI gym environment name
     parser.add_argument("--log_path", default='runs/ATD3_walker2d')
 
-    parser.add_argument("--eval_only", default=False)
-    parser.add_argument("--save_video", default=False)
+    parser.add_argument("--eval_only", default=True)
+    parser.add_argument("--save_video", default=True)
     parser.add_argument("--reward_name", default=reward_name,
                         help='Name of your method (default: )')  # Name of the method
 
@@ -53,12 +53,14 @@ if __name__ == "__main__":
     reward_name_vec =['r_d', 'r_s', 'r_n', 'r_lhs', 'r_cg', 'r_gs', 'r_fr', 'r_f', 'r_gv', 'r_po']
     policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
     env = gym.make('RoboschoolWalker2d-v1')
-    for r in range(len(reward_name_vec)):
-        main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
-             policy_name = policy_name_vec[0])
+    # for r in range(4, len(reward_name_vec)):
+    #     main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
+    #          policy_name = policy_name_vec[0])
     for p in range(1, len(policy_name_vec)):
-        main(env, reward_name=utils.connect_str_list(reward_name_vec),
+        main(env, reward_name=utils.connect_str_list(reward_name_vec[:5]),
              policy_name = policy_name_vec[p])
-    main(env, reward_name=utils.connect_str_list(['r_d', 'r_s', 'r_n', 'r_lhs', 'r_cg']),
-         policy_name=policy_name_vec[0])
+    # main(env, reward_name=utils.connect_str_list(['r_d', 'r_s', 'r_n', 'r_lhs', 'r_cg']),
+    #      policy_name=policy_name_vec[0])
+    # main(env, reward_name=utils.connect_str_list([reward_name_vec[0]]),
+    #      policy_name=policy_name_vec[0])
     env.close()

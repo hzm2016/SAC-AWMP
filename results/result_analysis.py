@@ -5,8 +5,6 @@ Created on Thu Jul  4 10:29:32 2019
 @author: kuangen
 """
 from matplotlib import cm
-import matplotlib
-# matplotlib.rcParams['text.usetex'] = True
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -20,8 +18,8 @@ from scipy import stats, signal
 
 def plot_error_line(t, acc_mean_mat, acc_std_mat = None, legend_vec = None,
                     marker_vec=['o', '+', 'v', 'x', 'd', '*', '', '+', 'v', 'x'],
-                    line_vec=['-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--'],
-                    marker_size=5,
+                    line_vec=['-', '--', '-.', ':', '-', '--', '-.', ':', '--', '-.'],
+                    marker_size=6,
                     init_idx = 0):
     if acc_std_mat is None:
         acc_std_mat = 0 * acc_mean_mat
@@ -35,31 +33,100 @@ def plot_error_line(t, acc_mean_mat, acc_std_mat = None, legend_vec = None,
                          acc_mean_mat[r, :] + acc_std_mat[r, :], alpha=0.1,
                          color=color_vec[(r + init_idx) % 8])
     if legend_vec is not None:
-        plt.legend(legend_vec)
-        # plt.legend(legend_vec, loc = 'lower right')
+        # plt.legend(legend_vec)
+        plt.legend(legend_vec, loc = 'upper left')
 
-def plot_acc_curves():
-    reward_name_vec = ['r_d', 'r_s', 'r_f', 'r_n', 'r_gv', 'r_lhs', 'r_gs', 'r_cg', 'r_fr', 'r_po']
-    acc_mat = np.zeros((len(reward_name_vec), 5, 61))
+
+def plot_acc_curves(reward_name_idx = None, policy_name_vec=None, result_path = 'runs/ATD3_walker2d',
+                    env_name = 'RoboschoolWalker2d'):
+    if reward_name_idx is None:
+        reward_name_idx = [0, 9, 9, 9]
+    if policy_name_vec is None:
+        policy_name_vec = ['TD3', 'TD3', 'ATD3', 'ATD3_RNN']
+    reward_name_vec = ['r_d', 'r_s', 'r_n', 'r_lhs', 'r_cg', 'r_gs', 'r_fr', 'r_f', 'r_gv', 'r_po']
+    acc_mat = None
     legend_vec = []
     last_reward = 0.0
-    for r in range(len(reward_name_vec)):
-    # for r in [9]:
-        reward_str = connect_str_list(reward_name_vec[:r+1])
-        legend_vec.append(reward_str)
-        file_name_vec = glob.glob('runs/ATD3_walker2d_old/' + '*_ATD3_RNN*' + reward_str +
-                                  '/test_accuracy.xls')
+    for r in range(len(reward_name_idx)):
+        reward_str = connect_str_list(reward_name_vec[:reward_name_idx[r]+1])
+        if 0 == reward_name_idx[r]:
+            reward_legend = '$r^d$'
+        else:
+            reward_legend = '$r^d + r^g$'
+        legend_vec.append(policy_name_vec[r] + ' + ' + reward_legend)
+        file_name_vec = glob.glob('{}/*_{}_{}*{}/test_accuracy.xls'.format(
+            result_path, policy_name_vec[r], env_name, reward_str))
         for c in range(len(file_name_vec)):
             file_name = file_name_vec[c]
             # print(file_name)
             dfs = pd.read_excel(file_name)
-            acc_mat[r, c, :] = dfs.values.astype(np.float)[:, 0]
-        max_acc = np.max(acc_mat[r, :, :], axis=-1)
-        # print('Max acc for {}: {}'.format(connect_str_list(reward_name_vec[:r + 1]), max_acc))
-        print('Max acc for {}, mean: {}, std: {}, d_reward:{}'.format(reward_str, np.mean(max_acc, axis=-1),
-                                                         np.std(max_acc, axis=-1), np.mean(max_acc, axis=-1)-last_reward))
-        last_reward = np.mean(max_acc, axis=-1)
-    plot_acc_mat(acc_mat, reward_name_vec)
+            acc_vec = dfs.values.astype(np.float)[:, 0]
+            if acc_mat is None:
+                acc_mat = np.zeros((len(reward_name_idx), len(file_name_vec), len(acc_vec)))
+            acc_mat[r, c, :] = acc_vec
+
+        if acc_mat is not None:
+            max_acc = np.max(acc_mat[r, :, :], axis=-1)
+            print('Max acc for {} and {}, mean: {}, std: {}, d_reward:{}'.format(
+                policy_name_vec[r], reward_str, np.mean(max_acc, axis=-1),
+                np.std(max_acc, axis=-1), np.mean(max_acc, axis=-1)-last_reward))
+            last_reward = np.mean(max_acc, axis=-1)
+
+    if acc_mat is not None:
+        plot_acc_mat(acc_mat, legend_vec, env_name)
+
+
+def plot_ablation_acc(result_path = 'runs/ATD3_walker2d',
+                    env_name = 'RoboschoolWalker2d'):
+    reward_name_vec = ['r_d', 'r_s', 'r_n', 'r_lhs', 'r_cg', 'r_gs', 'r_fr', 'r_f', 'r_gv', 'r_po']
+    reward_tick_vec = ['r^d', 'r^s', 'r^n', 'r^{lhs}', 'r^{cg}', 'r^{gs}', 'r^{fr}', 'r^{f}', 'r^{gv}', 'r^{po}']
+    # reward_name_vec = ['r_d', 'r_s', 'r_f', 'r_n', 'r_gv', 'r_lhs', 'r_gs', 'r_cg', 'r_fr', 'r_po']
+    # reward_tick_vec = ['r^d', 'r^s', 'r^f', 'r^n', 'r^{gv}', 'r^{lhs}', 'r^{gs}', 'r^{cg}', 'r^{fr}', 'r^{po}']
+
+    acc_mat = None
+    x_tick_vec = []
+    for r in range(len(reward_name_vec)):
+        reward_str = connect_str_list(reward_name_vec[:r+1])
+        # reward_tick = '$r^{}$ = $r^d$'.format(r)
+        if 0 == r:
+            reward_tick = '${}$'.format(reward_tick_vec[r])
+        else:
+            reward_tick = '$+{}$'.format(reward_tick_vec[r])
+        x_tick_vec.append(reward_tick)
+        file_name_vec = glob.glob('{}/*_{}_{}*{}/test_accuracy.xls'.format(
+            result_path, 'TD3', env_name, reward_str))
+        for c in range(len(file_name_vec)):
+            file_name = file_name_vec[c]
+            # print(file_name)
+            dfs = pd.read_excel(file_name)
+            acc_vec = dfs.values.astype(np.float)[:, 0]
+            if acc_mat is None:
+                acc_mat = np.zeros((len(reward_name_vec), len(file_name_vec), len(acc_vec)))
+            acc_mat[r, c, :] = acc_vec
+
+    if acc_mat is not None:
+        # plot_acc_mat(acc_mat, x_tick_vec, 'ablation_study', plot_std=False)
+        max_acc_mat = np.max(acc_mat, axis=-1)
+        print(np.mean(max_acc_mat, axis=-1))
+        plot_error_bar(np.arange(10), max_acc_mat, x_tick_vec)
+
+
+def plot_error_bar(x_vec, y_mat, x_tick_vec = None):
+    mean_vec = np.mean(y_mat, axis = -1)
+    std_vec = np.std(y_mat, axis = -1)
+    len_vec = len(x_vec)
+    fig = plt.figure(figsize=(9, 6))
+    plt.tight_layout()
+    plt.rcParams.update({'font.size': 15})
+
+    plt.errorbar(x_vec, mean_vec, yerr = std_vec, fmt='-', elinewidth= 1,
+                 solid_capstyle='projecting', capsize= 3, color = 'black')
+    plt.ylabel('Average reward')
+    if x_tick_vec is not None:
+        plt.xticks(np.arange(len(x_tick_vec)), x_tick_vec)
+    plt.savefig('images/ablation_reward.pdf', bbox_inches='tight')
+    plt.show()
+
 
 def connect_str_list(str_list):
     if 0 >= len(str_list):
@@ -70,7 +137,7 @@ def connect_str_list(str_list):
     return str_out
 
 
-def plot_acc_mat(acc_mat, legend_vec):
+def plot_acc_mat(acc_mat, legend_vec, env_name, plot_std = True):
     print(legend_vec)
     for r in range(acc_mat.shape[0]):
         for c in range(acc_mat.shape[1]):
@@ -80,16 +147,20 @@ def plot_acc_mat(acc_mat, legend_vec):
     # kernel = np.ones((1, 1), np.float32) / 1
     # mean_acc = cv2.filter2D(mean_acc, -1, kernel)
     # std_acc = cv2.filter2D(std_acc, -1, kernel)
-    t = np.linspace(0, 3, 61)
+    time_step = acc_mat.shape[-1] - 1
+    t = np.linspace(0, 0.05 * time_step, time_step+1)
     fig = plt.figure(figsize=(9, 6))
     # fig = plt.figure()
     plt.tight_layout()
     plt.rcParams.update({'font.size': 15})
-    plot_error_line(t, mean_acc, std_acc, legend_vec=legend_vec, init_idx=0)
+    if plot_std:
+        plot_error_line(t, mean_acc, std_acc, legend_vec=legend_vec, init_idx=0)
+    else:
+        plot_error_line(t, mean_acc, legend_vec=legend_vec, init_idx=0)
     plt.xlabel(r'Time steps ($1 \times 10^{5}$)')
     plt.xlim((min(t), max(t)))
     plt.ylabel('Average reward')
-    # plt.savefig('images/test_accuracy.pdf', bbox_inches='tight')
+    plt.savefig('images/{}_test_reward.pdf'.format(env_name), bbox_inches='tight')
     plt.show()
 
 def plot_test_acc():
@@ -312,10 +383,17 @@ def smooth(scalars, weight = 0.8):
         last = smoothed_val                                  # Anchor the last smoothed value
     return np.asarray(smoothed)
 
-# # # Fig: test acc
-print('------Fig: test acc------')
-# plot_test_acc()
-plot_acc_curves()
+# # Fig: test acc
+# print('------Fig: test acc------')
+# plot_acc_curves(result_path = 'runs/ATD3_walker2d',
+#                 env_name = 'RoboschoolWalker2d')
+# plot_acc_curves(result_path = 'runs/ATD3_Atlas', env_name = 'WebotsAtlas',
+#                 policy_name_vec = ['TD3', 'TD3', 'ATD3_RNN'], reward_name_idx = [0, 9, 9])
+
+
+# Fig: ablation study for different rewards
+print('------Fig: ablation acc------')
+plot_ablation_acc()
 
 # # Fig: joint angle
 # print('-----Fig: joint angle-----')

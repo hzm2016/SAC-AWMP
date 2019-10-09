@@ -50,13 +50,13 @@ if __name__ == "__main__":
     #     env.run()
     #     env.reset()
     env = Atlas(action_dim=6, obs_dim=22)
-    reward_name_vec = ['r_d', 'r_s', 'r_f', 'r_n', 'r_gv', 'r_lhs', 'r_gs', 'r_cg', 'r_fr', 'r_po']
+    reward_name_vec = ['r_d', 'r_s', 'r_n', 'r_lhs', 'r_cg', 'r_gs', 'r_fr', 'r_f', 'r_gv', 'r_po']
     policy_name_vec = ['ATD3_RNN', 'ATD3', 'TD3']
-    for r in [0, 9]:
-        for c in range(5):
+    for r in [4]:
+        for c in range(3, 5):
             for n in range(1):
                 print('r: {}, c: {}.'.format(r, c))
                 main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
-                     policy_name = policy_name_vec[-1],
+                     policy_name = policy_name_vec[1],
                      state_noise= 0.04 * n, seed=c)
     env.close()
