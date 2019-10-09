@@ -3,6 +3,7 @@ print(os.getcwd())
 import sys
 project_path = '../../../../../'
 sys.path.insert(0, project_path + 'code')
+sys.path.insert(0, '/usr/local/webots/lib/python36')
 print(sys.path)
 from gym_webots import Atlas
 import argparse
@@ -54,7 +55,7 @@ if __name__ == "__main__":
     policy_name_vec = ['ATD3_RNN', 'ATD3', 'TD3']
     for r in [4]:
         for c in range(5):
-            for p in [0]:
+            for p in [-1]:
                 print('r: {}, c: {}.'.format(r, c))
                 main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
                      policy_name = policy_name_vec[p], seed=c)
