@@ -245,6 +245,10 @@ class Solver(object):
                     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
                     out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (600, 400))
                 obs = self.env.reset()
+                state = [0.5, 0, 1, 1, 0, 1, 0, 0, -0.2, 0.3, -0.15, 0.34, -0.49, 0.32, -0.51, 0.64, -0.05, 0.42, -0.23, 0.15,
+                         0, 0]
+                print(np.asarray(self.env.set_robot(state)) - np.asarray(obs))
+                # print(self.env.step(np.asarray([0, 0, 0, 0, 0, 0])))
                 if 'RNN' in self.args.policy_name:
                     obs_vec = np.dot(np.ones((self.args.seq_len, 1)), obs.reshape((1, -1)))
 
@@ -256,15 +260,15 @@ class Solver(object):
                         action = self.policy.select_action(np.array(obs_vec))
                     else:
                         action = self.policy.select_action(np.array(obs))
-
-                    obs, reward, done, _ = self.env.step(action)
-
-                    if 'RNN' in self.args.policy_name:
-                        obs_vec = utils.fifo_data(obs_vec, obs)
-
-                    obs[8:20] += np.random.normal(0, self.args.state_noise, size=obs[8:20].shape[0]).clip(
-                        -1, 1)
-                    obs_mat = np.c_[obs_mat, np.asarray(obs)]
+                    # print(self.env.step(np.asarray([0, 0, 0, 0, 0, 0])))
+                    # obs, reward, done, _ = self.env.step(action)
+                    #
+                    # if 'RNN' in self.args.policy_name:
+                    #     obs_vec = utils.fifo_data(obs_vec, obs)
+                    #
+                    # obs[8:20] += np.random.normal(0, self.args.state_noise, size=obs[8:20].shape[0]).clip(
+                    #     -1, 1)
+                    # obs_mat = np.c_[obs_mat, np.asarray(obs)]
 
                     if self.args.save_video:
                         img = self.env.render(mode='rgb_array')
@@ -285,7 +289,6 @@ def evaluate_policy(env, policy, args, eval_episodes=10):
     avg_reward = 0.
     for _ in range(eval_episodes):
         obs = env.reset()
-
         if 'RNN' in args.policy_name:
             obs_vec = np.dot(np.ones((args.seq_len, 1)), obs.reshape((1, -1)))
         done = False

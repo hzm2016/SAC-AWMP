@@ -36,6 +36,28 @@ class RoboschoolWalker2d(RoboschoolForwardWalkerMujocoXML):
         RoboschoolForwardWalkerMujocoXML.robot_specific_reset(self)
         for n in ["foot_joint", "foot_left_joint"]:
             self.jdict[n].power_coef = 30.0
+    def set_robot(self, state):
+        body_xyz = [0, 0, state[0]]
+        body_v_xyz = np.asarray(state[3:6]) / 0.3
+        body_rpy = [state[6], state[7], self.body_rpy[2]]
+        joint_angles = np.asarray(state[8:20:2])
+        joint_angles[[0, 3]] /= 0.7161972
+        joint_angles[[1, 4]] /= 0.7639438
+        joint_angles[[2, 5]] /= 1.2732396
+        joint_speed = np.asarray(state[9:20:2])
+        joint_speed *= 10
+        self.cpp_robot.query_position()
+        pose = self.robot_body.pose()
+        pose.set_xyz(body_xyz[0], body_xyz[1], body_xyz[2])
+        pose.set_rpy(body_rpy[0], body_rpy[1], body_rpy[2])  # just face random direction, but stay straight otherwise
+        self.cpp_robot.set_pose_and_speed(pose, body_v_xyz[0], body_v_xyz[1], body_v_xyz[2])
+        for i in range(len(self.ordered_joints)):
+            j = self.ordered_joints[i]
+            j_position = j.current_position()
+            j.reset_current_position(j_position[0] + joint_angles[i], j_position[1] + joint_speed[i])
+        for r in self.mjcf:
+            r.query_position()
+        return self.calc_state()
 
 class RoboschoolHalfCheetah(RoboschoolForwardWalkerMujocoXML):
     '''

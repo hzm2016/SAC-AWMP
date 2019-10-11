@@ -5,7 +5,6 @@ project_path = '../'
 sys.path.insert(0, project_path + 'code')
 print(sys.path)
 import roboschool, gym
-from roboschool import gym_mujoco_xml_env, gym_forward_walker
 import argparse
 from utils.solver import utils, Solver
 
