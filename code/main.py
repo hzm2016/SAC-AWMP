@@ -5,6 +5,7 @@ project_path = '../'
 sys.path.insert(0, project_path + 'code')
 print(sys.path)
 import roboschool, gym
+from roboschool import gym_mujoco_xml_env, gym_forward_walker
 import argparse
 from utils.solver import utils, Solver
 
@@ -15,8 +16,9 @@ def main(env, reward_name ='', policy_name ='TD3', state_noise = 0.0, seed = 0):
     parser.add_argument("--log_path", default='runs/ATD3_walker2d')
 
     parser.add_argument("--eval_only", default=True)
-    parser.add_argument("--render", default=False)
-    parser.add_argument("--save_video", default=True)
+    parser.add_argument("--render", default=True)
+    parser.add_argument("--save_video", default=False)
+    parser.add_argument("--evaluate_Q_value", default=False)
     parser.add_argument("--reward_name", default=reward_name,
                         help='Name of your method (default: )')  # Name of the method
 

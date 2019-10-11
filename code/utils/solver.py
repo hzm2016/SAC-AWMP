@@ -304,3 +304,23 @@ def evaluate_policy(env, policy, args, eval_episodes=10):
     # print ("Evaluation over %d episodes: %f" % (eval_episodes, avg_reward))
     # print ("---------------------------------------"                      )
     return avg_reward
+
+
+def cal_true_value(env, policy, replay_buffer, args, eval_episodes=1000):
+
+    avg_reward = 0.
+    obs, _, _, _, _, _ = replay_buffer.sample(eval_episodes)
+
+    for i in range(eval_episodes):
+        obs = obs[i]
+        done = False
+        dis_gamma = 1
+        while not done:
+            action = policy.select_action(np.array(obs))
+            obs, reward, done, _ = env.step(action)
+            avg_reward += dis_gamma * reward
+            dis_gamma *= args.discount
+
+    avg_reward /= eval_episodes
+
+    return avg_reward
