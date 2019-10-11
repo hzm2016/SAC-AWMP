@@ -3,6 +3,7 @@ print(os.getcwd())
 import sys
 project_path = '../../../../../'
 sys.path.insert(0, project_path + 'code')
+sys.path.insert(0, '/usr/local/webots/lib/python36')
 print(sys.path)
 from gym_webots import Atlas
 import argparse
