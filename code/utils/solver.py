@@ -227,22 +227,22 @@ class Solver(object):
         return reward
 
     def eval_only(self):
-        video_dir = '{}/video/{}_{}'.format(self.result_path, self.args.env_name, self.args.reward_name)
-        if self.args.save_video and not os.path.exists(video_dir):
+        video_dir = '{}/video/{}_{}_{}'.format(self.result_path, self.args.env_name,
+                                               self.args.policy_name, self.args.reward_name)
+        if not os.path.exists(video_dir):
             os.makedirs(video_dir)
-        model_path_vec = glob.glob(self.result_path + '/{}/*_{}*_{}'.format(self.args.log_path,
-                                                                            self.args.policy_name,
-                                                                            self.args.reward_name))
+        model_path_vec = glob.glob(self.result_path + '/{}/*_{}_{}_{}'.format(
+            self.args.log_path, self.args.policy_name, self.args.env_name, self.args.reward_name))
         print(model_path_vec)
         for model_path in model_path_vec:
             print(model_path)
             self.policy.load("%s" % (self.file_name), directory=model_path)
             for _ in range(1):
+                video_name = video_dir + '/{}_{}_{}.mp4'.format(
+                    datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
+                    self.file_name, self.args.state_noise)
                 if self.args.save_video:
                     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-                    video_name = video_dir + '/{}_{}_{}.mp4'.format(
-                        datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
-                        self.file_name, self.args.state_noise)
                     out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (600, 400))
                 obs = self.env.reset()
                 if 'RNN' in self.args.policy_name:
@@ -270,11 +270,12 @@ class Solver(object):
                         img = self.env.render(mode='rgb_array')
                         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
                         out_video.write(img)
-                    else:
+                    elif self.args.render:
                         self.env.render()
 
-                if self.args.save_video:
+                if not self.args.render:
                     utils.write_table(video_name + '_state', np.transpose(obs_mat))
+                if self.args.save_video:
                     out_video.release()
         self.env.reset()
 

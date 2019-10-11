@@ -56,8 +56,8 @@ class ReplayBuffer(object):
         return np.array(x), np.array(y), np.array(u), np.array(r).reshape(-1, 1), np.array(d).reshape(-1, 1)
 
 
-def read_table(file_name='../../data/joint_angle.xls'):
-    dfs = pd.read_excel(file_name, sheet_name='run')
+def read_table(file_name='../../data/joint_angle.xls', sheet_name='walk_fast'):
+    dfs = pd.read_excel(file_name, sheet_name=sheet_name)
     data = dfs.values[1:-1, -6:].astype(np.float)
     return data
 
@@ -80,10 +80,10 @@ def calc_gait_symmetry(joint_angle):
 
 
 def calc_cos_similarity(joint_angle_resample, human_joint_angle):
-    joint_num = human_joint_angle.shape[1]
+    joint_num = human_joint_angle.shape[0]
     dist = np.zeros(joint_num)
     for c in range(joint_num):
-        dist[c] = 1 - distance.cosine(joint_angle_resample[:, c], human_joint_angle[:, c])
+        dist[c] = 1 - distance.cosine(joint_angle_resample[c, :], human_joint_angle[c, :])
     return np.mean(dist)
 
 

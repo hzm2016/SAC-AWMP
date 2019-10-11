@@ -14,7 +14,8 @@ def main(env, reward_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
     parser.add_argument("--env_name", default="WebotsAtlas-v1")  # OpenAI gym environment name
     parser.add_argument("--log_path", default='runs/ATD3_Atlas')
 
-    parser.add_argument("--eval_only", default=False)
+    parser.add_argument("--eval_only", default=True)
+    parser.add_argument("--render", default=False)
     parser.add_argument("--save_video", default=False)
     parser.add_argument("--reward_name", default=reward_name,
                         help='Name of your method (default: )')  # Name of the method
@@ -51,11 +52,14 @@ if __name__ == "__main__":
     #     env.reset()
     env = Atlas(action_dim=6, obs_dim=22)
     reward_name_vec = ['r_d', 'r_s', 'r_n', 'r_lhs', 'r_cg', 'r_gs', 'r_fr', 'r_f', 'r_gv', 'r_po']
-    policy_name_vec = ['ATD3_RNN', 'ATD3', 'TD3']
-    for r in [4]:
-        for c in range(5):
-            for p in [0]:
-                print('r: {}, c: {}.'.format(r, c))
-                main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
-                     policy_name = policy_name_vec[p], seed=c)
+    policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
+    r_vec = [4]
+    p_vec = [2]
+    for i in range(len(r_vec)):
+        r = r_vec[i]
+        p = p_vec[i]
+        for c in [0]:
+            print('r: {}, c: {}.'.format(r, c))
+            main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
+                 policy_name = policy_name_vec[p], seed=c)
     env.close()

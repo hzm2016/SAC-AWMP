@@ -37,8 +37,8 @@ def plot_error_line(t, acc_mean_mat, acc_std_mat = None, legend_vec = None,
         plt.legend(legend_vec, loc = 'upper left')
 
 
-def plot_acc_curves(reward_name_idx = None, policy_name_vec=None, result_path = 'runs/ATD3_walker2d',
-                    env_name = 'RoboschoolWalker2d'):
+def plot_reward_curves(reward_name_idx = None, policy_name_vec=None, result_path ='runs/ATD3_walker2d',
+                       env_name = 'RoboschoolWalker2d'):
     if reward_name_idx is None:
         reward_name_idx = [0, 9, 9, 9]
     if policy_name_vec is None:
@@ -52,7 +52,7 @@ def plot_acc_curves(reward_name_idx = None, policy_name_vec=None, result_path = 
         if 0 == reward_name_idx[r]:
             reward_legend = '$r^d$'
         else:
-            reward_legend = '$r^d + r^g$'
+            reward_legend = '$r^d + \hat{r}^g$'
         legend_vec.append(policy_name_vec[r] + ' + ' + reward_legend)
         file_name_vec = glob.glob('{}/*_{}_{}*{}/test_accuracy.xls'.format(
             result_path, policy_name_vec[r], env_name, reward_str))
@@ -67,6 +67,7 @@ def plot_acc_curves(reward_name_idx = None, policy_name_vec=None, result_path = 
 
         if acc_mat is not None:
             max_acc = np.max(acc_mat[r, :, :], axis=-1)
+            # print(max_acc)
             print('Max acc for {} and {}, mean: {}, std: {}, d_reward:{}'.format(
                 policy_name_vec[r], reward_str, np.mean(max_acc, axis=-1),
                 np.std(max_acc, axis=-1), np.mean(max_acc, axis=-1)-last_reward))
@@ -76,8 +77,8 @@ def plot_acc_curves(reward_name_idx = None, policy_name_vec=None, result_path = 
         plot_acc_mat(acc_mat, legend_vec, env_name)
 
 
-def plot_ablation_acc(result_path = 'runs/ATD3_walker2d',
-                    env_name = 'RoboschoolWalker2d'):
+def plot_ablation_reward(result_path ='runs/ATD3_walker2d',
+                         env_name = 'RoboschoolWalker2d'):
     reward_name_vec = ['r_d', 'r_s', 'r_n', 'r_lhs', 'r_cg', 'r_gs', 'r_fr', 'r_f', 'r_gv', 'r_po']
     reward_tick_vec = ['r^d', 'r^s', 'r^n', 'r^{lhs}', 'r^{cg}', 'r^{gs}', 'r^{fr}', 'r^{f}', 'r^{gv}', 'r^{po}']
     # reward_name_vec = ['r_d', 'r_s', 'r_f', 'r_n', 'r_gv', 'r_lhs', 'r_gs', 'r_cg', 'r_fr', 'r_po']
@@ -223,24 +224,85 @@ def plot_joint_angle():
 def read_joint_angle_gait(file_name):
     dfs = pd.read_excel(file_name)
     obs_mat = dfs.values.T
-    joint_angle_robot = obs_mat[8:20:2, :]
-    foot_contact_vec = signal.medfilt(obs_mat[-2, :], 11)
-    gait_num_vec = np.zeros(foot_contact_vec.shape)
-    pre_idx = 0
-    for i in range(1, len(foot_contact_vec)):
-        if 1 == foot_contact_vec[i] - foot_contact_vec[i - 1]:
-            gait_num_vec[pre_idx:] += 1
-            pre_idx = i
+    joint_idx_list = [[8, 10, 12], [14, 16, 18]]
     joint_angle_gait = np.zeros((0, 100))
-    for gait_num in range(1, int(max(gait_num_vec))):
-        if np.sum((gait_num_vec == gait_num).astype(np.int)) > 20:
-            joint_angle_resample = signal.resample(joint_angle_robot[:, gait_num_vec == gait_num], 100, axis=1)
-            joint_angle_gait = np.r_[joint_angle_gait, joint_angle_resample]
+    for r in range(2):
+        joint_angle_robot = np.copy(obs_mat[joint_idx_list[r], :])
+        foot_contact_vec = signal.medfilt(obs_mat[-2 + r, :], 11)
+        gait_num_vec = np.zeros(foot_contact_vec.shape)
+        pre_idx = 0
+        for i in range(1, len(foot_contact_vec)):
+            if 1 == foot_contact_vec[i] - foot_contact_vec[i - 1]:
+                gait_num_vec[pre_idx:] += 1
+                pre_idx = i
+        for gait_num in range(1, int(max(gait_num_vec))):
+            if np.sum((gait_num_vec == gait_num).astype(np.int)) > 25:
+                joint_angle_resample = signal.resample(joint_angle_robot[:, gait_num_vec == gait_num], 100, axis=1)
+                joint_angle_gait = np.r_[joint_angle_gait, joint_angle_resample]
+
     if 0 == joint_angle_gait.shape[0]:
         return None, None
-    joint_angle_gait = joint_angle_gait.reshape((-1, 6, 100))
+    joint_angle_gait = joint_angle_gait.reshape((-1, 3, 100))
     return np.mean(joint_angle_gait, axis=0), np.std(joint_angle_gait, axis=0)
 
+
+def plot_gait_angle(reward_name_idx = None, policy_name_vec=None, result_path ='video',
+                       env_name = 'RoboschoolWalker2d', gait_name = 'run'):
+    if reward_name_idx is None:
+        reward_name_idx = [0, 4, 4, 4]
+    if policy_name_vec is None:
+        policy_name_vec = ['TD3','TD3', 'ATD3', 'ATD3_RNN']
+    reward_name_vec = ['r_d', 'r_s', 'r_n', 'r_lhs', 'r_cg', 'r_gs', 'r_fr', 'r_f', 'r_gv', 'r_po']
+    legend_vec = []
+
+    joint_angle_mean = np.zeros((len(reward_name_idx)+1, 3, 100))
+    joint_angle_mean[-1] = read_table(file_name='../data/joint_angle.xls', sheet_name=gait_name).T[0:3]
+    joint_angle_std = np.zeros((len(reward_name_idx)+1, 3, 100))
+    for r in range(len(reward_name_idx)):
+        reward_str = connect_str_list(reward_name_vec[:reward_name_idx[r]+1])
+        if 0 == reward_name_idx[r]:
+            reward_legend = '$r^d$'
+        else:
+            reward_legend = '$r^d + \hat{r}^g$'
+        legend_vec.append(policy_name_vec[r] + ' + ' + reward_legend)
+        file_name_vec = glob.glob('{}/{}*_{}_{}/*.xls'.format(
+            result_path, env_name, policy_name_vec[r], reward_str))
+        print(file_name_vec)
+        joint_angle_mean_mat = np.zeros((0, 3, 100))
+        for j in range(len(file_name_vec)):
+            print(file_name_vec[j])
+            joint_angle_mean_temp, _ = read_joint_angle_gait(file_name_vec[j])
+            if joint_angle_mean_temp is not None:
+                joint_angle_mean_mat = np.r_[joint_angle_mean_mat, joint_angle_mean_temp.reshape(1, 3, 100)]
+                # joint_angle_mean_mat[j,...] = joint_angle_mean_temp
+        joint_angle_mean[r] = np.mean(joint_angle_mean_mat, axis=0)
+        joint_angle_std[r] = np.std(joint_angle_mean_mat, axis=0)
+
+    joint_angle_mean = joint_angle_mean - joint_angle_mean[..., [0]]
+    for r in range(joint_angle_mean.shape[0] - 1):
+        print('Similarity of {}: '.format(legend_vec[r]),
+              calc_cos_similarity(joint_angle_mean[-1], joint_angle_mean[r]))
+
+    fig = plt.figure(figsize=(10, 7))
+
+    plt.rcParams.update({'font.size': 15})
+    t = np.linspace(0, 100, 100)
+    y_label_vec = ['Hip angle', 'Knee angle', 'Ankle angle']
+    print(joint_angle_mean.shape)
+    for i in range(3):
+        plt.subplot(3, 1, i + 1)
+        plot_error_line(t, joint_angle_mean[:, i, :])
+        plt.xlim((min(t), max(t)))
+        plt.ylabel(y_label_vec[i])
+
+    plt.xlabel('Gait cycle (%)')
+    fig.tight_layout()
+    legend_vec.append('Human')
+    print(legend_vec)
+    fig.legend(legend_vec,
+               loc='lower center', ncol=3, bbox_to_anchor=(0.49, 0.96))
+    plt.savefig('images/{}_joint_angle.pdf'.format(env_name), bbox_inches='tight', pad_inches=0.15)
+    plt.show()
 
 
 def plot_gait():
@@ -383,21 +445,25 @@ def smooth(scalars, weight = 0.8):
         last = smoothed_val                                  # Anchor the last smoothed value
     return np.asarray(smoothed)
 
-# # Fig: test acc
-# print('------Fig: test acc------')
-# plot_acc_curves(result_path = 'runs/ATD3_walker2d',
-#                 env_name = 'RoboschoolWalker2d')
-# plot_acc_curves(result_path = 'runs/ATD3_Atlas', env_name = 'WebotsAtlas',
-#                 policy_name_vec = ['TD3', 'TD3', 'ATD3_RNN'], reward_name_idx = [0, 9, 9])
+# # Fig: ablation study for different rewards
+# print('------Fig: ablation reward------')
+# plot_ablation_reward()
+
+# Fig: test acc
+# print('------Fig: test reward------')
+# plot_reward_curves(result_path = 'runs/ATD3_walker2d',
+#                 env_name = 'RoboschoolWalker2d',
+#                 policy_name_vec = ['TD3', 'TD3', 'ATD3', 'ATD3_RNN'],
+#                 reward_name_idx = [0, 4, 4, 4])
+# plot_reward_curves(result_path ='runs/ATD3_Atlas', env_name ='WebotsAtlas',
+#                    policy_name_vec=['TD3', 'TD3', 'ATD3', 'ATD3_RNN'],
+#                    reward_name_idx=[0, 4, 4, 4])
 
 
-# Fig: ablation study for different rewards
-print('------Fig: ablation acc------')
-plot_ablation_acc()
-
-# # Fig: joint angle
-# print('-----Fig: joint angle-----')
-# plot_gait()
+# Fig: joint angle
+print('-----Fig: joint angle-----')
+plot_gait_angle(env_name ='RoboschoolWalker2d', gait_name='run')
+plot_gait_angle(env_name ='WebotsAtlas', gait_name='run')
 
 # # # Fig: joint angle noise
 # print('-----Fig: joint angle noise-----')
