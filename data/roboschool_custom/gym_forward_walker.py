@@ -27,23 +27,35 @@ class RoboschoolForwardWalker(SharedMemoryClientEnv):
 
     def set_robot(self, state):
         state = state.astype(float)
-        body_xyz = [0., 0., state[0]]
-        body_v_xyz = np.asarray(state[3:6]) / 0.3
-        body_rpy = [state[6], state[7], self.body_rpy[2]]
+        # The absolute robot z = z0 + l * cos(pitch)
+        # Because the dz = z - init_z = z - l
+        # z0 = z - l * cos(pitch) = dz + l* (1 - cos(pitch))
+        body_rpy = [0.0, state[7], 0.0]
+        pitch = body_rpy[1]
+        l = self.initial_z
+        body_xyz = [0., 0., float(state[0] + l * (1 - np.cos(pitch)))]
+        # v_x = (v_c * cos(pitch) + v_x0), v_z = (-v_c * sin(pitch) + v_z0)
+        # v_c = dq_rh * 3
+        # body_v_xyz = state[3:6] - np.asarray([0., state[4], 0.], dtype=float) / 0.3
+        v_c = state[9] * 3.0
+        body_v_xyz = (state[3:6] - np.asarray([v_c * np.cos(pitch), state[4], -v_c * np.sin(pitch)], dtype=float)) / 0.3
+        # print('body_v_xyz: {}'.format(body_v_xyz))
+
         joint_angles = state[8:-2:2]
         joint_speed = np.asarray(state[9:-2:2])
-        self.cpp_robot.query_position()
-        pose = self.cpp_robot.root_part.pose()
-        pose.set_xyz(body_xyz[0], body_xyz[1], body_xyz[2])
+        pose = cpp_household.Pose()
         pose.set_rpy(body_rpy[0], body_rpy[1], body_rpy[2])  # just face random direction, but stay straight otherwise
+        pose.set_xyz(body_xyz[0], body_xyz[1], body_xyz[2])
+        self.cpp_robot.set_pose_and_speed(pose, body_v_xyz[0], body_v_xyz[1], body_v_xyz[2])
         for i in range(len(self.ordered_joints)):
             j = self.ordered_joints[i]
             j.reset_current_position(self.relative_angle_to_angle(joint_angles[i], j.limits()), 10 * joint_speed[i])
-        self.cpp_robot.set_pose_and_speed(pose, body_v_xyz[0], body_v_xyz[1], body_v_xyz[2])
         # self.cpp_robot.set_pose(pose)
         for r in self.mjcf:
             r.query_position()
-        return self.calc_state()
+        out_state = self.calc_state()
+        state_error = np.linalg.norm(np.abs(state[:-2] - out_state[:-2]))
+        return out_state, state_error
 
     def robot_specific_reset(self):
         for j in self.ordered_joints:
@@ -91,8 +103,8 @@ class RoboschoolForwardWalker(SharedMemoryClientEnv):
              [np.sin(-yaw),  np.cos(-yaw), 0],
              [           0,             0, 1]]
             )
-        vx, vy, vz = np.dot(self.rot_minus_yaw, self.robot_body.speed())  # rotate speed back to body point of view
 
+        vx, vy, vz = np.dot(self.rot_minus_yaw, self.robot_body.speed())  # rotate speed back to body point of view
         more = np.array([
             z-self.initial_z,
             np.sin(self.angle_to_target), np.cos(self.angle_to_target),
