@@ -129,10 +129,13 @@ class Solver(object):
     def train(self):
         # Evaluate untrained policy
         self.evaluations = [evaluate_policy(self.env, self.policy, self.args)]
-        self.log_dir = '{}/{}/seed_{}_{}_{}_{}_{}'.format(self.result_path, self.args.log_path, self.args.seed,
-                                                          datetime.datetime.now().strftime("%d_%H-%M-%S"),
-                                                          self.args.policy_name, self.args.env_name,
-                                                          self.args.reward_name)
+        # self.log_dir = '{}/{}/seed_{}_{}_{}_{}'.format(self.result_path, self.args.log_path, self.args.seed,
+        #                                                   datetime.datetime.now().strftime("%d_%H-%M-%S"),
+        #                                                   self.args.policy_name, self.args.env_name,
+        #                                                   self.args.reward_name)
+        self.log_dir = '{}/{}/seed_{}_{}_{}'.format(self.result_path, self.args.log_path, self.args.seed,
+                                                    self.args.policy_name, self.args.env_name,
+                                                    self.args.reward_name)
         print("---------------------------------------")
         print("Settings: %s" % self.log_dir)
         print("---------------------------------------")
