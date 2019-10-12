@@ -61,10 +61,12 @@ def main(env, reward_name ='', policy_name ='TD3', state_noise = 0.0, seed = 0):
 
     solver = Solver(args, env, project_path)
     if not args.eval_only:
-
         solver.train()
+        return solver.best_reward
     else:
         solver.eval_only()
+        return 1500
+
 
 
 if __name__ == "__main__":
@@ -81,8 +83,10 @@ if __name__ == "__main__":
     #     main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
     #          policy_name = policy_name_vec[0])
     for p in [0, 1]:
-        main(env, reward_name=utils.connect_str_list([reward_name_vec[0]]),
-             policy_name = policy_name_vec[p])
+        best_reward = 0.
+        while best_reward < 1000:
+            best_reward = main(env, reward_name=utils.connect_str_list([reward_name_vec[0]]),
+                 policy_name=policy_name_vec[p])
     # main(env, reward_name=utils.connect_str_list([reward_name_vec[0]]),
     #      policy_name=policy_name_vec[0])
     # test_env(env)

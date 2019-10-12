@@ -332,8 +332,8 @@ def cal_true_value(env, policy, replay_buffer, args, eval_episodes=1000):
     true_Q_val_vec = []
     init_state_vec, _, _, _, _ = replay_buffer.sample(eval_episodes)
     for i in range(eval_episodes):
-        if 0 == i % 100:
-            print(i)
+        # if 0 == i % 100:
+        #     print(i)
         env.reset()
         obs, obs_error = env.set_robot(init_state_vec[i])
         true_Q_value = 0.
