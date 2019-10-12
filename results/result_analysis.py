@@ -77,6 +77,39 @@ def plot_reward_curves(reward_name_idx = None, policy_name_vec=None, result_path
         plot_acc_mat(acc_mat, legend_vec, env_name)
 
 
+def plot_Q_vals(reward_name_idx = None, policy_name_vec=None, result_path ='runs/ATD3_walker2d',
+                       env_name = 'RoboschoolWalker2d'):
+    if reward_name_idx is None:
+        reward_name_idx = [0, 9, 9, 9]
+    if policy_name_vec is None:
+        policy_name_vec = ['TD3', 'TD3', 'ATD3', 'ATD3_RNN']
+    reward_name_vec = ['r_d', 'r_s', 'r_n', 'r_lhs', 'r_cg', 'r_gs', 'r_fr', 'r_f', 'r_gv', 'r_po']
+    Q_val_mat = None
+    legend_vec = []
+    last_reward = 0.0
+    for r in range(len(policy_name_vec)):
+        reward_str = connect_str_list(reward_name_vec[:reward_name_idx[r]+1])
+        legend_vec.append(policy_name_vec[r])
+        legend_vec.append('True' + policy_name_vec[r])
+        file_names_list = [glob.glob('{}/*_{}_{}*{}/estimate_Q_vals.xls'.format(
+            result_path, policy_name_vec[r], env_name, reward_str)),
+            glob.glob('{}/*_{}_{}*{}/true_Q_vals.xls'.format(
+            result_path, policy_name_vec[r], env_name, reward_str))]
+        for file_name_vec in file_names_list:
+            print(file_name_vec)
+            for c in range(len(file_name_vec)):
+                file_name = file_name_vec[c]
+                dfs = pd.read_excel(file_name)
+                Q_vals = dfs.values.astype(np.float)[:, 0]
+                if Q_val_mat is None:
+                    Q_val_mat = np.zeros((len(reward_name_idx), len(file_name_vec), len(Q_vals)))
+                Q_val_mat[r, c, :] = Q_vals
+
+    if Q_val_mat is not None:
+        plot_acc_mat(Q_val_mat, legend_vec, env_name)
+
+
+
 def plot_ablation_reward(result_path ='runs/ATD3_walker2d',
                          env_name = 'RoboschoolWalker2d'):
     reward_name_vec = ['r_d', 'r_s', 'r_n', 'r_lhs', 'r_cg', 'r_gs', 'r_fr', 'r_f', 'r_gv', 'r_po']
@@ -459,15 +492,18 @@ def smooth(scalars, weight = 0.8):
 #                    policy_name_vec=['TD3', 'TD3', 'ATD3', 'ATD3_RNN'],
 #                    reward_name_idx=[0, 4, 4, 4])
 
+# Fig: Q-value
+print('------Fig: Q value ------')
+plot_Q_vals(result_path = 'runs/ATD3_walker2d_Q_value',
+            env_name = 'RoboschoolWalker2d',
+            policy_name_vec = ['TD3', 'ATD3'],
+            reward_name_idx = [0, 0])
 
-# Fig: joint angle
-print('-----Fig: joint angle-----')
-plot_gait_angle(env_name ='RoboschoolWalker2d', gait_name='run')
-plot_gait_angle(env_name ='WebotsAtlas', gait_name='run')
 
-# # # Fig: joint angle noise
-# print('-----Fig: joint angle noise-----')
-# plot_gait_noise()
+# # Fig: joint angle
+# print('-----Fig: joint angle-----')
+# plot_gait_angle(env_name ='RoboschoolWalker2d', gait_name='run')
+# plot_gait_angle(env_name ='WebotsAtlas', gait_name='run')
 
 
 # # Fig: Q_value

@@ -201,6 +201,8 @@ class Solver(object):
         self.evaluations.append(evaluate_policy(self.env, self.policy, self.args))
         np.save(self.log_dir + "/test_accuracy", self.evaluations)
         utils.write_table(self.log_dir + "/test_accuracy", np.asarray(self.evaluations))
+        utils.write_table(self.log_dir + "/estimate_Q_vals", np.asarray(self.estimate_Q_vals))
+        utils.write_table(self.log_dir + "/true_Q_vals", np.asarray(self.true_Q_vals))
         self.env.reset()
 
     def update_gait_reward(self, new_obs, reward):
