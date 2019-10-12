@@ -24,6 +24,10 @@ class Solver(object):
         self.project_path = project_path
         self.result_path = project_path + "results"
 
+        self.evaluations = []
+        self.estimate_Q_vals = []
+        self.true_Q_vals = []
+
         # Set seeds
         self.env.seed(args.seed)
         torch.manual_seed(args.seed)
@@ -49,6 +53,7 @@ class Solver(object):
         self.total_timesteps = 0
         self.pre_num_steps = self.total_timesteps
         self.timesteps_since_eval = 0
+        self.timesteps_calc_Q_vale = 0
         self.episode_progress = 0.0
         self.best_reward = 0.0
 
@@ -64,16 +69,33 @@ class Solver(object):
                 self.replay_buffer.add_final_reward(self.episode_progress / 1000.0,
                                                     self.env.frame)
         if self.total_timesteps != 0:
-            self.writer.add_scalar('ave_reward/train', self.episode_reward, self.total_timesteps)
+            self.writer_train.add_scalar('ave_reward', self.episode_reward, self.total_timesteps)
             self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount,
                               self.args.tau, self.args.policy_noise, self.args.noise_clip, self.args.policy_freq)
+
+        if self.total_timesteps >= self.args.start_timesteps and \
+                self.timesteps_calc_Q_vale >= self.args.eval_freq/10:
+            self.timesteps_calc_Q_vale %= (self.args.eval_freq/10)
+            estimate_Q_val = self.policy.cal_estimate_value(self.replay_buffer)
+            self.writer_train.add_scalar('Q_value', estimate_Q_val,
+                                         self.total_timesteps)
+            self.estimate_Q_vals.append(estimate_Q_val)
 
         # Evaluate episode
         if self.timesteps_since_eval >= self.args.eval_freq:
             self.timesteps_since_eval %= self.args.eval_freq
             avg_reward = evaluate_policy(self.env, self.policy, self.args)
             self.evaluations.append(avg_reward)
-            self.writer.add_scalar('ave_reward/test', avg_reward, self.total_timesteps)
+            self.writer_test.add_scalar('ave_reward', avg_reward, self.total_timesteps)
+
+            if self.args.evaluate_Q_value:
+                true_Q_value = cal_true_value(env=self.env, policy=self.policy,
+                                              replay_buffer=self.replay_buffer,
+                                              args=self.args)
+                self.writer_test.add_scalar('Q_value', true_Q_value, self.total_timesteps)
+                self.true_Q_vals.append(true_Q_value)
+                print('Estimate Q_value: {}, true Q_value: {}'.format(estimate_Q_val, true_Q_value))
+
             if self.best_reward < avg_reward:
                 self.best_reward = avg_reward
                 print("Best reward! Total T: %d Episode T: %d Reward: %f" %
@@ -81,9 +103,8 @@ class Solver(object):
                 self.policy.save(self.file_name, directory=self.log_dir)
                 np.save(self.log_dir + "/test_accuracy", self.evaluations)
                 utils.write_table(self.log_dir + "/test_accuracy", np.asarray(self.evaluations))
-            # else:
-            # print(("Total T: %d Episode Num: %d Episode T: %d Reward: %f") %
-            #       (total_timesteps, episode_num, episode_timesteps, avg_reward))
+                utils.write_table(self.log_dir + "/estimate_Q_vals", np.asarray(self.estimate_Q_vals))
+                utils.write_table(self.log_dir + "/true_Q_vals", np.asarray(self.true_Q_vals))
 
     def reset(self):
         # Reset environment
@@ -118,7 +139,8 @@ class Solver(object):
         if not os.path.exists(self.log_dir):
             os.makedirs(self.log_dir)
         # TesnorboardX
-        self.writer = SummaryWriter(logdir=self.log_dir)
+        self.writer_train = SummaryWriter(logdir=self.log_dir + '_train')
+        self.writer_test = SummaryWriter(logdir=self.log_dir)
         self.pbar = tqdm(total=self.args.max_timesteps, initial=self.total_timesteps, position=0, leave=True)
         done = True
         while self.total_timesteps < self.args.max_timesteps:
@@ -173,6 +195,7 @@ class Solver(object):
             self.episode_timesteps += 1
             self.total_timesteps += 1
             self.timesteps_since_eval += 1
+            self.timesteps_calc_Q_vale += 1
 
         # Final evaluation
         self.evaluations.append(evaluate_policy(self.env, self.policy, self.args))
@@ -245,9 +268,6 @@ class Solver(object):
                     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
                     out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (600, 400))
                 obs = self.env.reset()
-                state = [0.5, 0, 1, 1, 0, 1, 0, 0, -0.2, 0.3, -0.15, 0.34, -0.49, 0.32, -0.51, 0.64, -0.05, 0.42, -0.23, 0.15,
-                         0, 0]
-                print(np.asarray(self.env.set_robot(state)) - np.asarray(obs))
                 # print(self.env.step(np.asarray([0, 0, 0, 0, 0, 0])))
                 if 'RNN' in self.args.policy_name:
                     obs_vec = np.dot(np.ones((self.args.seq_len, 1)), obs.reshape((1, -1)))
@@ -260,15 +280,14 @@ class Solver(object):
                         action = self.policy.select_action(np.array(obs_vec))
                     else:
                         action = self.policy.select_action(np.array(obs))
-                    # print(self.env.step(np.asarray([0, 0, 0, 0, 0, 0])))
-                    # obs, reward, done, _ = self.env.step(action)
-                    #
-                    # if 'RNN' in self.args.policy_name:
-                    #     obs_vec = utils.fifo_data(obs_vec, obs)
-                    #
-                    # obs[8:20] += np.random.normal(0, self.args.state_noise, size=obs[8:20].shape[0]).clip(
-                    #     -1, 1)
-                    # obs_mat = np.c_[obs_mat, np.asarray(obs)]
+                    obs, reward, done, _ = self.env.step(action)
+
+                    if 'RNN' in self.args.policy_name:
+                        obs_vec = utils.fifo_data(obs_vec, obs)
+
+                    obs[8:20] += np.random.normal(0, self.args.state_noise, size=obs[8:20].shape[0]).clip(
+                        -1, 1)
+                    obs_mat = np.c_[obs_mat, np.asarray(obs)]
 
                     if self.args.save_video:
                         img = self.env.render(mode='rgb_array')
@@ -301,29 +320,42 @@ def evaluate_policy(env, policy, args, eval_episodes=10):
             if 'RNN' in args.policy_name:
                 obs_vec = utils.fifo_data(obs_vec, obs)
             avg_reward += reward
-
     avg_reward /= eval_episodes
     # print ("---------------------------------------"                      )
     # print ("Evaluation over %d episodes: %f" % (eval_episodes, avg_reward))
     # print ("---------------------------------------"                      )
     return avg_reward
 
-
 def cal_true_value(env, policy, replay_buffer, args, eval_episodes=1000):
-
-    avg_reward = 0.
-    obs, _, _, _, _, _ = replay_buffer.sample(eval_episodes)
-
+    true_Q_val_vec = []
+    init_state_vec, _, _, _, _ = replay_buffer.sample(eval_episodes)
     for i in range(eval_episodes):
-        obs = obs[i]
+        if 0 == i % 100:
+            print(i)
+        env.reset()
+        obs, obs_error = env.set_robot(init_state_vec[i])
+        true_Q_value = 0.
+        if obs_error > 1e-3:
+            print('Error of resetting robot: {},\n input obs: {},\n output obs: {}'.format(
+                obs_error, init_state_vec[i], obs))
+            continue
+        # print(obs)
+        if 'RNN' in args.policy_name:
+            obs_vec = np.dot(np.ones((args.seq_len, 1)), obs.reshape((1, -1)))
         done = False
-        dis_gamma = 1
+        dis_gamma = 1.
         while not done:
-            action = policy.select_action(np.array(obs))
+            if 'RNN' in args.policy_name:
+                action = policy.select_action(np.array(obs_vec))
+            else:
+                action = policy.select_action(np.array(obs))
+            # action = np.zeros(6, dtype=float)
             obs, reward, done, _ = env.step(action)
-            avg_reward += dis_gamma * reward
+            reward -= 0.5
+            true_Q_value += dis_gamma * reward
             dis_gamma *= args.discount
-
-    avg_reward /= eval_episodes
-
-    return avg_reward
+            if 'RNN' in args.policy_name:
+                obs_vec = utils.fifo_data(obs_vec, obs)
+            # env.render()
+        true_Q_val_vec.append(true_Q_value)
+    return np.mean(np.asarray(true_Q_val_vec))

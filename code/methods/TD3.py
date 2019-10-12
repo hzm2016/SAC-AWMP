@@ -85,6 +85,14 @@ class TD3(object):
 		state = torch.FloatTensor(state.reshape(1, -1)).to(device)
 		return self.actor(state).cpu().data.numpy().flatten()
 
+	def cal_estimate_value(self, replay_buffer, eval_states=10000):
+		x, _, u, _, _ = replay_buffer.sample(eval_states)
+		state = torch.FloatTensor(x).to(device)
+		action = torch.FloatTensor(u).to(device)
+		Q1, Q2 = self.critic(state, action)
+		# target_Q = torch.mean(torch.min(Q1, Q2))
+		Q_val = torch.mean(Q1)
+		return Q_val.detach().cpu().numpy()
 
 	def train(self, replay_buffer, iterations, batch_size=100, discount=0.99, tau=0.005, policy_noise=0.2, noise_clip=0.5, policy_freq=2):
 

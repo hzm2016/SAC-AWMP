@@ -89,9 +89,10 @@ class ATD3(object):
 		x, _, u, _, _ = replay_buffer.sample(eval_states)
 		state = torch.FloatTensor(x).to(device)
 		action = torch.FloatTensor(u).to(device)
-		target_Q1, target_Q2 = self.critic_target(state, action)
-		target_Q = 0.5 * (torch.mean(target_Q1) + torch.mean(target_Q2))
-		return target_Q.cpu().numpy()
+		Q1, Q2 = self.critic(state, action)
+		# target_Q = torch.mean(torch.min(Q1, Q2))
+		Q_val = 0.5 * (torch.mean(Q1) + torch.mean(Q2))
+		return Q_val.detach().cpu().numpy()
 
 
 	def train(self, replay_buffer, iterations, batch_size=100, discount=0.99, tau=0.005,
