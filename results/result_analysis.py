@@ -27,7 +27,7 @@ def plot_error_line(t, acc_mean_mat, acc_std_mat = None, legend_vec = None,
     color_vec = plt.cm.Dark2(np.arange(8))
     for r in range(acc_mean_mat.shape[0]):
         plt.plot(t, acc_mean_mat[r, :], linestyle=line_vec[idx_step * r + init_idx],
-                 marker=marker_vec[idx_step * r + init_idx], markersize=marker_size, linewidth=2,
+                 marker=marker_vec[idx_step * r + init_idx], markersize=marker_size, linewidth= 2,
                  color=color_vec[(idx_step * r + init_idx) % 8])
         plt.fill_between(t, acc_mean_mat[r, :] - acc_std_mat[r, :],
                          acc_mean_mat[r, :] + acc_std_mat[r, :], alpha=0.2,
@@ -37,7 +37,7 @@ def plot_error_line(t, acc_mean_mat, acc_std_mat = None, legend_vec = None,
         plt.legend(legend_vec, loc = 'upper left')
 
 def plot_reward_curves(reward_name_idx = None, policy_name_vec=None, result_path ='runs/ATD3_walker2d',
-                       env_name = 'RoboschoolWalker2d'):
+                       env_name = 'RoboschoolWalker2d', fig = None):
     if reward_name_idx is None:
         reward_name_idx = [0, 9, 9, 9]
     if policy_name_vec is None:
@@ -73,7 +73,8 @@ def plot_reward_curves(reward_name_idx = None, policy_name_vec=None, result_path
             last_reward = np.mean(max_acc, axis=-1)
 
     if reward_mat is not None:
-        plot_acc_mat(reward_mat, legend_vec, env_name)
+        plot_acc_mat(reward_mat, None, env_name, fig=fig)
+    return legend_vec
 
 
 def read_csv_vec(file_name):
@@ -93,56 +94,67 @@ def plot_Q_vals(reward_name_idx = None, policy_name_vec=None, result_path ='runs
         reward_str = connect_str_list(reward_name_vec[:reward_name_idx[r]+1])
         legend_vec.append(policy_name_vec[r])
         legend_vec.append('True ' + policy_name_vec[r])
-        file_names_list = [glob.glob('{}/*_{}_{}*{}_train-tag*.csv'.format(
-            result_path, policy_name_vec[r], env_name, reward_str)),
-            glob.glob('{}/*_{}_{}*{}-tag*.csv'.format(
-            result_path, policy_name_vec[r], env_name, reward_str))]
-        # file_names_list = [glob.glob('{}/*_{}_{}*{}/estimate_Q_vals.xls'.format(
+        # file_names_list = [glob.glob('{}/*_{}_{}*{}_train-tag*.csv'.format(
         #     result_path, policy_name_vec[r], env_name, reward_str)),
-        #     glob.glob('{}/*_{}_{}*{}/true_Q_vals.xls'.format(
+        #     glob.glob('{}/*_{}_{}*{}-tag*.csv'.format(
         #     result_path, policy_name_vec[r], env_name, reward_str))]
+        file_names_list = [glob.glob('{}/*_{}_{}*/estimate_Q_vals.xls'.format(
+            result_path, policy_name_vec[r], env_name)),
+            glob.glob('{}/*_{}_{}*/true_Q_vals.xls'.format(
+            result_path, policy_name_vec[r], env_name))]
         for i in range(len(file_names_list)):
         # for file_name_vec in file_names_list:
             file_name_vec = file_names_list[i]
             print(file_name_vec)
             for c in range(len(file_name_vec)):
                 file_name = file_name_vec[c]
-                # dfs = pd.read_excel(file_name)
-                # Q_vals = dfs.values.astype(np.float)[:, 0]
-                Q_vals = read_csv_vec(file_name)
+                dfs = pd.read_excel(file_name)
+                Q_vals = dfs.values.astype(np.float)[:, 0]
+                # Q_vals = read_csv_vec(file_name)
                 if Q_val_mat is None:
-                    Q_val_mat = np.zeros((len(reward_name_idx) * 2, len(file_name_vec), 281))
+                    Q_val_mat = np.zeros((len(reward_name_idx) * 2, len(file_name_vec), 271))
                 if Q_vals.shape[0] < Q_val_mat.shape[-1]:
-                    Q_vals = np.interp(np.arange(281), np.arange(281, step = 10), Q_vals)
-                    # Q_vals = signal.resample(Q_vals, 281)
-                Q_val_mat[2 * r + i, c, :] = Q_vals[:281]
+                    Q_vals = np.interp(np.arange(271), np.arange(271, step = 10), Q_vals[:28])
+                Q_val_mat[2 * r + i, c, :] = Q_vals[:271]
 
     if Q_val_mat is not None:
-
         fig = plt.figure(figsize=(15, 6))
         plt.tight_layout()
         plt.rcParams.update({'font.size': 20})
         plt.subplot(1, 2, 1)
         time_step = Q_val_mat.shape[-1] - 1
-        t = np.linspace(0, 0 + 0.01 * time_step, time_step + 1)
-        plot_acc_mat(Q_val_mat[[0, 2]],
-                     legend_vec, env_name, smooth_weight=0.0, plot_std=True,
-                     fig_name='Q_value', y_label='Q value', fig = fig, t = t)
-        t = np.linspace(0, 0 + 0.01 * time_step, time_step / 10 + 1)
-        plot_acc_mat(Q_val_mat[[1, 3], :, ::10],
-                     np.asarray(legend_vec)[[0, 2, 1, 3]], env_name, smooth_weight=0.0, plot_std=True,
-                     fig_name='Q_value', y_label='Q value', fig=fig, t=t, init_idx=2)
+        for i in range(Q_val_mat.shape[0]):
+            if 0 == i % 2:
+                t = np.linspace(0, 0 + 0.01 * time_step, time_step + 1)
+                plot_acc_mat(Q_val_mat[[i]],
+                             None, env_name, smooth_weight=0.0, plot_std=True,
+                             fig_name=None, y_label='Q value', fig = fig, t = t, marker_size = 3, init_idx=i)
+            else:
+                t = np.linspace(0, 0 + 0.01 * time_step, time_step / 10 + 1)
+                plot_acc_mat(Q_val_mat[[i], :, ::10],
+                             None, env_name, smooth_weight=0.0, plot_std=True,
+                             fig_name=None, y_label='Q value', fig=fig, t=t, init_idx=i, marker_size = 5)
+        plt.yticks([0, 50, 100])
         plt.subplot(1, 2, 2)
         Q_val_mat = Q_val_mat[:, :, 90:]
         time_step = Q_val_mat.shape[-1] - 1
         t = np.linspace(1, 1 + 0.01 * time_step, time_step + 1)
-        error_Q_val_mat = (Q_val_mat[[0, 2]] - Q_val_mat[[1, 3]]) / Q_val_mat[[1, 3]]
-        print('Mean error of Q value, TD3: {}, ATD3: {}'.format(np.mean(error_Q_val_mat[0, :, -50:]),
-                                                               np.mean(error_Q_val_mat[1, :, -50:])))
+        # error_Q_val_mat = (Q_val_mat[[0, 2]] - Q_val_mat[[1, 3]]) / Q_val_mat[[1, 3]]
+        error_Q_val_mat = (Q_val_mat[0:6:2] - Q_val_mat[1:6:2]) / np.mean(Q_val_mat[1:6:2],
+                                                                          axis = 1, keepdims=True)
+        print('Mean error of Q value, TD3: {}, ATD3: {}, ATD3_RNN: {}'.format(
+            np.mean(error_Q_val_mat[0, :, -50:]), np.mean(error_Q_val_mat[1, :, -50:]),
+            np.mean(error_Q_val_mat[2, :, -50:])))
         plot_acc_mat(error_Q_val_mat,
-                     legend_vec[0:3:2], env_name, smooth_weight=0.0, plot_std=True,
-                     fig_name='Q_value', y_label='Error of Q value / True Q value',
-                     fig = fig, t = t, init_idx=0, idx_step=1)
+                     None, env_name, smooth_weight=0.0, plot_std=True,
+                     fig_name=None, y_label='Error of Q value / True Q value',
+                     fig = fig, t = t, init_idx=0, idx_step=2, marker_size = 3)
+        plt.yticks([0, 1, 2])
+        legend = fig.legend(legend_vec,
+                            loc='lower center', ncol=3, bbox_to_anchor=(0.48, 0.93),
+                            frameon=False)
+        plt.savefig('images/{}_{}.pdf'.format(env_name, 'Q_value'), bbox_inches='tight')
+        fig.tight_layout()
         plt.show()
 
 
@@ -209,9 +221,9 @@ def connect_str_list(str_list):
 
 
 def plot_acc_mat(acc_mat, legend_vec, env_name, plot_std = True, smooth_weight = 0.8, eval_freq = 0.05,
-                 t = None, fig = None, fig_name = 'test_reward', y_label = 'Average reward',
-                 init_idx = 0, idx_step = 1):
-    print(legend_vec)
+                 t = None, fig = None, fig_name = None, y_label = 'Test reward',
+                 init_idx = 0, idx_step = 1, marker_size = 2):
+    # print(legend_vec)
     for r in range(acc_mat.shape[0]):
         for c in range(acc_mat.shape[1]):
             acc_mat[r, c, :] = smooth(acc_mat[r, c, :], weight=smooth_weight)
@@ -229,13 +241,16 @@ def plot_acc_mat(acc_mat, legend_vec, env_name, plot_std = True, smooth_weight =
         plt.tight_layout()
         plt.rcParams.update({'font.size': 15})
     if plot_std:
-        plot_error_line(t, mean_acc, std_acc, legend_vec=legend_vec, init_idx=init_idx, idx_step = idx_step)
+        plot_error_line(t, mean_acc, std_acc, legend_vec=legend_vec,
+                        init_idx=init_idx, idx_step = idx_step, marker_size=marker_size)
     else:
-        plot_error_line(t, mean_acc, legend_vec=legend_vec, init_idx=init_idx, idx_step = idx_step)
-    plt.xlabel(r'Time steps ($1 \times 10^{5}$)')
+        plot_error_line(t, mean_acc, legend_vec=legend_vec,
+                        init_idx=init_idx, idx_step = idx_step, marker_size=marker_size)
+    plt.xlabel('{}: '.format(env_name) + r'Time steps ($1 \times 10^{5}$)')
     plt.xlim((min(t), max(t)))
     plt.ylabel(y_label)
-    plt.savefig('images/{}_{}.pdf'.format(env_name, fig_name), bbox_inches='tight')
+    if fig_name is not None:
+        plt.savefig('images/{}_{}.pdf'.format(env_name, fig_name), bbox_inches='tight')
     if fig is None:
         plt.show()
 
@@ -319,6 +334,36 @@ def read_joint_angle_gait(file_name):
         return None, None
     joint_angle_gait = joint_angle_gait.reshape((-1, 3, 100))
     return np.mean(joint_angle_gait, axis=0), np.std(joint_angle_gait, axis=0)
+
+
+def plot_all_test_reward():
+    fig = plt.figure(figsize=(15, 6))
+    fig.tight_layout()
+    plt.rcParams.update({'font.size': 20})
+    plt.subplot(1, 2, 1)
+    legend_vec = plot_reward_curves(result_path='runs/ATD3_walker2d',
+                       env_name='RoboschoolWalker2d',
+                       policy_name_vec=['TD3', 'TD3', 'ATD3', 'ATD3_RNN'],
+                       reward_name_idx=[0, 4, 4, 4], fig = fig)
+    plt.yticks([0, 1000, 2000])
+    plt.xticks([0, 1.5, 3])
+    plt.subplot(1, 2, 2)
+    plot_reward_curves(result_path='runs/ATD3_Atlas', env_name='WebotsAtlas',
+                       policy_name_vec=['TD3', 'TD3', 'ATD3', 'ATD3_RNN'],
+                       reward_name_idx=[0, 4, 4, 4], fig = fig)
+    plt.yticks([0, 1000, 2000, 3000])
+    plt.xticks([0, 5, 10])
+    # legend_vec = plot_gait_angle(env_name='RoboschoolWalker2d', gait_name='run', plot_col = 1)
+    # plot_gait_angle(env_name='WebotsAtlas', gait_name='run', plot_col = 2)
+
+    print(legend_vec)
+    legend = fig.legend(legend_vec,
+               loc='lower center', ncol=4, bbox_to_anchor=(0.50, 0.93), frameon=False)
+    fig.tight_layout()
+    # legend.get_frame().set_facecolor('none')
+    plt.savefig('images/test_reward.pdf', bbox_inches='tight', pad_inches=0.15)
+    plt.show()
+
 
 def plot_all_gait_angle():
     fig = plt.figure(figsize=(15, 10))
@@ -495,7 +540,8 @@ def smooth(scalars, weight = 0.8):
 # plot_ablation_reward()
 
 # Fig: test acc
-# print('------Fig: test reward------')
+print('------Fig: test reward------')
+plot_all_test_reward()
 # plot_reward_curves(result_path = 'runs/ATD3_walker2d',
 #                 env_name = 'RoboschoolWalker2d',
 #                 policy_name_vec = ['TD3', 'TD3', 'ATD3', 'ATD3_RNN'],
@@ -505,11 +551,11 @@ def smooth(scalars, weight = 0.8):
 #                    reward_name_idx=[0, 4, 4, 4])
 
 ## Fig: Q-value
-print('------Fig: Q value ------')
-plot_Q_vals(result_path = 'runs/ATD3_walker2d_Q',
-            env_name = 'RoboschoolWalker2d',
-            policy_name_vec = ['TD3', 'ATD3'],
-            reward_name_idx = [0, 0])
+# print('------Fig: Q value ------')
+# plot_Q_vals(result_path = 'runs/ATD3_walker2d_Q_value',
+#             env_name = 'RoboschoolWalker2d',
+#             policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN'],
+#             reward_name_idx = [0, 0, 0])
 
 
 # # Fig: joint angle
