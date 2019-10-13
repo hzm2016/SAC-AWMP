@@ -142,9 +142,9 @@ def plot_Q_vals(reward_name_idx = None, policy_name_vec=None, result_path ='runs
         # error_Q_val_mat = (Q_val_mat[[0, 2]] - Q_val_mat[[1, 3]]) / Q_val_mat[[1, 3]]
         error_Q_val_mat = (Q_val_mat[0:6:2] - Q_val_mat[1:6:2]) / np.mean(Q_val_mat[1:6:2],
                                                                           axis = 1, keepdims=True)
-        print('Mean error of Q value, TD3: {}, ATD3: {}, ATD3_RNN: {}'.format(
-            np.mean(error_Q_val_mat[0, :, -50:]), np.mean(error_Q_val_mat[1, :, -50:]),
-            np.mean(error_Q_val_mat[2, :, -50:])))
+        print('Mean absolute normalized error of Q value, TD3: {}, ATD3: {}, ATD3_RNN: {}'.format(
+            np.mean(np.abs(error_Q_val_mat[0, :, -50:])), np.mean(np.abs(error_Q_val_mat[1, :, -50:])),
+            np.mean(np.abs(error_Q_val_mat[2, :, -50:]))))
         plot_acc_mat(error_Q_val_mat,
                      None, env_name, smooth_weight=0.0, plot_std=True,
                      fig_name=None, y_label='Error of Q value / True Q value',
@@ -541,7 +541,7 @@ def smooth(scalars, weight = 0.8):
 
 # Fig: test acc
 print('------Fig: test reward------')
-plot_all_test_reward()
+# plot_all_test_reward()
 # plot_reward_curves(result_path = 'runs/ATD3_walker2d',
 #                 env_name = 'RoboschoolWalker2d',
 #                 policy_name_vec = ['TD3', 'TD3', 'ATD3', 'ATD3_RNN'],
@@ -552,10 +552,10 @@ plot_all_test_reward()
 
 ## Fig: Q-value
 # print('------Fig: Q value ------')
-# plot_Q_vals(result_path = 'runs/ATD3_walker2d_Q_value',
-#             env_name = 'RoboschoolWalker2d',
-#             policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN'],
-#             reward_name_idx = [0, 0, 0])
+plot_Q_vals(result_path = 'runs/ATD3_walker2d_Q_value',
+            env_name = 'RoboschoolWalker2d',
+            policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN'],
+            reward_name_idx = [0, 0, 0])
 
 
 # # Fig: joint angle
