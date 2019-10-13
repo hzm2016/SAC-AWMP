@@ -73,13 +73,14 @@ class Solver(object):
             self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount,
                               self.args.tau, self.args.policy_noise, self.args.noise_clip, self.args.policy_freq)
 
-        if self.total_timesteps >= self.args.start_timesteps and \
-                self.timesteps_calc_Q_vale >= self.args.eval_freq/10:
-            self.timesteps_calc_Q_vale %= (self.args.eval_freq/10)
-            estimate_Q_val = self.policy.cal_estimate_value(self.replay_buffer)
-            self.writer_train.add_scalar('Q_value', estimate_Q_val,
-                                         self.total_timesteps)
-            self.estimate_Q_vals.append(estimate_Q_val)
+        if self.args.evaluate_Q_value:
+            if self.total_timesteps >= self.args.start_timesteps and \
+                    self.timesteps_calc_Q_vale >= self.args.eval_freq/10:
+                self.timesteps_calc_Q_vale %= (self.args.eval_freq/10)
+                estimate_Q_val = self.policy.cal_estimate_value(self.replay_buffer)
+                self.writer_train.add_scalar('Q_value', estimate_Q_val,
+                                             self.total_timesteps)
+                self.estimate_Q_vals.append(estimate_Q_val)
 
         # Evaluate episode
         if self.timesteps_since_eval >= self.args.eval_freq:
@@ -90,7 +91,7 @@ class Solver(object):
 
             if self.args.save_all_policy:
                 self.policy.save(
-                    self.file_name + str(int(self.total_timesteps/self.args.eval_freq)* self.args.eval_freq),
+                    self.file_name + str(int(int(self.total_timesteps/self.args.eval_freq)* self.args.eval_freq)),
                     directory=self.log_dir)
 
 
@@ -109,8 +110,9 @@ class Solver(object):
                 self.policy.save(self.file_name, directory=self.log_dir)
                 np.save(self.log_dir + "/test_accuracy", self.evaluations)
                 utils.write_table(self.log_dir + "/test_accuracy", np.asarray(self.evaluations))
-                utils.write_table(self.log_dir + "/estimate_Q_vals", np.asarray(self.estimate_Q_vals))
-                utils.write_table(self.log_dir + "/true_Q_vals", np.asarray(self.true_Q_vals))
+                if self.args.evaluate_Q_value:
+                    utils.write_table(self.log_dir + "/estimate_Q_vals", np.asarray(self.estimate_Q_vals))
+                    utils.write_table(self.log_dir + "/true_Q_vals", np.asarray(self.true_Q_vals))
 
     def reset(self):
         # Reset environment
@@ -139,7 +141,7 @@ class Solver(object):
         #                                                   datetime.datetime.now().strftime("%d_%H-%M-%S"),
         #                                                   self.args.policy_name, self.args.env_name,
         #                                                   self.args.reward_name)
-        self.log_dir = '{}/{}/seed_{}_{}_{}'.format(self.result_path, self.args.log_path, self.args.seed,
+        self.log_dir = '{}/{}/seed_{}_{}_{}_{}'.format(self.result_path, self.args.log_path, self.args.seed,
                                                     self.args.policy_name, self.args.env_name,
                                                     self.args.reward_name)
         print("---------------------------------------")
@@ -221,8 +223,14 @@ class Solver(object):
 
         np.save(self.log_dir + "/test_accuracy", self.evaluations)
         utils.write_table(self.log_dir + "/test_accuracy", np.asarray(self.evaluations))
-        utils.write_table(self.log_dir + "/estimate_Q_vals", np.asarray(self.estimate_Q_vals))
-        utils.write_table(self.log_dir + "/true_Q_vals", np.asarray(self.true_Q_vals))
+        if self.args.evaluate_Q_value:
+            true_Q_value = cal_true_value(env=self.env, policy=self.policy,
+                                          replay_buffer=self.replay_buffer,
+                                          args=self.args)
+            self.writer_test.add_scalar('Q_value', true_Q_value, self.total_timesteps)
+            self.true_Q_vals.append(true_Q_value)
+            utils.write_table(self.log_dir + "/estimate_Q_vals", np.asarray(self.estimate_Q_vals))
+            utils.write_table(self.log_dir + "/true_Q_vals", np.asarray(self.true_Q_vals))
         self.env.reset()
 
     def update_gait_reward(self, new_obs, reward):

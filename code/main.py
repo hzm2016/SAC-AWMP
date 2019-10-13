@@ -47,8 +47,8 @@ def main(env, reward_name ='', policy_name ='TD3', state_noise = 0.0, seed = 0):
     parser.add_argument("--seed", default=seed, type=int)  # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--start_timesteps", default=1e4,
                         type=int)  # How many time steps purely random policy is run for
-    parser.add_argument("--eval_freq", default=1e4, type=float)  # How often (time steps) we evaluate
-    parser.add_argument("--max_timesteps", default=3e5, type=float)  # Max time steps to run environment for
+    parser.add_argument("--eval_freq", default=1e4, type=int)  # How often (time steps) we evaluate
+    parser.add_argument("--max_timesteps", default=3e5, type=int)  # Max time steps to run environment for
 
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
     parser.add_argument("--state_noise", default=state_noise, type=float)  # Std of Gaussian exploration noise
@@ -88,8 +88,8 @@ if __name__ == "__main__":
     #     while best_reward < 1200:
     #         best_reward = main(env, reward_name=utils.connect_str_list([reward_name_vec[r]]),
     #              policy_name=policy_name_vec[p])
-    r = 0
-    p = 0
+    r = 4
+    p = 2
     main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
          policy_name=policy_name_vec[p])
     # test_env(env)
