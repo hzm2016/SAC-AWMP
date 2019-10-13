@@ -136,7 +136,10 @@ def plot_Q_vals(reward_name_idx = None, policy_name_vec=None, result_path ='runs
         Q_val_mat = Q_val_mat[:, :, 90:]
         time_step = Q_val_mat.shape[-1] - 1
         t = np.linspace(1, 1 + 0.01 * time_step, time_step + 1)
-        plot_acc_mat((Q_val_mat[[0, 2]] - Q_val_mat[[1, 3]]) / Q_val_mat[[1, 3]],
+        error_Q_val_mat = (Q_val_mat[[0, 2]] - Q_val_mat[[1, 3]]) / Q_val_mat[[1, 3]]
+        print('Mean error of Q value, TD3: {}, ATD3: {}'.format(np.mean(error_Q_val_mat[0, :, -50:]),
+                                                               np.mean(error_Q_val_mat[1, :, -50:])))
+        plot_acc_mat(error_Q_val_mat,
                      legend_vec[0:3:2], env_name, smooth_weight=0.0, plot_std=True,
                      fig_name='Q_value', y_label='Error of Q value / True Q value',
                      fig = fig, t = t, init_idx=0, idx_step=1)

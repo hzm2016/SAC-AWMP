@@ -32,12 +32,13 @@ def main(env, reward_name ='', policy_name ='TD3', state_noise = 0.0, seed = 0):
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default=policy_name)  # Policy name
     parser.add_argument("--env_name", default="RoboschoolWalker2d-v1")  # OpenAI gym environment name
-    parser.add_argument("--log_path", default='runs/ATD3_walker2d_Q_value')
+    parser.add_argument("--log_path", default='runs/ATD3_walker2d_all_policy')
 
     parser.add_argument("--eval_only", default=False)
     parser.add_argument("--render", default=False)
     parser.add_argument("--save_video", default=False)
-    parser.add_argument("--evaluate_Q_value", default=True)
+    parser.add_argument("--save_all_policy", default=True)
+    parser.add_argument("--evaluate_Q_value", default=False)
     parser.add_argument("--reward_name", default=reward_name,
                         help='Name of your method (default: )')  # Name of the method
 
@@ -82,13 +83,15 @@ if __name__ == "__main__":
     # for r in [0, 4]:
     #     main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
     #          policy_name = policy_name_vec[0])
-    for p in [2]:
-        best_reward = 0.
-        while best_reward < 1200:
-            best_reward = main(env, reward_name=utils.connect_str_list([reward_name_vec[0]]),
-                 policy_name=policy_name_vec[p])
-    # main(env, reward_name=utils.connect_str_list([reward_name_vec[0]]),
-    #      policy_name=policy_name_vec[0])
+    # for p in [1]:
+    #     best_reward = 0.
+    #     while best_reward < 1200:
+    #         best_reward = main(env, reward_name=utils.connect_str_list([reward_name_vec[r]]),
+    #              policy_name=policy_name_vec[p])
+    r = 0
+    p = 0
+    main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
+         policy_name=policy_name_vec[p])
     # test_env(env)
     env.close()
 

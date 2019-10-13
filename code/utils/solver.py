@@ -88,6 +88,12 @@ class Solver(object):
             self.evaluations.append(avg_reward)
             self.writer_test.add_scalar('ave_reward', avg_reward, self.total_timesteps)
 
+            if self.args.save_all_policy:
+                self.policy.save(
+                    self.file_name + str(int(self.total_timesteps/self.args.eval_freq)* self.args.eval_freq),
+                    directory=self.log_dir)
+
+
             if self.args.evaluate_Q_value:
                 true_Q_value = cal_true_value(env=self.env, policy=self.policy,
                                               replay_buffer=self.replay_buffer,
