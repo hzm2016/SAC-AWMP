@@ -82,9 +82,9 @@ if __name__ == "__main__":
     # for r in [0, 4]:
     #     main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
     #          policy_name = policy_name_vec[0])
-    for p in [0, 1]:
+    for p in [2]:
         best_reward = 0.
-        while best_reward < 1000:
+        while best_reward < 1200:
             best_reward = main(env, reward_name=utils.connect_str_list([reward_name_vec[0]]),
                  policy_name=policy_name_vec[p])
     # main(env, reward_name=utils.connect_str_list([reward_name_vec[0]]),

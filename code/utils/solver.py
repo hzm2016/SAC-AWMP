@@ -338,15 +338,17 @@ def cal_true_value(env, policy, replay_buffer, args, eval_episodes=1000):
         # if 0 == i % 100:
         #     print(i)
         env.reset()
-        obs, obs_error = env.set_robot(init_state_vec[i])
+        if 'RNN' in args.policy_name:
+            obs, obs_error = env.set_robot(init_state_vec[i][-1])
+            obs_vec = np.copy(init_state_vec[i])
+            obs_vec[-1] = np.copy(obs)
+        else:
+            obs, obs_error = env.set_robot(init_state_vec[i])
         true_Q_value = 0.
         if obs_error > 1e-3:
             print('Error of resetting robot: {},\n input obs: {},\n output obs: {}'.format(
                 obs_error, init_state_vec[i], obs))
             continue
-        # print(obs)
-        if 'RNN' in args.policy_name:
-            obs_vec = np.dot(np.ones((args.seq_len, 1)), obs.reshape((1, -1)))
         done = False
         dis_gamma = 1.
         while not done:
