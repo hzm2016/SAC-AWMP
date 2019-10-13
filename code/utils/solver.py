@@ -207,7 +207,18 @@ class Solver(object):
             self.timesteps_calc_Q_vale += 1
 
         # Final evaluation
-        self.evaluations.append(evaluate_policy(self.env, self.policy, self.args))
+        avg_reward = evaluate_policy(self.env, self.policy, self.args)
+        self.evaluations.append(avg_reward)
+
+        if self.best_reward < avg_reward:
+            self.best_reward = avg_reward
+            print("Best reward! Total T: %d Episode T: %d Reward: %f" %
+                  (self.total_timesteps, self.episode_timesteps, avg_reward))
+            self.policy.save(self.file_name, directory=self.log_dir)
+
+        if self.args.save_all_policy:
+            self.policy.save(self.file_name + str(int(self.args.max_timesteps)), directory=self.log_dir)
+
         np.save(self.log_dir + "/test_accuracy", self.evaluations)
         utils.write_table(self.log_dir + "/test_accuracy", np.asarray(self.evaluations))
         utils.write_table(self.log_dir + "/estimate_Q_vals", np.asarray(self.estimate_Q_vals))
