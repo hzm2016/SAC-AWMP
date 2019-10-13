@@ -28,7 +28,7 @@ def main(env, reward_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
     parser.add_argument("--seed", default=seed, type=int)  # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--start_timesteps", default=1e4,
                         type=int)  # How many time steps purely random policy is run for
-    parser.add_argument("--eval_freq", default=5e3, type=float)  # How often (time steps) we evaluate
+    parser.add_argument("--eval_freq", default=1e4, type=float)  # How often (time steps) we evaluate
     parser.add_argument("--max_timesteps", default=1e6, type=float)  # Max time steps to run environment for
 
     parser.add_argument("--expl_noise", default=0.2, type=float)  # Std of Gaussian exploration noise
