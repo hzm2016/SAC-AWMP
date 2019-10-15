@@ -37,7 +37,8 @@ def plot_error_line(t, acc_mean_mat, acc_std_mat = None, legend_vec = None,
         plt.legend(legend_vec, loc = 'upper left')
 
 def plot_reward_curves(reward_name_idx = None, policy_name_vec=None, result_path ='runs/ATD3_walker2d',
-                       env_name = 'RoboschoolWalker2d', fig = None):
+                       env_name = 'RoboschoolWalker2d', fig = None, fig_name='test_reward',
+                       smooth_weight=0.8, eval_freq = 0.05):
     if reward_name_idx is None:
         reward_name_idx = [0, 9, 9, 9]
     if policy_name_vec is None:
@@ -73,7 +74,8 @@ def plot_reward_curves(reward_name_idx = None, policy_name_vec=None, result_path
             last_reward = np.mean(max_acc, axis=-1)
 
     if reward_mat is not None:
-        plot_acc_mat(reward_mat, None, env_name, fig=fig)
+        plot_acc_mat(reward_mat, None, env_name, fig=fig, fig_name=fig_name,
+                     smooth_weight=smooth_weight, eval_freq=eval_freq)
     return legend_vec
 
 
@@ -250,7 +252,9 @@ def plot_acc_mat(acc_mat, legend_vec, env_name, plot_std = True, smooth_weight =
     plt.xlim((min(t), max(t)))
     plt.ylabel(y_label)
     if fig_name is not None:
+
         plt.savefig('images/{}_{}.pdf'.format(env_name, fig_name), bbox_inches='tight')
+        plt.savefig('images/{}_{}.jpg'.format(env_name, fig_name), bbox_inches='tight')
     if fig is None:
         plt.show()
 
@@ -552,16 +556,25 @@ print('------Fig: test reward------')
 
 ## Fig: Q-value
 # print('------Fig: Q value ------')
-plot_Q_vals(result_path = 'runs/ATD3_walker2d_Q_value',
-            env_name = 'RoboschoolWalker2d',
-            policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN'],
-            reward_name_idx = [0, 0, 0])
+# plot_Q_vals(result_path = 'runs/ATD3_walker2d_Q_value',
+#             env_name = 'RoboschoolWalker2d',
+#             policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN'],
+#             reward_name_idx = [0, 0, 0])
 
 
 # # Fig: joint angle
 # print('-----Fig: joint angle-----')
 # plot_all_gait_angle()
 
-# # Fig: Q_value
-# print('-----Fig: Q value-----')
-# plot_Q_value()
+# # Fig: video test reward
+print('-----Fig: video test reward-----')
+# plot_reward_curves(result_path = 'runs/ATD3_walker2d_all_policy',
+#                    env_name = 'RoboschoolWalker2d',
+#                    policy_name_vec = ['ATD3_RNN'],
+#                    reward_name_idx = [4], fig_name='video_reward_ATD3_RNN_rg',
+#                    smooth_weight=0.0, eval_freq=0.1)
+plot_reward_curves(result_path = 'runs/ATD3_Atlas_all_policy',
+                   env_name = 'WebotsAtlas',
+                   policy_name_vec = ['ATD3_RNN'],
+                   reward_name_idx = [4], fig_name='video_reward_ATD3_RNN_rg',
+                   smooth_weight=0.0, eval_freq=0.1)

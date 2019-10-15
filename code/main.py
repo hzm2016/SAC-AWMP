@@ -5,7 +5,7 @@ project_path = '../'
 sys.path.insert(0, project_path + 'code')
 print(sys.path)
 import roboschool, gym
-from roboschool import gym_forward_walker, gym_atlas
+from roboschool import gym_mujoco_xml_env
 import argparse
 import numpy as np
 from utils.solver import utils, Solver
@@ -28,16 +28,18 @@ def test_env(env):
     while True:
         env.render()
 
-def main(env, reward_name ='', policy_name ='TD3', state_noise = 0.0, seed = 0):
+def main(env, reward_name ='', policy_name ='TD3', state_noise = 0.0, seed = 0, load_policy_idx = ''):
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default=policy_name)  # Policy name
     parser.add_argument("--env_name", default="RoboschoolWalker2d-v1")  # OpenAI gym environment name
     parser.add_argument("--log_path", default='runs/ATD3_walker2d_all_policy')
 
-    parser.add_argument("--eval_only", default=False)
+    parser.add_argument("--eval_only", default=True)
     parser.add_argument("--render", default=False)
-    parser.add_argument("--save_video", default=False)
-    parser.add_argument("--save_all_policy", default=True)
+    parser.add_argument("--save_video", default=True)
+    parser.add_argument("--video_size", default=(600, 400))
+    parser.add_argument("--save_all_policy", default=False)
+    parser.add_argument("--load_policy_idx", default=load_policy_idx)
     parser.add_argument("--evaluate_Q_value", default=False)
     parser.add_argument("--reward_name", default=reward_name,
                         help='Name of your method (default: )')  # Name of the method
@@ -88,10 +90,18 @@ if __name__ == "__main__":
     #     while best_reward < 1200:
     #         best_reward = main(env, reward_name=utils.connect_str_list([reward_name_vec[r]]),
     #              policy_name=policy_name_vec[p])
-    r = 4
-    p = 2
-    main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
-         policy_name=policy_name_vec[p])
+    # r = 4
+    # p = 2
+    # main(env, reward_name=utils.connect_str_list(reward_name_vec[:r + 1]),
+    #      policy_name=policy_name_vec[p])
+    r_vec = [0, 4, 4, 4]
+    p_vec = [0, 0, 1, 2]
+    for i in range(4):
+        r = r_vec[i]
+        p = p_vec[i]
+        for load_policy_idx in ['10000', '50000', '100000', '200000', '']:
+            main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
+                 policy_name=policy_name_vec[p], load_policy_idx=load_policy_idx)
     # test_env(env)
     env.close()
 

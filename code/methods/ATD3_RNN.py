@@ -160,9 +160,9 @@ class ATD3_RNN(object):
 		torch.save(self.actor.state_dict(), '%s/%s_actor.pth' % (directory, filename))
 		torch.save(self.critic.state_dict(), '%s/%s_critic.pth' % (directory, filename))
 
-
 	def load(self, filename, directory):
-		actor_path = glob.glob('%s/%s_actor.pth' % (directory, '*'))[0]
+		actor_path = glob.glob('%s/%s_actor.pth' % (directory, filename))[0]
 		self.actor.load_state_dict(torch.load(actor_path))
-		critic_path = glob.glob('%s/%s_critic.pth' % (directory, '*'))[0]
+		critic_path = glob.glob('%s/%s_critic.pth' % (directory, filename))[0]
+		print('actor path: {}, critic path: {}'.format(actor_path, critic_path))
 		self.critic.load_state_dict(torch.load(critic_path))

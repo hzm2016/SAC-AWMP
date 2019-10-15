@@ -1,5 +1,7 @@
 import gym, gym.spaces, gym.utils, gym.utils.seeding
 import numpy as np
+import cv2
+import time
 from controller import Robot, Supervisor
 
 
@@ -19,7 +21,7 @@ class Atlas(gym.Env):
     episode_reward = 0
 
     frame = 0
-    _max_episode_steps = 1000
+    _max_episode_steps = 10000
 
     initial_y = None
     body_xyz = None
@@ -269,7 +271,9 @@ class Atlas(gym.Env):
         return +1 if abs(y) > 0.5 and abs(pitch) < 1.0 else -1
 
     def render(self, mode='human'):
-        mode = mode
+        file_name = 'img.jpg'
+        self.robot.exportImage(file=file_name, quality=100)
+        return cv2.imread(file_name, -1)
 
     def step(self, action):
         for i in range(self.ignore_frame):
@@ -322,7 +326,7 @@ class Atlas(gym.Env):
             if done:
                 break
 
-    def reset(self):
+    def reset(self, is_eval_only = False):
         self.initial_y = None
         self.body_xyz = None
         self.joint_angles = None
@@ -342,4 +346,7 @@ class Atlas(gym.Env):
         for i in range(10):
             self.robot_node.moveViewpoint()
             self.robot.step(self.timeStep)
+        if is_eval_only:
+            time.sleep(1)
         return self.calc_state()
+

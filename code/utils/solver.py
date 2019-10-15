@@ -8,7 +8,7 @@ from utils import utils
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 from scipy import signal
-from methods import TD3, ATD3, ATD3_CNN, ATD3_RNN, TD3_RNN
+from methods import TD3, ATD3, ATD3_RNN
 
 
 class Solver(object):
@@ -42,8 +42,6 @@ class Solver(object):
             policy = ATD3.ATD3(state_dim, action_dim, max_action)
         elif 'ATD3_RNN' == args.policy_name:
             policy = ATD3_RNN.ATD3_RNN(state_dim, action_dim, max_action)
-        elif 'TD3_RNN' == args.policy_name:
-            policy = TD3_RNN.TD3_RNN(state_dim, action_dim, max_action)
         else:
             policy = TD3.TD3(state_dim, action_dim, max_action)
         self.policy = policy
@@ -279,8 +277,8 @@ class Solver(object):
         reward -= 0.5
         return reward
 
-    def eval_only(self):
-        video_dir = '{}/video/{}_{}_{}'.format(self.result_path, self.args.env_name,
+    def eval_only(self, is_reset = True):
+        video_dir = '{}/video_all/{}_{}_{}'.format(self.result_path, self.args.env_name,
                                                self.args.policy_name, self.args.reward_name)
         if not os.path.exists(video_dir):
             os.makedirs(video_dir)
@@ -288,15 +286,15 @@ class Solver(object):
             self.args.log_path, self.args.policy_name, self.args.env_name, self.args.reward_name))
         print(model_path_vec)
         for model_path in model_path_vec:
-            print(model_path)
-            self.policy.load("%s" % (self.file_name), directory=model_path)
+            # print(model_path)
+            self.policy.load("%s" % (self.file_name + self.args.load_policy_idx), directory=model_path)
             for _ in range(1):
                 video_name = video_dir + '/{}_{}_{}.mp4'.format(
                     datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
-                    self.file_name, self.args.state_noise)
+                    self.file_name, self.args.load_policy_idx)
                 if self.args.save_video:
                     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-                    out_video = cv2.VideoWriter(video_name, fourcc, 60.0, (600, 400))
+                    out_video = cv2.VideoWriter(video_name, fourcc, 60.0, self.args.video_size)
                 obs = self.env.reset()
                 # print(self.env.step(np.asarray([0, 0, 0, 0, 0, 0])))
                 if 'RNN' in self.args.policy_name:
@@ -321,6 +319,7 @@ class Solver(object):
 
                     if self.args.save_video:
                         img = self.env.render(mode='rgb_array')
+                        print(img.shape)
                         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
                         out_video.write(img)
                     elif self.args.render:
@@ -330,7 +329,8 @@ class Solver(object):
                     utils.write_table(video_name + '_state', np.transpose(obs_mat))
                 if self.args.save_video:
                     out_video.release()
-        self.env.reset()
+        if is_reset:
+            self.env.reset()
 
 
 # Runs policy for X episodes and returns average reward

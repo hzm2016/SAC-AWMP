@@ -7,19 +7,24 @@ sys.path.insert(0, '/usr/local/webots/lib/python36')
 print(sys.path)
 from gym_webots import Atlas
 import argparse
+import datetime
+import time
 from utils.solver import utils, Solver
 
-def main(env, reward_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0):
+def main(env, reward_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0, load_policy_idx = ''):
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default=policy_name)  # Policy name
     parser.add_argument("--env_name", default="WebotsAtlas-v1")  # OpenAI gym environment name
     parser.add_argument("--log_path", default='runs/ATD3_Atlas_all_policy')
 
-    parser.add_argument("--eval_only", default=False)
+    parser.add_argument("--eval_only", default=True)
     parser.add_argument("--render", default=False)
+
     parser.add_argument("--save_video", default=False)
-    parser.add_argument("--save_all_policy", default=True)
+    parser.add_argument("--video_size", default=(1920, 1080))
+    parser.add_argument("--save_all_policy", default=False)
     parser.add_argument("--evaluate_Q_value", default=False)
+    parser.add_argument("--load_policy_idx", default=load_policy_idx)
     parser.add_argument("--reward_name", default=reward_name,
                         help='Name of your method (default: )')  # Name of the method
 
@@ -45,7 +50,21 @@ def main(env, reward_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
     if not args.eval_only:
         solver.train()
     else:
-        solver.eval_only()
+        video_dir = '{}/video_all/{}_{}_{}'.format(solver.result_path, solver.args.env_name,
+                                                   solver.args.policy_name, solver.args.reward_name)
+        if not os.path.exists(video_dir):
+            os.makedirs(video_dir)
+        video_name = video_dir + '/{}_{}_{}.mp4'.format(
+            datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
+            solver.file_name, solver.args.load_policy_idx)
+        print(video_name)
+        env.robot.movieStartRecording(file=video_name, width=1920, height=1080, codec=0,
+                                      quality=50, acceleration=1, caption=False)
+        solver.eval_only(is_reset=False)
+        env.robot.movieStopRecording()
+        time.sleep(5)
+        print(env.robot.movieFailed())
+        env.reset(is_eval_only=True)
 
 
 if __name__ == "__main__":
@@ -58,11 +77,10 @@ if __name__ == "__main__":
     policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
     r_vec = [0, 4, 4, 4]
     p_vec = [0, 0, 1, 2]
-    for i in range(len(r_vec)):
+    for i in range(4):
         r = r_vec[i]
         p = p_vec[i]
-        for c in [0]:
-            print('r: {}, c: {}.'.format(r, c))
+        for load_policy_idx in ['']:
             main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
-                 policy_name = policy_name_vec[p], seed=c)
+                 policy_name = policy_name_vec[p], load_policy_idx=load_policy_idx)
     env.close()
