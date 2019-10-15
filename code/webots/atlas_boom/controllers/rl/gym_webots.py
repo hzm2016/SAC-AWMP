@@ -21,7 +21,7 @@ class Atlas(gym.Env):
     episode_reward = 0
 
     frame = 0
-    _max_episode_steps = 10000
+    _max_episode_steps = 1000
 
     initial_y = None
     body_xyz = None
