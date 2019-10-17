@@ -27,7 +27,7 @@ def plot_error_line(t, acc_mean_mat, acc_std_mat = None, legend_vec = None,
     color_vec = plt.cm.Dark2(np.arange(8))
     for r in range(acc_mean_mat.shape[0]):
         plt.plot(t, acc_mean_mat[r, :], linestyle=line_vec[idx_step * r + init_idx],
-                 marker=marker_vec[idx_step * r + init_idx], markersize=marker_size, linewidth= 2,
+                 marker=marker_vec[idx_step * r + init_idx], markersize=marker_size, linewidth= 1,
                  color=color_vec[(idx_step * r + init_idx) % 8])
         plt.fill_between(t, acc_mean_mat[r, :] - acc_std_mat[r, :],
                          acc_mean_mat[r, :] + acc_std_mat[r, :], alpha=0.2,
@@ -75,7 +75,7 @@ def plot_reward_curves(reward_name_idx = None, policy_name_vec=None, result_path
 
     if reward_mat is not None:
         plot_acc_mat(reward_mat, None, env_name, fig=fig, fig_name=fig_name,
-                     smooth_weight=smooth_weight, eval_freq=eval_freq)
+                     smooth_weight=smooth_weight, eval_freq=eval_freq, marker_size=0)
     return legend_vec
 
 
@@ -120,9 +120,9 @@ def plot_Q_vals(reward_name_idx = None, policy_name_vec=None, result_path ='runs
                 Q_val_mat[2 * r + i, c, :] = Q_vals[:271]
 
     if Q_val_mat is not None:
-        fig = plt.figure(figsize=(15, 6))
-        plt.tight_layout()
-        plt.rcParams.update({'font.size': 20})
+        fig = plt.figure(figsize=(3.5, 2.5))
+        # plt.tight_layout()
+        plt.rcParams.update({'font.size': 8})
         plt.subplot(1, 2, 1)
         time_step = Q_val_mat.shape[-1] - 1
         for i in range(Q_val_mat.shape[0]):
@@ -130,12 +130,13 @@ def plot_Q_vals(reward_name_idx = None, policy_name_vec=None, result_path ='runs
                 t = np.linspace(0, 0 + 0.01 * time_step, time_step + 1)
                 plot_acc_mat(Q_val_mat[[i]],
                              None, env_name, smooth_weight=0.0, plot_std=True,
-                             fig_name=None, y_label='Q value', fig = fig, t = t, marker_size = 3, init_idx=i)
+                             fig_name=None, y_label='Q value', fig = fig, t = t, marker_size = 0, init_idx=i)
             else:
                 t = np.linspace(0, 0 + 0.01 * time_step, time_step / 10 + 1)
                 plot_acc_mat(Q_val_mat[[i], :, ::10],
                              None, env_name, smooth_weight=0.0, plot_std=True,
-                             fig_name=None, y_label='Q value', fig=fig, t=t, init_idx=i, marker_size = 5)
+                             fig_name=None, y_label='Q value', fig=fig, t=t, init_idx=i, marker_size = 2)
+        plt.xlabel(r'Time steps ($1 \times 10^{5}$)')
         plt.yticks([0, 50, 100])
         plt.subplot(1, 2, 2)
         Q_val_mat = Q_val_mat[:, :, 90:]
@@ -150,13 +151,15 @@ def plot_Q_vals(reward_name_idx = None, policy_name_vec=None, result_path ='runs
         plot_acc_mat(error_Q_val_mat,
                      None, env_name, smooth_weight=0.0, plot_std=True,
                      fig_name=None, y_label='Error of Q value / True Q value',
-                     fig = fig, t = t, init_idx=0, idx_step=2, marker_size = 3)
+                     fig = fig, t = t, init_idx=0, idx_step=2, marker_size = 0)
+        plt.xlabel(r'Time steps ($1 \times 10^{5}$)')
         plt.yticks([0, 1, 2])
+        plt.xticks([1.0, 1.5, 2.0, 2.5])
         legend = fig.legend(legend_vec,
-                            loc='lower center', ncol=3, bbox_to_anchor=(0.48, 0.93),
+                            loc='lower center', ncol=3, bbox_to_anchor=(0.50, 0.90),
                             frameon=False)
-        plt.savefig('images/{}_{}.pdf'.format(env_name, 'Q_value'), bbox_inches='tight')
         fig.tight_layout()
+        plt.savefig('images/{}_{}.pdf'.format(env_name, 'Q_value'), bbox_inches='tight', pad_inches=0.05)
         plt.show()
 
 
@@ -170,7 +173,8 @@ def plot_ablation_reward(result_path ='runs/ATD3_walker2d',
 
     acc_mat = None
     x_tick_vec = []
-    for r in range(len(reward_name_vec)):
+    len_reward = 6
+    for r in range(len_reward):
         reward_str = connect_str_list(reward_name_vec[:r+1])
         # reward_tick = '$r^{}$ = $r^d$'.format(r)
         if 0 == r:
@@ -186,27 +190,27 @@ def plot_ablation_reward(result_path ='runs/ATD3_walker2d',
             dfs = pd.read_excel(file_name)
             acc_vec = dfs.values.astype(np.float)[:, 0]
             if acc_mat is None:
-                acc_mat = np.zeros((len(reward_name_vec), len(file_name_vec), len(acc_vec)))
+                acc_mat = np.zeros((len_reward, len(file_name_vec), len(acc_vec)))
             acc_mat[r, c, :] = acc_vec
 
     if acc_mat is not None:
         # plot_acc_mat(acc_mat, x_tick_vec, 'ablation_study', plot_std=False)
         max_acc_mat = np.max(acc_mat, axis=-1)
         print(np.mean(max_acc_mat, axis=-1))
-        plot_error_bar(np.arange(10), max_acc_mat, x_tick_vec)
+        plot_error_bar(np.arange(len_reward), max_acc_mat, x_tick_vec)
 
 
 def plot_error_bar(x_vec, y_mat, x_tick_vec = None):
     mean_vec = np.mean(y_mat, axis = -1)
     std_vec = np.std(y_mat, axis = -1)
     len_vec = len(x_vec)
-    fig = plt.figure(figsize=(9, 3))
+    fig = plt.figure(figsize=(3.5, 1))
     plt.tight_layout()
-    plt.rcParams.update({'font.size': 15})
+    plt.rcParams.update({'font.size': 8})
 
     plt.errorbar(x_vec, mean_vec, yerr = std_vec, fmt='-', elinewidth= 1,
                  solid_capstyle='projecting', capsize= 3, color = 'black')
-    plt.ylabel('Average reward')
+    plt.ylabel('Test reward')
     if x_tick_vec is not None:
         plt.xticks(np.arange(len(x_tick_vec)), x_tick_vec)
     plt.savefig('images/ablation_reward.pdf', bbox_inches='tight')
@@ -248,11 +252,10 @@ def plot_acc_mat(acc_mat, legend_vec, env_name, plot_std = True, smooth_weight =
     else:
         plot_error_line(t, mean_acc, legend_vec=legend_vec,
                         init_idx=init_idx, idx_step = idx_step, marker_size=marker_size)
-    plt.xlabel('{}: '.format(env_name) + r'Time steps ($1 \times 10^{5}$)')
+    plt.xlabel(r'Time steps ($1 \times 10^{5}$)' + '\n{}'.format(env_name))
     plt.xlim((min(t), max(t)))
     plt.ylabel(y_label)
     if fig_name is not None:
-
         plt.savefig('images/{}_{}.pdf'.format(env_name, fig_name), bbox_inches='tight')
         plt.savefig('images/{}_{}.jpg'.format(env_name, fig_name), bbox_inches='tight')
     if fig is None:
@@ -341,9 +344,9 @@ def read_joint_angle_gait(file_name):
 
 
 def plot_all_test_reward():
-    fig = plt.figure(figsize=(15, 6))
+    fig = plt.figure(figsize=(3.5, 2.5))
     fig.tight_layout()
-    plt.rcParams.update({'font.size': 20})
+    plt.rcParams.update({'font.size': 8})
     plt.subplot(1, 2, 1)
     legend_vec = plot_reward_curves(result_path='runs/ATD3_walker2d',
                        env_name='RoboschoolWalker2d',
@@ -362,27 +365,27 @@ def plot_all_test_reward():
 
     print(legend_vec)
     legend = fig.legend(legend_vec,
-               loc='lower center', ncol=4, bbox_to_anchor=(0.50, 0.93), frameon=False)
+               loc='lower center', ncol=2, bbox_to_anchor=(0.50, 0.90), frameon=False)
     fig.tight_layout()
     # legend.get_frame().set_facecolor('none')
-    plt.savefig('images/test_reward.pdf', bbox_inches='tight', pad_inches=0.15)
+    plt.savefig('images/test_reward.pdf', bbox_inches='tight', pad_inches=0.05)
     plt.show()
 
 
 def plot_all_gait_angle():
-    fig = plt.figure(figsize=(15, 10))
+    fig = plt.figure(figsize=(3.5, 3.5))
     fig.tight_layout()
-    plt.rcParams.update({'font.size': 20})
+    plt.rcParams.update({'font.size': 8})
 
     legend_vec = plot_gait_angle(env_name='RoboschoolWalker2d', gait_name='run', plot_col = 1)
     plot_gait_angle(env_name='WebotsAtlas', gait_name='run', plot_col = 2)
 
     print(legend_vec)
     legend = fig.legend(legend_vec,
-               loc='lower center', ncol=3, bbox_to_anchor=(0.48, 0.93), frameon=False)
+               loc='lower center', ncol=3, bbox_to_anchor=(0.55, 0.95), frameon=False)
     fig.tight_layout()
     # legend.get_frame().set_facecolor('none')
-    plt.savefig('images/joint_angle.pdf', bbox_inches='tight', pad_inches=0.15)
+    plt.savefig('images/joint_angle.pdf', bbox_inches='tight', pad_inches=0.05)
     plt.show()
 
 
@@ -428,7 +431,7 @@ def plot_gait_angle(reward_name_idx = None, policy_name_vec=None, result_path ='
     print(joint_angle_mean.shape)
     for i in range(3):
         plt.subplot(3, 2,  2*i + plot_col)
-        plot_error_line(t, joint_angle_mean[:, i, :])
+        plot_error_line(t, joint_angle_mean[:, i, :], marker_size = 0)
         plt.xlim((min(t), max(t)))
         plt.xticks([min(t), (min(t) + max(t)) / 2, max(t)])
         plt.ylim((-1.1, 1.1))
@@ -436,7 +439,7 @@ def plot_gait_angle(reward_name_idx = None, policy_name_vec=None, result_path ='
         # if 1 == plot_col:
         plt.ylabel(y_label_vec[i])
 
-    plt.xlabel('{}: Gait cycle (%)'.format(env_name))
+    plt.xlabel('Gait cycle (%)\n{}'.format(env_name))
     legend_vec.append('Human')
     return legend_vec
 
@@ -544,15 +547,8 @@ def smooth(scalars, weight = 0.8):
 # plot_ablation_reward()
 
 # Fig: test acc
-print('------Fig: test reward------')
+# print('------Fig: test reward------')
 # plot_all_test_reward()
-# plot_reward_curves(result_path = 'runs/ATD3_walker2d',
-#                 env_name = 'RoboschoolWalker2d',
-#                 policy_name_vec = ['TD3', 'TD3', 'ATD3', 'ATD3_RNN'],
-#                 reward_name_idx = [0, 4, 4, 4])
-# plot_reward_curves(result_path ='runs/ATD3_Atlas', env_name ='WebotsAtlas',
-#                    policy_name_vec=['TD3', 'TD3', 'ATD3', 'ATD3_RNN'],
-#                    reward_name_idx=[0, 4, 4, 4])
 
 ## Fig: Q-value
 # print('------Fig: Q value ------')
@@ -563,18 +559,18 @@ print('------Fig: test reward------')
 
 
 # # Fig: joint angle
-# print('-----Fig: joint angle-----')
-# plot_all_gait_angle()
+print('-----Fig: joint angle-----')
+plot_all_gait_angle()
 
 # # Fig: video test reward
-print('-----Fig: video test reward-----')
+# print('-----Fig: video test reward-----')
 # plot_reward_curves(result_path = 'runs/ATD3_walker2d_all_policy',
 #                    env_name = 'RoboschoolWalker2d',
 #                    policy_name_vec = ['ATD3_RNN'],
 #                    reward_name_idx = [4], fig_name='video_reward_ATD3_RNN_rg',
 #                    smooth_weight=0.0, eval_freq=0.1)
-plot_reward_curves(result_path = 'runs/ATD3_Atlas_all_policy',
-                   env_name = 'WebotsAtlas',
-                   policy_name_vec = ['ATD3_RNN'],
-                   reward_name_idx = [4], fig_name='video_reward_ATD3_RNN_rg',
-                   smooth_weight=0.0, eval_freq=0.1)
+# plot_reward_curves(result_path = 'runs/ATD3_Atlas_all_policy',
+#                    env_name = 'WebotsAtlas',
+#                    policy_name_vec = ['ATD3_RNN'],
+#                    reward_name_idx = [4], fig_name='video_reward_ATD3_RNN_rg',
+#                    smooth_weight=0.0, eval_freq=0.1)
