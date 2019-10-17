@@ -122,7 +122,7 @@ def plot_Q_vals(reward_name_idx = None, policy_name_vec=None, result_path ='runs
     if Q_val_mat is not None:
         fig = plt.figure(figsize=(3.5, 2.5))
         # plt.tight_layout()
-        plt.rcParams.update({'font.size': 8})
+        plt.rcParams.update({'font.size': 7, 'font.serif': 'Times New Roman'})
         plt.subplot(1, 2, 1)
         time_step = Q_val_mat.shape[-1] - 1
         for i in range(Q_val_mat.shape[0]):
@@ -206,7 +206,7 @@ def plot_error_bar(x_vec, y_mat, x_tick_vec = None):
     len_vec = len(x_vec)
     fig = plt.figure(figsize=(3.5, 1))
     plt.tight_layout()
-    plt.rcParams.update({'font.size': 8})
+    plt.rcParams.update({'font.size': 7, 'font.serif': 'Times New Roman'})
 
     plt.errorbar(x_vec, mean_vec, yerr = std_vec, fmt='-', elinewidth= 1,
                  solid_capstyle='projecting', capsize= 3, color = 'black')
@@ -245,7 +245,7 @@ def plot_acc_mat(acc_mat, legend_vec, env_name, plot_std = True, smooth_weight =
         fig = plt.figure(figsize=(9, 6))
         # fig = plt.figure()
         plt.tight_layout()
-        plt.rcParams.update({'font.size': 15})
+        plt.rcParams.update({'font.size': 7, 'font.serif': 'Times New Roman'})
     if plot_std:
         plot_error_line(t, mean_acc, std_acc, legend_vec=legend_vec,
                         init_idx=init_idx, idx_step = idx_step, marker_size=marker_size)
@@ -291,7 +291,7 @@ def plot_test_acc():
     fig = plt.figure(figsize=(9, 6))
 
     plt.tight_layout()
-    plt.rcParams.update({'font.size': 15})
+    plt.rcParams.update({'font.size': 7, 'font.serif': 'Times New Roman'})
     plot_error_line(t, mean_acc, std_acc, legend_vec=['TD3', 'Gait reward + TD3', 'Gait reward + ATD3'], init_idx=1)
     # plot_error_line(t, mean_acc, std_acc, legend_vec=['ATD3', 'TD3'])
     # plt.xticks(np.arange(0, 1e5, 5))
@@ -346,7 +346,7 @@ def read_joint_angle_gait(file_name):
 def plot_all_test_reward():
     fig = plt.figure(figsize=(3.5, 2.5))
     fig.tight_layout()
-    plt.rcParams.update({'font.size': 8})
+    plt.rcParams.update({'font.size': 7, 'font.serif': 'Times New Roman'})
     plt.subplot(1, 2, 1)
     legend_vec = plot_reward_curves(result_path='runs/ATD3_walker2d',
                        env_name='RoboschoolWalker2d',
@@ -374,15 +374,15 @@ def plot_all_test_reward():
 
 def plot_all_gait_angle():
     fig = plt.figure(figsize=(3.5, 3.5))
+    plt.rcParams.update({'font.size': 7, 'font.serif': 'Times New Roman'})
     fig.tight_layout()
-    plt.rcParams.update({'font.size': 8})
 
     legend_vec = plot_gait_angle(env_name='RoboschoolWalker2d', gait_name='run', plot_col = 1)
     plot_gait_angle(env_name='WebotsAtlas', gait_name='run', plot_col = 2)
 
     print(legend_vec)
     legend = fig.legend(legend_vec,
-               loc='lower center', ncol=3, bbox_to_anchor=(0.55, 0.95), frameon=False)
+               loc='lower center', ncol=3, bbox_to_anchor=(0.49, 0.95), frameon=False)
     fig.tight_layout()
     # legend.get_frame().set_facecolor('none')
     plt.savefig('images/joint_angle.pdf', bbox_inches='tight', pad_inches=0.05)
@@ -469,7 +469,7 @@ def plot_gait():
     joint_angle_mean = joint_angle_mean - joint_angle_mean[..., [0]]
     fig = plt.figure(figsize=(10, 7))
 
-    plt.rcParams.update({'font.size': 15})
+    plt.rcParams.update({'font.size': 7, 'font.serif': 'Times New Roman'})
     t = np.linspace(0, 100, 100)
     y_label_vec = ['Hip angle', 'Knee angle', 'Ankle angle']
     for i in range(3):
@@ -516,7 +516,7 @@ def plot_gait_noise():
     joint_angle_mean = joint_angle_mean - joint_angle_mean[..., [0]]
 
     fig = plt.figure(figsize=(10, 7))
-    plt.rcParams.update({'font.size': 15})
+    plt.rcParams.update({'font.size': 7, 'font.serif': 'Times New Roman'})
     t = np.linspace(0, 100, 100)
     y_label_vec = ['Hip angle', 'Knee angle', 'Ankle angle']
     for i in range(3):
