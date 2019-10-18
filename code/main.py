@@ -32,11 +32,11 @@ def main(env, reward_name ='', policy_name ='TD3', state_noise = 0.0, seed = 0, 
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default=policy_name)  # Policy name
     parser.add_argument("--env_name", default="RoboschoolWalker2d-v1")  # OpenAI gym environment name
-    parser.add_argument("--log_path", default='runs/ATD3_walker2d_all_policy')
+    parser.add_argument("--log_path", default='runs/ATD3_walker2d_new')
 
-    parser.add_argument("--eval_only", default=True)
+    parser.add_argument("--eval_only", default=False)
     parser.add_argument("--render", default=False)
-    parser.add_argument("--save_video", default=True)
+    parser.add_argument("--save_video", default=False)
     parser.add_argument("--video_size", default=(600, 400))
     parser.add_argument("--save_all_policy", default=False)
     parser.add_argument("--load_policy_idx", default=load_policy_idx)
@@ -49,7 +49,7 @@ def main(env, reward_name ='', policy_name ='TD3', state_noise = 0.0, seed = 0, 
     parser.add_argument("--seed", default=seed, type=int)  # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--start_timesteps", default=1e4,
                         type=int)  # How many time steps purely random policy is run for
-    parser.add_argument("--eval_freq", default=1e4, type=int)  # How often (time steps) we evaluate
+    parser.add_argument("--eval_freq", default=5e3, type=int)  # How often (time steps) we evaluate
     parser.add_argument("--max_timesteps", default=3e5, type=int)  # Max time steps to run environment for
 
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
@@ -90,18 +90,18 @@ if __name__ == "__main__":
     #     while best_reward < 1200:
     #         best_reward = main(env, reward_name=utils.connect_str_list([reward_name_vec[r]]),
     #              policy_name=policy_name_vec[p])
-    # r = 4
-    # p = 2
-    # main(env, reward_name=utils.connect_str_list(reward_name_vec[:r + 1]),
-    #      policy_name=policy_name_vec[p])
-    r_vec = [0, 4, 4, 4]
-    p_vec = [0, 0, 1, 2]
-    for i in range(4):
-        r = r_vec[i]
-        p = p_vec[i]
-        for load_policy_idx in ['10000', '50000', '100000', '200000', '']:
-            main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
-                 policy_name=policy_name_vec[p], load_policy_idx=load_policy_idx)
+    r = 4
+    p = 2
+    main(env, reward_name=utils.connect_str_list(reward_name_vec[:r + 1]),
+         policy_name=policy_name_vec[p])
+    # r_vec = [0, 4, 4, 4]
+    # p_vec = [0, 0, 1, 2]
+    # for i in range(4):
+    #     r = r_vec[i]
+    #     p = p_vec[i]
+    #     for load_policy_idx in ['10000', '50000', '100000', '200000', '']:
+    #         main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
+    #              policy_name=policy_name_vec[p], load_policy_idx=load_policy_idx)
     # test_env(env)
     env.close()
 

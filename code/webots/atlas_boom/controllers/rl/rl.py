@@ -15,9 +15,9 @@ def main(env, reward_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default=policy_name)  # Policy name
     parser.add_argument("--env_name", default="WebotsAtlas-v1")  # OpenAI gym environment name
-    parser.add_argument("--log_path", default='runs/ATD3_Atlas_all_policy')
+    parser.add_argument("--log_path", default='runs/ATD3_Atlas_new')
 
-    parser.add_argument("--eval_only", default=True)
+    parser.add_argument("--eval_only", default=False)
     parser.add_argument("--render", default=False)
 
     parser.add_argument("--save_video", default=False)
@@ -33,7 +33,7 @@ def main(env, reward_name = '', policy_name = 'TD3', state_noise = 0.0, seed = 0
     parser.add_argument("--seed", default=seed, type=int)  # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--start_timesteps", default=1e4,
                         type=int)  # How many time steps purely random policy is run for
-    parser.add_argument("--eval_freq", default=1e4, type=float)  # How often (time steps) we evaluate
+    parser.add_argument("--eval_freq", default=5e3, type=float)  # How often (time steps) we evaluate
     parser.add_argument("--max_timesteps", default=1e6, type=float)  # Max time steps to run environment for
 
     parser.add_argument("--expl_noise", default=0.2, type=float)  # Std of Gaussian exploration noise
@@ -75,12 +75,16 @@ if __name__ == "__main__":
     env = Atlas(action_dim=6, obs_dim=22)
     reward_name_vec = ['r_d', 'r_s', 'r_n', 'r_lhs', 'r_cg', 'r_gs', 'r_fr', 'r_f', 'r_gv', 'r_po']
     policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
-    r_vec = [0, 4, 4, 4]
-    p_vec = [0, 0, 1, 2]
-    for i in range(4):
-        r = r_vec[i]
-        p = p_vec[i]
-        for load_policy_idx in ['']:
-            main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
-                 policy_name = policy_name_vec[p], load_policy_idx=load_policy_idx)
+    # r_vec = [0, 4, 4, 4]
+    # p_vec = [0, 0, 1, 2]
+    # for i in range(4):
+    #     r = r_vec[i]
+    #     p = p_vec[i]
+    #     for load_policy_idx in ['']:
+    #         main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
+    #              policy_name = policy_name_vec[p], load_policy_idx=load_policy_idx)
+    r = 4
+    p = 2
+    main(env, reward_name=utils.connect_str_list(reward_name_vec[:r + 1]),
+         policy_name=policy_name_vec[p])
     env.close()
