@@ -40,7 +40,7 @@ if __name__ == "__main__":
     parser.add_argument("--save_all_policy", default=False)
     parser.add_argument("--load_policy_idx", default='')
     parser.add_argument("--evaluate_Q_value", default=False)
-    parser.add_argument("--reward_name", default='',
+    parser.add_argument("--reward_name", default='r_d_r_s',
                         help='Name of your method (default: )')  # Name of the method
 
     parser.add_argument("--seq_len", default=2, type=int)
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     parser.add_argument("--start_timesteps", default=1e4,
                         type=int)  # How many time steps purely random policy is run for
     parser.add_argument("--eval_freq", default=5e3, type=int)  # How often (time steps) we evaluate
-    parser.add_argument("--max_timesteps", default=3e5, type=int)  # Max time steps to run environment for
+    parser.add_argument("--max_timesteps", default=2e5, type=int)  # Max time steps to run environment for
 
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
     parser.add_argument("--state_noise", default=0, type=float)  # Std of Gaussian exploration noise
@@ -61,13 +61,20 @@ if __name__ == "__main__":
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     args = parser.parse_args()
 
-    env_name_vec = ['HopperBulletEnv-v0', 'HalfCheetahBulletEnv-v0', 'AntBulletEnv-v0',
+    env_name_vec = ['HopperBulletEnv-v0',
+                    'HalfCheetahBulletEnv-v0',
+                    'AntBulletEnv-v0',
                     'Walker2DBulletEnv-v0', 'HumanoidBulletEnv-v0', 'InvertedPendulumBulletEnv-v0',
-                    'InvertedDoublePendulumBulletEnv-v0', 'InvertedPendulumSwingupBulletEnv-v0']
+                    'InvertedDoublePendulumBulletEnv-v0', 'InvertedPendulumSwingupBulletEnv-v0'
+                    ]
     policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
+    # policy_name_vec = ['ATD3']
     for env_name in env_name_vec:
         args.env_name = env_name
         env = gym.make(args.env_name)
+        if 'Pendulum' in env_name:
+            print(env_name)
+            args.reward_name = ''
         if args.render:
             env.render('human')
         for policy_name in policy_name_vec:

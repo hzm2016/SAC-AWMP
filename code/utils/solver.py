@@ -176,12 +176,17 @@ class Solver(object):
             self.episode_reward += reward
             self.episode_progress += new_obs[3]
 
-            if 'r_d' in self.args.reward_name:
+            if 'r_n' in self.args.reward_name:
                 reward = self.update_gait_reward(new_obs, reward)
 
             if 'r_s' in self.args.reward_name:
+                reward -= 0.5
                 self.reward_str_list.append('r_s')
-                if np.array_equal(new_obs[-2:], np.asarray([1., 1.])):
+                # foot_dim = state_dim - 8 - 2*action_dim
+                foot_num = len(self.env.observation_space.low) - 8 - 2 * len(self.env.action_space.low)
+                if np.sum(new_obs[-foot_num:]) > 1 and \
+                        np.array_equal(new_obs[-foot_num:], self.obs[-foot_num:]):
+                # if np.array_equal(new_obs[-2:], np.asarray([1., 1.])):
                     self.still_steps += 1
                 else:
                     self.still_steps = 0
@@ -275,7 +280,6 @@ class Solver(object):
         gait_state[0, -2] = new_obs[3]
         gait_state[0, -1] = self.total_timesteps
         self.gait_state_mat = np.r_[self.gait_state_mat, gait_state]
-        reward -= 0.5
         return reward
 
     def eval_only(self, is_reset = True):
@@ -322,11 +326,10 @@ class Solver(object):
 
                     if self.args.save_video:
                         img = self.env.render(mode='rgb_array')
-                        print(img.shape)
                         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
                         out_video.write(img)
                     elif self.args.render:
-                        self.env.render()
+                        self.env.render(mode='human')
 
                 if not self.args.render:
                     utils.write_table(video_name + '_state', np.transpose(obs_mat))
