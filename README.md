@@ -9,7 +9,8 @@ pip install roboschool==1.0.48
 ```
 cd code
 ```
-Change the path in the run.sh file to the path of your Roboschool package! Then run the code:
+**Change the path in the run.sh file to the path of your Roboschool package! **
+Then run the code:
 ```
 ./run.sh
 ```
