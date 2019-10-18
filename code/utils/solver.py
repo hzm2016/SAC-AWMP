@@ -176,7 +176,8 @@ class Solver(object):
             self.episode_reward += reward
             self.episode_progress += new_obs[3]
 
-            reward = self.update_gait_reward(new_obs, reward)
+            if 'r_d' in self.args.reward_name:
+                reward = self.update_gait_reward(new_obs, reward)
 
             if 'r_s' in self.args.reward_name:
                 self.reward_str_list.append('r_s')
@@ -313,8 +314,10 @@ class Solver(object):
                     if 'RNN' in self.args.policy_name:
                         obs_vec = utils.fifo_data(obs_vec, obs)
 
-                    obs[8:20] += np.random.normal(0, self.args.state_noise, size=obs[8:20].shape[0]).clip(
-                        -1, 1)
+                    if 0 != self.args.state_noise:
+                        obs[8:20] += np.random.normal(0, self.args.state_noise, size=obs[8:20].shape[0]).clip(
+                            -1, 1)
+
                     obs_mat = np.c_[obs_mat, np.asarray(obs)]
 
                     if self.args.save_video:
