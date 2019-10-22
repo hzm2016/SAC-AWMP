@@ -8,7 +8,7 @@ from utils import utils
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 from scipy import signal
-from methods import TD3, ATD3, ATD3_RNN
+from methods import TD3, ATD3, ATD3_RNN, Average_TD3
 
 
 class Solver(object):
@@ -42,6 +42,8 @@ class Solver(object):
             policy = ATD3.ATD3(state_dim, action_dim, max_action)
         elif 'ATD3_RNN' == args.policy_name:
             policy = ATD3_RNN.ATD3_RNN(state_dim, action_dim, max_action)
+        elif 'Average_TD3' == args.policy_name:
+            policy = Average_TD3.Average_TD3(state_dim, action_dim, max_action)
         else:
             policy = TD3.TD3(state_dim, action_dim, max_action)
         self.policy = policy

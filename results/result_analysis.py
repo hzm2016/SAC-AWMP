@@ -6,6 +6,7 @@ Created on Thu Jul  4 10:29:32 2019
 """
 from matplotlib import cm
 import matplotlib.pyplot as plt
+plt.rcParams['pdf.fonttype'] = 42
 import pandas as pd
 import numpy as np
 import glob
@@ -543,19 +544,19 @@ def smooth(scalars, weight = 0.8):
     return np.asarray(smoothed)
 
 # # Fig: ablation study for different rewards
-# print('------Fig: ablation reward------')
-# plot_ablation_reward()
+print('------Fig: ablation reward------')
+plot_ablation_reward()
 
 # Fig: test acc
-# print('------Fig: test reward------')
-# plot_all_test_reward()
+print('------Fig: test reward------')
+plot_all_test_reward()
 
 ## Fig: Q-value
-# print('------Fig: Q value ------')
-# plot_Q_vals(result_path = 'runs/ATD3_walker2d_Q_value',
-#             env_name = 'RoboschoolWalker2d',
-#             policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN'],
-#             reward_name_idx = [0, 0, 0])
+print('------Fig: Q value ------')
+plot_Q_vals(result_path = 'runs/ATD3_walker2d_Q_value',
+            env_name = 'RoboschoolWalker2d',
+            policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN'],
+            reward_name_idx = [0, 0, 0])
 
 
 # # Fig: joint angle
