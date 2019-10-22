@@ -5,6 +5,7 @@ project_path = '../'
 sys.path.insert(0, project_path + 'code')
 print(sys.path)
 import roboschool, pybullet_envs, gym
+import pybullet as p
 import argparse
 import numpy as np
 from utils.solver import utils, Solver
@@ -61,21 +62,23 @@ if __name__ == "__main__":
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     args = parser.parse_args()
 
-    env_name_vec = ['HopperBulletEnv-v0',
-                    # 'HalfCheetahBulletEnv-v0',
-                    # 'AntBulletEnv-v0',
-                    # 'Walker2DBulletEnv-v0', 'HumanoidBulletEnv-v0', 'InvertedPendulumBulletEnv-v0',
-                    # 'InvertedDoublePendulumBulletEnv-v0', 'InvertedPendulumSwingupBulletEnv-v0'
+    env_name_vec = [#'HopperBulletEnv-v0',
+                    'HalfCheetahBulletEnv-v0',
+                    'AntBulletEnv-v0',
+                    'Walker2DBulletEnv-v0', 'HumanoidBulletEnv-v0', 'InvertedPendulumBulletEnv-v0',
+                    'InvertedDoublePendulumBulletEnv-v0', 'InvertedPendulumSwingupBulletEnv-v0'
                     ]
-    policy_name_vec = ['Average_TD3']
+    policy_name_vec = ['ATD3', 'ATD3_RNN', 'TD3']
     # policy_name_vec = ['ATD3']
     for env_name in env_name_vec:
+        p.connect(p.DIRECT)
         args.env_name = env_name
         env = gym.make(args.env_name)
         if 'Pendulum' in env_name:
             print(env_name)
             args.reward_name = ''
-        env.render('human')
+        if args.render:
+            env.render('human')
         for policy_name in policy_name_vec:
             args.policy_name = policy_name
             main(env, args)
