@@ -75,6 +75,7 @@ class Average_TD3(object):
         self.max_action = max_action
         self.critic_target_list = deque(maxlen=10)
         self.critic_target_list.append(cp.deepcopy(self.critic_target))
+        self.it = 0
 
 
     def select_action(self, state):
@@ -87,63 +88,62 @@ class Average_TD3(object):
         target_Q1, target_Q2 = self.critic(state, action)
         return target_Q1.cpu().data.numpy()
 
-    def train(self, replay_buffer, iterations, batch_size=100, discount=0.99,
+    def train(self, replay_buffer, batch_size=100, discount=0.99,
               tau=0.005, policy_noise=0.2, noise_clip=0.5, policy_freq=2):
+        self.it += 1
+        # Sample replay buffer
+        x, y, u, r, d = replay_buffer.sample(batch_size)
+        state = torch.FloatTensor(x).to(device)
+        action = torch.FloatTensor(u).to(device)
+        next_state = torch.FloatTensor(y).to(device)
+        done = torch.FloatTensor(1 - d).to(device)
+        reward = torch.FloatTensor(r).to(device)
 
-        for it in range(iterations):
-            # Sample replay buffer
-            x, y, u, r, d = replay_buffer.sample(batch_size)
-            state = torch.FloatTensor(x).to(device)
-            action = torch.FloatTensor(u).to(device)
-            next_state = torch.FloatTensor(y).to(device)
-            done = torch.FloatTensor(1 - d).to(device)
-            reward = torch.FloatTensor(r).to(device)
+        # Select action according to policy and add clipped noise
+        noise = torch.FloatTensor(u).data.normal_(0, policy_noise).to(device)
+        noise = noise.clamp(-noise_clip, noise_clip)
+        next_action = (self.actor_target(next_state) + noise).clamp(-self.max_action, self.max_action)
 
-            # Select action according to policy and add clipped noise
-            noise = torch.FloatTensor(u).data.normal_(0, policy_noise).to(device)
-            noise = noise.clamp(-noise_clip, noise_clip)
-            next_action = (self.actor_target(next_state) + noise).clamp(-self.max_action, self.max_action)
+        # ================================= target network ======================================
+        target_Q = 0.
+        for i in range(len(self.critic_target_list)):
+            target_Q1, target_Q2 = self.critic_target_list[i](next_state, next_action)
+            target_Q += torch.min(target_Q1, target_Q2).detach() / len(self.critic_target_list)
+        target_Q = reward + (done * discount * target_Q)
+        # ================================= target network ======================================
 
-            # ================================= target network ======================================
-            target_Q = 0.
-            for i in range(len(self.critic_target_list)):
-                target_Q1, target_Q2 = self.critic_target_list[i](next_state, next_action)
-                target_Q += torch.min(target_Q1, target_Q2).detach() / len(self.critic_target_list)
-            target_Q = reward + (done * discount * target_Q)
-            # ================================= target network ======================================
+        # Get current Q estimates
+        current_Q1, current_Q2 = self.critic(state, action)
 
-            # Get current Q estimates
-            current_Q1, current_Q2 = self.critic(state, action)
+        # Compute critic loss
+        critic_loss = F.mse_loss(current_Q1, target_Q) + F.mse_loss(current_Q2, target_Q)
 
-            # Compute critic loss
-            critic_loss = F.mse_loss(current_Q1, target_Q) + F.mse_loss(current_Q2, target_Q)
+        # Optimize the critic
 
-            # Optimize the critic
+        self.critic_optimizer.zero_grad()
+        critic_loss.backward()
+        self.critic_optimizer.step()
 
-            self.critic_optimizer.zero_grad()
-            critic_loss.backward()
-            self.critic_optimizer.step()
+        # Delayed policy updates
+        if self.it % policy_freq == 0:
 
-            # Delayed policy updates
-            if it % policy_freq == 0:
+            # Compute actor loss
+            actor_loss = -self.critic.Q1(state, self.actor(state)).mean()
 
-                # Compute actor loss
-                actor_loss = -self.critic.Q1(state, self.actor(state)).mean()
+            # Optimize the actor
+            self.actor_optimizer.zero_grad()
+            actor_loss.backward()
+            self.actor_optimizer.step()
 
-                # Optimize the actor
-                self.actor_optimizer.zero_grad()
-                actor_loss.backward()
-                self.actor_optimizer.step()
+            # Update the frozen target models
+            for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
+                target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
 
-                # Update the frozen target models
-                for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
-                    target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
+            for param, target_param in zip(self.actor.parameters(), self.actor_target.parameters()):
+                target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
 
-                for param, target_param in zip(self.actor.parameters(), self.actor_target.parameters()):
-                    target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
-
-                # self.critics.popleft()
-                self.critic_target_list.append(cp.deepcopy(self.critic_target))
+            # self.critics.popleft()
+            self.critic_target_list.append(cp.deepcopy(self.critic_target))
 
     def save(self, filename, directory):
         torch.save(self.actor.state_dict(), '%s/%s_actor.pth' % (directory, filename))

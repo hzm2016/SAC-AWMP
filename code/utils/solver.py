@@ -4,11 +4,13 @@ import datetime
 import cv2
 import torch
 import glob
+import roboschool, pybullet_envs, gym
 from utils import utils
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 from scipy import signal
-from methods import TD3, ATD3, ATD3_RNN, Average_TD3
+from methods import ATD3, ATD3_RNN, Average_TD3, DDPG, TD3
+
 
 
 class Solver(object):
@@ -44,6 +46,8 @@ class Solver(object):
             policy = ATD3_RNN.ATD3_RNN(state_dim, action_dim, max_action)
         elif 'Average_TD3' == args.policy_name:
             policy = Average_TD3.Average_TD3(state_dim, action_dim, max_action)
+        elif 'DDPG' == args.policy_name:
+            policy = DDPG.DDPG(state_dim, action_dim, max_action)
         else:
             policy = TD3.TD3(state_dim, action_dim, max_action)
         self.policy = policy
@@ -60,19 +64,20 @@ class Solver(object):
         self.env_timeStep = 4
 
     def train_once(self):
+        if self.total_timesteps != 0:
+            self.writer_train.add_scalar('ave_reward', self.episode_reward, self.total_timesteps)
+            self.policy.train(self.replay_buffer, self.args.batch_size, self.args.discount,
+                              self.args.tau, self.args.policy_noise, self.args.noise_clip,
+                              self.args.policy_freq)
+
+    def eval_once(self):
         self.pbar.update(self.total_timesteps - self.pre_num_steps)
         self.pre_num_steps = self.total_timesteps
-
         if 'r_f' in self.args.reward_name:
             self.reward_str_list.append('r_f')
             if len(self.replay_buffer.storage) > self.env.frame:
                 self.replay_buffer.add_final_reward(self.episode_progress / 1000.0,
                                                     self.env.frame)
-        if self.total_timesteps != 0:
-            self.writer_train.add_scalar('ave_reward', self.episode_reward, self.total_timesteps)
-            self.policy.train(self.replay_buffer, self.episode_timesteps, self.args.batch_size, self.args.discount,
-                              self.args.tau, self.args.policy_noise, self.args.noise_clip, self.args.policy_freq)
-
         if self.args.evaluate_Q_value:
             if self.total_timesteps >= self.args.start_timesteps and \
                     self.timesteps_calc_Q_vale >= self.args.eval_freq/10:
@@ -113,6 +118,7 @@ class Solver(object):
                 if self.args.evaluate_Q_value:
                     utils.write_table(self.log_dir + "/estimate_Q_vals", np.asarray(self.estimate_Q_vals))
                     utils.write_table(self.log_dir + "/true_Q_vals", np.asarray(self.true_Q_vals))
+
 
     def reset(self):
         # Reset environment
@@ -155,8 +161,9 @@ class Solver(object):
         self.pbar = tqdm(total=self.args.max_timesteps, initial=self.total_timesteps, position=0, leave=True)
         done = True
         while self.total_timesteps < self.args.max_timesteps:
+            self.train_once()
             if done:
-                self.train_once()
+                self.eval_once()
                 self.reset()
                 done = False
             # Select action randomly or according to policy
@@ -339,7 +346,6 @@ class Solver(object):
                     out_video.release()
         if is_reset:
             self.env.reset()
-
 
 # Runs policy for X episodes and returns average reward
 def evaluate_policy(env, policy, args, eval_episodes=10):

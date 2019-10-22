@@ -77,6 +77,7 @@ class ATD3_RNN(object):
 		self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
 
 		self.max_action = max_action
+		self.it = 0
 
 
 	def select_action(self, state):
@@ -94,66 +95,64 @@ class ATD3_RNN(object):
 		return Q_val.detach().cpu().numpy()
 
 
-	def train(self, replay_buffer, iterations, batch_size=100, discount=0.99, tau=0.005,
+	def train(self, replay_buffer, batch_size=100, discount=0.99, tau=0.005,
 			  policy_noise=0.2, noise_clip=0.5, policy_freq=2):
+		self.it += 1
+		# Sample replay buffer
+		x, y, u, r, d = replay_buffer.sample(batch_size)
+		state = torch.FloatTensor(x).to(device)
+		action = torch.FloatTensor(u).to(device)
+		next_state = torch.FloatTensor(y).to(device)
+		done = torch.FloatTensor(1 - d).to(device)
+		reward = torch.FloatTensor(r).to(device)
 
-		for it in range(iterations):
-			# Sample replay buffer
+		# Select action according to policy and add clipped noise
+		noise = torch.FloatTensor(u).data.normal_(0, policy_noise).to(device)
+		noise = noise.clamp(-noise_clip, noise_clip)
+		next_action = (self.actor_target(next_state) + noise).clamp(-self.max_action, self.max_action)
 
-			x, y, u, r, d = replay_buffer.sample(batch_size)
-			state = torch.FloatTensor(x).to(device)
-			action = torch.FloatTensor(u).to(device)
-			next_state = torch.FloatTensor(y).to(device)
-			done = torch.FloatTensor(1 - d).to(device)
-			reward = torch.FloatTensor(r).to(device)
+		# Compute the target Q value
+		target_Q1, target_Q2 = self.critic_target(next_state, next_action)
+		# if torch.rand(1) > 0.5:
+		# 	target_Q = target_Q1
+		# else:
+		# 	target_Q = target_Q2
 
-			# Select action according to policy and add clipped noise 
-			noise = torch.FloatTensor(u).data.normal_(0, policy_noise).to(device)
-			noise = noise.clamp(-noise_clip, noise_clip)
-			next_action = (self.actor_target(next_state) + noise).clamp(-self.max_action, self.max_action)
+		target_Q = torch.min(target_Q1, target_Q2)
+		target_Q = reward + (done * discount * target_Q).detach()
 
-			# Compute the target Q value
-			target_Q1, target_Q2 = self.critic_target(next_state, next_action)
-			# if torch.rand(1) > 0.5:
-			# 	target_Q = target_Q1
-			# else:
-			# 	target_Q = target_Q2
+		# Get current Q estimates
+		current_Q1, current_Q2 = self.critic(state, action)
 
-			target_Q = torch.min(target_Q1, target_Q2)
-			target_Q = reward + (done * discount * target_Q).detach()
+		# Compute critic loss
+		critic_loss = F.mse_loss(current_Q1, target_Q) + F.mse_loss(current_Q2, target_Q) - \
+					  0.1 * F.mse_loss(current_Q1, current_Q2)
 
-			# Get current Q estimates
-			current_Q1, current_Q2 = self.critic(state, action)
+		# Optimize the critic
+		self.critic_optimizer.zero_grad()
+		critic_loss.backward()
+		self.critic_optimizer.step()
 
-			# Compute critic loss
-			critic_loss = F.mse_loss(current_Q1, target_Q) + F.mse_loss(current_Q2, target_Q) - \
-						  0.1 * F.mse_loss(current_Q1, current_Q2)
+		# Delayed policy updates
+		if self.it % policy_freq == 0:
 
-			# Optimize the critic
-			self.critic_optimizer.zero_grad()
-			critic_loss.backward()
-			self.critic_optimizer.step()
+			# Compute actor loss
+			current_Q1, current_Q2 = self.critic(state, self.actor(state))
+			actor_loss = -0.5 * (current_Q1 + current_Q2).mean()
 
-			# Delayed policy updates
-			if it % policy_freq == 0:
+			# actor_loss = -self.critic.Q1(state, self.actor(state)).mean()
 
-				# Compute actor loss
-				current_Q1, current_Q2 = self.critic(state, self.actor(state))
-				actor_loss = -0.5 * (current_Q1 + current_Q2).mean()
+			# Optimize the actor
+			self.actor_optimizer.zero_grad()
+			actor_loss.backward()
+			self.actor_optimizer.step()
 
-				# actor_loss = -self.critic.Q1(state, self.actor(state)).mean()
-				
-				# Optimize the actor 
-				self.actor_optimizer.zero_grad()
-				actor_loss.backward()
-				self.actor_optimizer.step()
+			# Update the frozen target models
+			for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
+				target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
 
-				# Update the frozen target models
-				for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
-					target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
-
-				for param, target_param in zip(self.actor.parameters(), self.actor_target.parameters()):
-					target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
+			for param, target_param in zip(self.actor.parameters(), self.actor_target.parameters()):
+				target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
 
 
 	def save(self, filename, directory):
