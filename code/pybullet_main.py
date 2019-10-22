@@ -75,8 +75,7 @@ if __name__ == "__main__":
         if 'Pendulum' in env_name:
             print(env_name)
             args.reward_name = ''
-        if args.render:
-            env.render('human')
+        env.render('human')
         for policy_name in policy_name_vec:
             args.policy_name = policy_name
             main(env, args)
