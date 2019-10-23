@@ -13,9 +13,9 @@ class SAC(object):
         self.tau = args.tau
         self.alpha = args.alpha
 
-        self.policy_type = args.policy
-        self.target_update_interval = args.target_update_interval
-        self.automatic_entropy_tuning = args.automatic_entropy_tuning
+        self.policy_type = "Gaussian"
+        self.target_update_interval = 1
+        self.automatic_entropy_tuning = False
 
         self.device = torch.device("cuda" if args.cuda else "cpu") 
 
@@ -49,7 +49,8 @@ class SAC(object):
             _, _, action = self.policy.sample(state)
         return action.detach().cpu().numpy()[0]
 
-    def update_parameters(self, memory, batch_size, updates):
+    def train(self, memory, batch_size, updates):
+
         # Sample a batch from memory
         state_batch, action_batch, reward_batch, next_state_batch, mask_batch = memory.sample(batch_size=batch_size)
 

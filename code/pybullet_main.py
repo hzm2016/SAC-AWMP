@@ -32,7 +32,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default='ATD3_RNN')  # Policy name
     parser.add_argument("--env_name", default="HopperBulletEnv-v0")  # OpenAI gym environment name
-    parser.add_argument("--log_path", default='runs/pybullet_new')
+    parser.add_argument("--log_path", default='runs/Roboschool_one_step')
 
     parser.add_argument("--eval_only", default=False)
     parser.add_argument("--render", default=False)
@@ -62,25 +62,32 @@ if __name__ == "__main__":
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     args = parser.parse_args()
 
-    env_name_vec = ['HopperBulletEnv-v0',
-                    'HalfCheetahBulletEnv-v0',
-                    'AntBulletEnv-v0',
-                    'Walker2DBulletEnv-v0', 'HumanoidBulletEnv-v0', 'InvertedPendulumBulletEnv-v0',
-                    'InvertedDoublePendulumBulletEnv-v0', 'InvertedPendulumSwingupBulletEnv-v0'
-                    ]
+    # env_name_vec = ['HopperBulletEnv-v0',
+    #                 'HalfCheetahBulletEnv-v0',
+    #                 'AntBulletEnv-v0',
+    #                 'Walker2DBulletEnv-v0', 'HumanoidBulletEnv-v0', 'InvertedPendulumBulletEnv-v0',
+    #                 'InvertedDoublePendulumBulletEnv-v0', 'InvertedPendulumSwingupBulletEnv-v0'
+    #                 ]
+    env_name_vec = [
+    'RoboschoolHopper-v1',
+    # 'RoboschoolWalker2d-v1',
+    'RoboschoolHalfCheetah-v1',
+    'RoboschoolAnt-v1',
+    'RoboschoolHumanoid-v1',
+    'RoboschoolInvertedPendulum-v1',
+    'RoboschoolInvertedPendulumSwingup-v1',
+    'RoboschoolInvertedDoublePendulum-v1',
+    ]
     policy_name_vec = ['DDPG', 'ATD3', 'ATD3_RNN', 'Average_TD3', 'TD3']
-    # policy_name_vec = ['ATD3']
     for env_name in env_name_vec:
-        p.connect(p.DIRECT)
         args.env_name = env_name
         env = gym.make(args.env_name)
         if 'Pendulum' in env_name:
             print(env_name)
             args.reward_name = ''
-        if args.render:
+        if args.render and 'Bullet' in env_name:
             env.render('human')
         for policy_name in policy_name_vec:
             args.policy_name = policy_name
             main(env, args)
         env.close()
-
