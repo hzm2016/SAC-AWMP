@@ -55,11 +55,11 @@ def plot_reward_curves(reward_name_idx = None, policy_name_vec=None, result_path
         else:
             reward_legend = '$r^d + \hat{r}^g$'
         legend_vec.append(policy_name_vec[r] + ' + ' + reward_legend)
-        file_name_vec = glob.glob('{}/*_{}_{}*{}/test_accuracy.xls'.format(
-            result_path, policy_name_vec[r], env_name, reward_str))
+        file_name_vec = glob.glob('{}/{}_seed*{}*{}/test_accuracy.xls'.format(
+            result_path, policy_name_vec[r], env_name, reward_str))[0:4]
+        # print(file_name_vec)
         for c in range(len(file_name_vec)):
             file_name = file_name_vec[c]
-            # print(file_name)
             dfs = pd.read_excel(file_name)
             acc_vec = dfs.values.astype(np.float)[:, 0]
             if reward_mat is None:
@@ -256,9 +256,6 @@ def plot_acc_mat(acc_mat, legend_vec, env_name, plot_std = True, smooth_weight =
     plt.xlabel(r'Time steps ($1 \times 10^{5}$)' + '\n{}'.format(env_name))
     plt.xlim((min(t), max(t)))
     plt.ylabel(y_label)
-    if fig_name is not None:
-        plt.savefig('images/{}_{}.pdf'.format(env_name, fig_name), bbox_inches='tight')
-        plt.savefig('images/{}_{}.jpg'.format(env_name, fig_name), bbox_inches='tight')
     if fig is None:
         plt.show()
 
@@ -343,6 +340,37 @@ def read_joint_angle_gait(file_name):
     joint_angle_gait = joint_angle_gait.reshape((-1, 3, 100))
     return np.mean(joint_angle_gait, axis=0), np.std(joint_angle_gait, axis=0)
 
+
+def plot_roboschool_test_reward():
+    env_name_vec = [
+        'RoboschoolHopper-v1',
+        'RoboschoolWalker2d-v1',
+        # 'RoboschoolHalfCheetah-v1',
+        # 'RoboschoolAnt-v1',
+        # 'RoboschoolHumanoid-v1',
+        # 'RoboschoolInvertedPendulum-v1',
+        # 'RoboschoolInvertedPendulumSwingup-v1',
+        # 'RoboschoolInvertedDoublePendulum-v1',
+    ]
+    fig = plt.figure(figsize=(3.5, 2.5))
+    fig.tight_layout()
+    plt.rcParams.update({'font.size': 7, 'font.serif': 'Times New Roman'})
+    policy_name_vec = ['ATD3', 'ATD3_RNN', 'Average_TD3', 'TD3']
+    for i in range(len(env_name_vec)):
+        plt.subplot(1, len(env_name_vec), i+1)
+        legend_vec = plot_reward_curves(result_path='runs/Roboschool',
+                                        env_name=env_name_vec[i],
+                                        policy_name_vec=policy_name_vec,
+                                        reward_name_idx=[1, 1, 1, 1], fig=fig)
+        plt.yticks([0, 1000, 2000])
+        plt.xticks([0, 1.5, 3])
+
+    print(legend_vec)
+    legend = fig.legend(policy_name_vec,
+                        loc='lower center', ncol=4, bbox_to_anchor=(0.50, 0.95), frameon=False)
+    fig.tight_layout()
+    plt.savefig('images/Roboschool_test_mat.pdf', bbox_inches='tight', pad_inches=0.1)
+    plt.show()
 
 def plot_all_test_reward():
     fig = plt.figure(figsize=(3.5, 2.5))
@@ -543,35 +571,27 @@ def smooth(scalars, weight = 0.8):
         last = smoothed_val                                  # Anchor the last smoothed value
     return np.asarray(smoothed)
 
-# # Fig: ablation study for different rewards
-print('------Fig: ablation reward------')
-plot_ablation_reward()
+# # # Fig: ablation study for different rewards
+# print('------Fig: ablation reward------')
+# plot_ablation_reward()
+#
+# # Fig: test acc
+# print('------Fig: test reward------')
+# plot_all_test_reward()
+#
+# ## Fig: Q-value
+# print('------Fig: Q value ------')
+# plot_Q_vals(result_path = 'runs/ATD3_walker2d_Q_value',
+#             env_name = 'RoboschoolWalker2d',
+#             policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN'],
+#             reward_name_idx = [0, 0, 0])
+#
+#
+# # # Fig: joint angle
+# print('-----Fig: joint angle-----')
+# plot_all_gait_angle()
+
 
 # Fig: test acc
 print('------Fig: test reward------')
-plot_all_test_reward()
-
-## Fig: Q-value
-print('------Fig: Q value ------')
-plot_Q_vals(result_path = 'runs/ATD3_walker2d_Q_value',
-            env_name = 'RoboschoolWalker2d',
-            policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN'],
-            reward_name_idx = [0, 0, 0])
-
-
-# # Fig: joint angle
-print('-----Fig: joint angle-----')
-plot_all_gait_angle()
-
-# # Fig: video test reward
-# print('-----Fig: video test reward-----')
-# plot_reward_curves(result_path = 'runs/ATD3_walker2d_all_policy',
-#                    env_name = 'RoboschoolWalker2d',
-#                    policy_name_vec = ['ATD3_RNN'],
-#                    reward_name_idx = [4], fig_name='video_reward_ATD3_RNN_rg',
-#                    smooth_weight=0.0, eval_freq=0.1)
-# plot_reward_curves(result_path = 'runs/ATD3_Atlas_all_policy',
-#                    env_name = 'WebotsAtlas',
-#                    policy_name_vec = ['ATD3_RNN'],
-#                    reward_name_idx = [4], fig_name='video_reward_ATD3_RNN_rg',
-#                    smooth_weight=0.0, eval_freq=0.1)
+plot_roboschool_test_reward()

@@ -69,16 +69,17 @@ if __name__ == "__main__":
     #                 'InvertedDoublePendulumBulletEnv-v0', 'InvertedPendulumSwingupBulletEnv-v0'
     #                 ]
     env_name_vec = [
-    'RoboschoolHopper-v1',
-    # 'RoboschoolWalker2d-v1',
-    'RoboschoolHalfCheetah-v1',
-    'RoboschoolAnt-v1',
-    'RoboschoolHumanoid-v1',
-    'RoboschoolInvertedPendulum-v1',
-    'RoboschoolInvertedPendulumSwingup-v1',
-    'RoboschoolInvertedDoublePendulum-v1',
+        'RoboschoolAnt-v1',
+        'RoboschoolHalfCheetah-v1',
+        'RoboschoolWalker2d-v1',
+        'RoboschoolHopper-v1',
+    # 'RoboschoolHumanoid-v1',
+    # 'RoboschoolInvertedPendulum-v1',
+    # 'RoboschoolInvertedPendulumSwingup-v1',
+    # 'RoboschoolInvertedDoublePendulum-v1',
     ]
-    policy_name_vec = ['DDPG', 'ATD3', 'ATD3_RNN', 'Average_TD3', 'TD3']
+    policy_name_vec = ['ATD3', 'ATD3_RNN', 'Average_TD3', 'TD3', 'SAC']
+    # policy_name_vec = ['ATD3']
     for env_name in env_name_vec:
         args.env_name = env_name
         env = gym.make(args.env_name)

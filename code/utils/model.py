@@ -32,16 +32,16 @@ class ValueNetwork(nn.Module):
 
 
 class QNetwork(nn.Module):
-    def __init__(self, num_inputs, num_actions, hidden_dim):
+    def __init__(self, state_dim, action_dim, hidden_dim):
         super(QNetwork, self).__init__()
 
         # Q1 architecture
-        self.linear1 = nn.Linear(num_inputs + num_actions, hidden_dim)
+        self.linear1 = nn.Linear(state_dim + action_dim, hidden_dim)
         self.linear2 = nn.Linear(hidden_dim, hidden_dim)
         self.linear3 = nn.Linear(hidden_dim, 1)
 
         # Q2 architecture
-        self.linear4 = nn.Linear(num_inputs + num_actions, hidden_dim)
+        self.linear4 = nn.Linear(state_dim + action_dim, hidden_dim)
         self.linear5 = nn.Linear(hidden_dim, hidden_dim)
         self.linear6 = nn.Linear(hidden_dim, 1)
 
@@ -62,26 +62,24 @@ class QNetwork(nn.Module):
 
 
 class GaussianPolicy(nn.Module):
-    def __init__(self, num_inputs, num_actions, hidden_dim, action_space=None):
+    def __init__(self, state_dim, action_dim, hidden_dim, max_action=None):
         super(GaussianPolicy, self).__init__()
         
-        self.linear1 = nn.Linear(num_inputs, hidden_dim)
+        self.linear1 = nn.Linear(state_dim, hidden_dim)
         self.linear2 = nn.Linear(hidden_dim, hidden_dim)
 
-        self.mean_linear = nn.Linear(hidden_dim, num_actions)
-        self.log_std_linear = nn.Linear(hidden_dim, num_actions)
+        self.mean_linear = nn.Linear(hidden_dim, action_dim)
+        self.log_std_linear = nn.Linear(hidden_dim, action_dim)
 
         self.apply(weights_init_)
 
         # action rescaling
-        if action_space is None:
+        if max_action is None:
             self.action_scale = torch.tensor(1.)
             self.action_bias = torch.tensor(0.)
         else:
-            self.action_scale = torch.FloatTensor(
-                (action_space.high - action_space.low) / 2.)
-            self.action_bias = torch.FloatTensor(
-                (action_space.high + action_space.low) / 2.)
+            self.action_scale = torch.tensor(max_action)
+            self.action_bias = torch.tensor(0.)
 
     def forward(self, state):
         x = F.relu(self.linear1(state))
@@ -112,25 +110,23 @@ class GaussianPolicy(nn.Module):
 
 
 class DeterministicPolicy(nn.Module):
-    def __init__(self, num_inputs, num_actions, hidden_dim, action_space=None):
+    def __init__(self, state_dim, action_dim, hidden_dim, max_action=None):
         super(DeterministicPolicy, self).__init__()
-        self.linear1 = nn.Linear(num_inputs, hidden_dim)
+        self.linear1 = nn.Linear(state_dim, hidden_dim)
         self.linear2 = nn.Linear(hidden_dim, hidden_dim)
 
-        self.mean = nn.Linear(hidden_dim, num_actions)
-        self.noise = torch.Tensor(num_actions)
+        self.mean = nn.Linear(hidden_dim, action_dim)
+        self.noise = torch.tensor(action_dim)
 
         self.apply(weights_init_)
 
         # action rescaling
-        if action_space is None:
+        if max_action is None:
             self.action_scale = 1.
             self.action_bias = 0.
         else:
-            self.action_scale = torch.FloatTensor(
-                (action_space.high - action_space.low) / 2.)
-            self.action_bias = torch.FloatTensor(
-                (action_space.high + action_space.low) / 2.)
+            self.action_scale = torch.tensor(max_action)
+            self.action_bias = torch.tensor(0.)
 
     def forward(self, state):
         x = F.relu(self.linear1(state))

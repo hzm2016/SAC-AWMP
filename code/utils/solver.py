@@ -9,8 +9,7 @@ from utils import utils
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 from scipy import signal
-from methods import ATD3, ATD3_RNN, Average_TD3, DDPG, TD3
-
+from methods import ATD3, ATD3_RNN, Average_TD3, DDPG, TD3, SAC
 
 
 class Solver(object):
@@ -48,6 +47,8 @@ class Solver(object):
             policy = Average_TD3.Average_TD3(state_dim, action_dim, max_action)
         elif 'DDPG' == args.policy_name:
             policy = DDPG.DDPG(state_dim, action_dim, max_action)
+        elif 'SAC' == args.policy_name:
+            policy = SAC.SAC(state_dim, action_dim, max_action)
         else:
             policy = TD3.TD3(state_dim, action_dim, max_action)
         self.policy = policy
@@ -147,9 +148,9 @@ class Solver(object):
         #                                                   datetime.datetime.now().strftime("%d_%H-%M-%S"),
         #                                                   self.args.policy_name, self.args.env_name,
         #                                                   self.args.reward_name)
-        self.log_dir = '{}/{}/seed_{}_{}_{}_{}'.format(self.result_path, self.args.log_path, self.args.seed,
+        self.log_dir = '{}/{}/{}_{}_{}_seed_{}'.format(self.result_path, self.args.log_path,
                                                     self.args.policy_name, self.args.env_name,
-                                                    self.args.reward_name)
+                                                    self.args.reward_name, self.args.seed)
         print("---------------------------------------")
         print("Settings: %s" % self.log_dir)
         print("---------------------------------------")
@@ -172,6 +173,8 @@ class Solver(object):
             else:
                 if 'RNN' in self.args.policy_name:
                     action = self.policy.select_action(np.array(self.obs_vec))
+                elif 'SAC' in self.args.policy_name:
+                    action = self.policy.select_action(np.array(self.obs), eval=False)
                 else:
                     action = self.policy.select_action(np.array(self.obs))
                 if self.args.expl_noise != 0:
@@ -189,7 +192,7 @@ class Solver(object):
                 reward = self.update_gait_reward(new_obs, reward)
 
             if 'r_s' in self.args.reward_name:
-                reward -= 0.5
+                # reward -= 0.5
                 self.reward_str_list.append('r_s')
                 # foot_dim = state_dim - 8 - 2*action_dim
                 foot_num = len(self.env.observation_space.low) - 8 - 2 * len(self.env.action_space.low)
