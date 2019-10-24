@@ -78,7 +78,7 @@ if __name__ == "__main__":
     # 'RoboschoolInvertedPendulumSwingup-v1',
     # 'RoboschoolInvertedDoublePendulum-v1',
     ]
-    policy_name_vec = ['ATD3', 'ATD3_RNN', 'Average_TD3', 'TD3', 'SAC']
+    policy_name_vec = ['SAC', 'TD3', 'ATD3', 'Average_TD3', 'ATD3_RNN']
     # policy_name_vec = ['ATD3']
     for env_name in env_name_vec:
         args.env_name = env_name
