@@ -55,8 +55,8 @@ def plot_reward_curves(reward_name_idx = None, policy_name_vec=None, result_path
         else:
             reward_legend = '$r^d + \hat{r}^g$'
         legend_vec.append(policy_name_vec[r] + ' + ' + reward_legend)
-        file_name_vec = glob.glob('{}/{}_seed*{}*{}/test_accuracy.xls'.format(
-            result_path, policy_name_vec[r], env_name, reward_str))[0:4]
+        file_name_vec = glob.glob('{}/{}_{}_{}_seed*/test_accuracy.xls'.format(
+            result_path, policy_name_vec[r], env_name, reward_str))
         # print(file_name_vec)
         for c in range(len(file_name_vec)):
             file_name = file_name_vec[c]
@@ -345,29 +345,30 @@ def plot_roboschool_test_reward():
     env_name_vec = [
         'RoboschoolHopper-v1',
         'RoboschoolWalker2d-v1',
-        # 'RoboschoolHalfCheetah-v1',
-        # 'RoboschoolAnt-v1',
+        'RoboschoolHalfCheetah-v1',
+        'RoboschoolAnt-v1',
         # 'RoboschoolHumanoid-v1',
         # 'RoboschoolInvertedPendulum-v1',
         # 'RoboschoolInvertedPendulumSwingup-v1',
         # 'RoboschoolInvertedDoublePendulum-v1',
     ]
-    fig = plt.figure(figsize=(3.5, 2.5))
+    fig = plt.figure(figsize=(5, 5))
     fig.tight_layout()
     plt.rcParams.update({'font.size': 7, 'font.serif': 'Times New Roman'})
-    policy_name_vec = ['ATD3', 'ATD3_RNN', 'Average_TD3', 'TD3']
+    policy_name_vec = ['DDPG', 'SAC', 'TD3', 'ATD3', 'Average_TD3', 'ATD3_RNN']
+
     for i in range(len(env_name_vec)):
-        plt.subplot(1, len(env_name_vec), i+1)
-        legend_vec = plot_reward_curves(result_path='runs/Roboschool',
+        plt.subplot(2, 2, i+1)
+        legend_vec = plot_reward_curves(result_path='runs/Roboschool_new',
                                         env_name=env_name_vec[i],
                                         policy_name_vec=policy_name_vec,
-                                        reward_name_idx=[1, 1, 1, 1], fig=fig)
+                                        reward_name_idx=np.ones(len(policy_name_vec),dtype=int), fig=fig)
         plt.yticks([0, 1000, 2000])
         plt.xticks([0, 1.5, 3])
 
     print(legend_vec)
     legend = fig.legend(policy_name_vec,
-                        loc='lower center', ncol=4, bbox_to_anchor=(0.50, 0.95), frameon=False)
+                        loc='lower center', ncol=len(policy_name_vec), bbox_to_anchor=(0.50, 0.95), frameon=False)
     fig.tight_layout()
     plt.savefig('images/Roboschool_test_mat.pdf', bbox_inches='tight', pad_inches=0.1)
     plt.show()

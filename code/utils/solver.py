@@ -9,7 +9,7 @@ from utils import utils
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 from scipy import signal
-from methods import ATD3, ATD3_RNN, Average_TD3, DDPG, TD3, SAC
+from methods import ATD3, ATD3_RNN, Average_TD3, DDPG, TD3, SAC, DDPG_RNN, TD3_RNN
 
 
 class Solver(object):
@@ -43,6 +43,10 @@ class Solver(object):
             policy = ATD3.ATD3(state_dim, action_dim, max_action)
         elif 'ATD3_RNN' == args.policy_name:
             policy = ATD3_RNN.ATD3_RNN(state_dim, action_dim, max_action)
+        elif 'DDPG_RNN' == args.policy_name:
+            policy = DDPG_RNN.DDPG_RNN(state_dim, action_dim, max_action)
+        elif 'TD3_RNN' == args.policy_name:
+            policy = TD3_RNN.TD3_RNN(state_dim, action_dim, max_action)
         elif 'Average_TD3' == args.policy_name:
             policy = Average_TD3.Average_TD3(state_dim, action_dim, max_action)
         elif 'DDPG' == args.policy_name:

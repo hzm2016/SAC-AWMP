@@ -5,6 +5,7 @@ project_path = '../'
 sys.path.insert(0, project_path + 'code')
 print(sys.path)
 import roboschool, pybullet_envs, gym
+from roboschool import gym_mujoco_walkers
 import pybullet as p
 import argparse
 import numpy as np
@@ -32,7 +33,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default='ATD3_RNN')  # Policy name
     parser.add_argument("--env_name", default="HopperBulletEnv-v0")  # OpenAI gym environment name
-    parser.add_argument("--log_path", default='runs/Roboschool_one_step')
+    parser.add_argument("--log_path", default='runs/Roboschool_new')
 
     parser.add_argument("--eval_only", default=False)
     parser.add_argument("--render", default=False)
@@ -73,13 +74,16 @@ if __name__ == "__main__":
         'RoboschoolHalfCheetah-v1',
         'RoboschoolWalker2d-v1',
         'RoboschoolHopper-v1',
-    # 'RoboschoolHumanoid-v1',
-    # 'RoboschoolInvertedPendulum-v1',
-    # 'RoboschoolInvertedPendulumSwingup-v1',
-    # 'RoboschoolInvertedDoublePendulum-v1',
+        # 'RoboschoolHumanoid-v1',
+        # 'RoboschoolInvertedPendulum-v1',
+        # 'RoboschoolInvertedPendulumSwingup-v1',
+        # 'RoboschoolInvertedDoublePendulum-v1',
+        # 'RoboschoolAtlasForwardWalk-v1'
     ]
-    policy_name_vec = ['SAC', 'TD3', 'ATD3', 'Average_TD3', 'ATD3_RNN']
-    # policy_name_vec = ['ATD3']
+    # policy_name_vec = ['SAC', 'TD3', 'ATD3', 'Average_TD3', 'ATD3_RNN']
+    policy_name_vec = ['DDPG_RNN', 'TD3_RNN']
+    # for i in range(5):
+    #     args.seed = i
     for env_name in env_name_vec:
         args.env_name = env_name
         env = gym.make(args.env_name)
