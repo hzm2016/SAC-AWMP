@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
     parser.add_argument("--state_noise", default=0, type=float)  # Std of Gaussian exploration noise
-    parser.add_argument("--batch_size", default=100, type=int)  # Batch size for both actor and critic
+    parser.add_argument("--batch_size", default=256, type=int)  # Batch size for both actor and critic
     parser.add_argument("--discount", default=0.99, type=float)  # Discount factor
     parser.add_argument("--tau", default=0.005, type=float)  # Target network update rate
     parser.add_argument("--policy_noise", default=0.2, type=float)  # Noise added to target policy during critic update
@@ -81,7 +81,7 @@ if __name__ == "__main__":
         # 'RoboschoolAtlasForwardWalk-v1'
     ]
     # policy_name_vec = ['SAC', 'TD3', 'ATD3', 'Average_TD3', 'ATD3_RNN']
-    policy_name_vec = ['DDPG_RNN']
+    policy_name_vec = ['SAAC']
     # for i in range(5):
     #     args.seed = i
     for env_name in env_name_vec:

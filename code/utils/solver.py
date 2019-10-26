@@ -9,7 +9,8 @@ from utils import utils
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 from scipy import signal
-from methods import ATD3, ATD3_RNN, Average_TD3, DDPG, TD3, SAC, DDPG_RNN, TD3_RNN, ATD3_IM
+from methods import ATD3, ATD3_RNN, Average_TD3, DDPG, \
+    TD3, SAC, DDPG_RNN, TD3_RNN, ATD3_IM, SAAC
 
 
 class Solver(object):
@@ -55,6 +56,8 @@ class Solver(object):
             policy = DDPG.DDPG(state_dim, action_dim, max_action)
         elif 'SAC' == args.policy_name:
             policy = SAC.SAC(state_dim, action_dim, max_action)
+        elif 'SAAC' == args.policy_name:
+            policy = SAAC.SAAC(state_dim, action_dim, max_action)
         else:
             policy = TD3.TD3(state_dim, action_dim, max_action)
         self.policy = policy
