@@ -9,7 +9,7 @@ from utils import utils
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 from scipy import signal
-from methods import ATD3, ATD3_RNN, Average_TD3, DDPG, TD3, SAC, DDPG_RNN, TD3_RNN
+from methods import ATD3, ATD3_RNN, Average_TD3, DDPG, TD3, SAC, DDPG_RNN, TD3_RNN, ATD3_IM
 
 
 class Solver(object):
@@ -41,6 +41,8 @@ class Solver(object):
         # Initialize policy
         if 'ATD3' == args.policy_name:
             policy = ATD3.ATD3(state_dim, action_dim, max_action)
+        elif 'ATD3_IM' == args.policy_name:
+            policy = ATD3_IM.ATD3_IM(state_dim, action_dim, max_action)
         elif 'ATD3_RNN' == args.policy_name:
             policy = ATD3_RNN.ATD3_RNN(state_dim, action_dim, max_action)
         elif 'DDPG_RNN' == args.policy_name:
@@ -181,10 +183,18 @@ class Solver(object):
                     action = self.policy.select_action(np.array(self.obs), eval=False)
                 else:
                     action = self.policy.select_action(np.array(self.obs))
+
                 if self.args.expl_noise != 0:
                     action = (action + np.random.normal(0, self.args.expl_noise,
                                                         size=self.env.action_space.shape[0])).clip(
                         self.env.action_space.low, self.env.action_space.high)
+
+            if 'IM' in self.args.policy_name:
+                action_im = np.copy(action)
+                action = utils.calc_torque_from_impedance(action_im,
+                                                          np.asarray(self.obs)[8:-2]).clip(
+                        self.env.action_space.low, self.env.action_space.high)
+
 
             # Perform action
             new_obs, reward, done, _ = self.env.step(action)
@@ -212,6 +222,9 @@ class Solver(object):
                     done = True
 
             done_bool = 0 if self.episode_timesteps + 1 == self.env._max_episode_steps else float(done)
+
+            if 'IM' in self.args.policy_name:
+                action = action_im
 
             if 'RNN' in self.args.policy_name:
                 # Store data in replay buffer
@@ -329,6 +342,11 @@ class Solver(object):
                         action = self.policy.select_action(np.array(obs_vec))
                     else:
                         action = self.policy.select_action(np.array(obs))
+
+                    if 'IM' in self.args.policy_name:
+                        action_im = np.copy(action)
+                        action = utils.calc_torque_from_impedance(action_im, np.asarray(obs)[8:-2])
+
                     obs, reward, done, _ = self.env.step(action)
 
                     if 'RNN' in self.args.policy_name:
@@ -367,6 +385,11 @@ def evaluate_policy(env, policy, args, eval_episodes=10):
                 action = policy.select_action(np.array(obs_vec))
             else:
                 action = policy.select_action(np.array(obs))
+
+            if 'IM' in args.policy_name:
+                action_im = np.copy(action)
+                action = utils.calc_torque_from_impedance(action_im, np.asarray(obs)[8:-2])
+
             obs, reward, done, _ = env.step(action)
             if 'RNN' in args.policy_name:
                 obs_vec = utils.fifo_data(obs_vec, obs)
@@ -402,6 +425,11 @@ def cal_true_value(env, policy, replay_buffer, args, eval_episodes=1000):
                 action = policy.select_action(np.array(obs_vec))
             else:
                 action = policy.select_action(np.array(obs))
+
+            if 'IM' in args.policy_name:
+                action_im = np.copy(action)
+                action = utils.calc_torque_from_impedance(action_im, np.asarray(obs)[8:-2])
+
             # action = np.zeros(6, dtype=float)
             obs, reward, done, _ = env.step(action)
             reward -= 0.5

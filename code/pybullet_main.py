@@ -70,9 +70,9 @@ if __name__ == "__main__":
     #                 'InvertedDoublePendulumBulletEnv-v0', 'InvertedPendulumSwingupBulletEnv-v0'
     #                 ]
     env_name_vec = [
-        'RoboschoolAnt-v1',
-        'RoboschoolHalfCheetah-v1',
-        'RoboschoolWalker2d-v1',
+        # 'RoboschoolAnt-v1',
+        # 'RoboschoolHalfCheetah-v1',
+        # 'RoboschoolWalker2d-v1',
         'RoboschoolHopper-v1',
         # 'RoboschoolHumanoid-v1',
         # 'RoboschoolInvertedPendulum-v1',
@@ -81,7 +81,7 @@ if __name__ == "__main__":
         # 'RoboschoolAtlasForwardWalk-v1'
     ]
     # policy_name_vec = ['SAC', 'TD3', 'ATD3', 'Average_TD3', 'ATD3_RNN']
-    policy_name_vec = ['DDPG_RNN', 'TD3_RNN']
+    policy_name_vec = ['DDPG_RNN']
     # for i in range(5):
     #     args.seed = i
     for env_name in env_name_vec:

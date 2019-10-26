@@ -23,6 +23,7 @@ class Actor(nn.Module):
         self.max_action = max_action
 
     def forward(self, x):
+        self.gru.flatten_parameters()
         x, _ = self.gru(x)
         x = x[:, -1, :]
         x = F.relu(self.l2(x))
@@ -41,6 +42,7 @@ class Critic(nn.Module):
         self.l3 = nn.Linear(300, 1)
 
     def forward(self, x, u):
+        self.gru1.flatten_parameters()
         xg1, _ = self.gru1(x)
         xg1 = xg1[:, -1, :]
         u1 = F.relu(self.l1(u))
@@ -66,7 +68,7 @@ class DDPG_RNN(object):
         self.tau = tau
 
     def select_action(self, state):
-        state = torch.FloatTensor(state.reshape(1, -1)).to(device)
+        state = torch.FloatTensor(state.reshape(-1, state.shape[0], state.shape[1])).to(device)
         return self.actor(state).cpu().data.numpy().flatten()
 
     def train(self, replay_buffer, batch_size=100, discount=0.99, tau=0.005, policy_noise=0.2,

@@ -264,3 +264,14 @@ def soft_update(target, source, tau):
 def hard_update(target, source):
     for target_param, param in zip(target.parameters(), source.parameters()):
         target_param.data.copy_(param.data)
+
+
+def calc_torque_from_impedance(action_im, joint_states, scale = 1.0):
+    k_vec = action_im[0::3]
+    b_vec = action_im[1::3]
+    q_e_vec = action_im[2::3]
+    q_vec = joint_states[0::2]
+    q_v_vec = joint_states[0::2]
+    action = (k_vec * (q_e_vec - q_vec) - b_vec * q_v_vec)/scale
+    return action
+
