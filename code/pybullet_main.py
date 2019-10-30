@@ -5,7 +5,7 @@ project_path = '../'
 sys.path.insert(0, project_path + 'code')
 print(sys.path)
 import roboschool, pybullet_envs, gym
-from roboschool import gym_mujoco_walkers
+from roboschool import gym_mujoco_walkers, gym_atlas
 import pybullet as p
 import argparse
 import numpy as np
@@ -33,12 +33,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default='ATD3_RNN')  # Policy name
     parser.add_argument("--env_name", default="HopperBulletEnv-v0")  # OpenAI gym environment name
-    parser.add_argument("--log_path", default='runs/Roboschool_2019_10_25')
+    parser.add_argument("--log_path", default='runs/Roboschool_atlas_video')
 
     parser.add_argument("--eval_only", default=False)
     parser.add_argument("--render", default=False)
     parser.add_argument("--save_video", default=False)
-    parser.add_argument("--video_size", default=(854, 480))
+    parser.add_argument("--video_size", default=(600, 400))
     parser.add_argument("--save_all_policy", default=False)
     parser.add_argument("--load_policy_idx", default='')
     parser.add_argument("--evaluate_Q_value", default=False)
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     parser.add_argument("--start_timesteps", default=1e4,
                         type=int)  # How many time steps purely random policy is run for
     parser.add_argument("--eval_freq", default=5e3, type=int)  # How often (time steps) we evaluate
-    parser.add_argument("--max_timesteps", default=1e6, type=int)  # Max time steps to run environment for
+    parser.add_argument("--max_timesteps", default=1e7, type=int)  # Max time steps to run environment for
 
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
     parser.add_argument("--state_noise", default=0, type=float)  # Std of Gaussian exploration noise
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     #                 'InvertedDoublePendulumBulletEnv-v0', 'InvertedPendulumSwingupBulletEnv-v0'
     #                 ]
     env_name_vec = [
-        'RoboschoolAnt-v1',
+        # 'RoboschoolAnt-v1',
         # 'RoboschoolHalfCheetah-v1',
         # 'RoboschoolWalker2d-v1',
         # 'RoboschoolHopper-v1',
@@ -78,10 +78,10 @@ if __name__ == "__main__":
         # 'RoboschoolInvertedPendulum-v1',
         # 'RoboschoolInvertedPendulumSwingup-v1',
         # 'RoboschoolInvertedDoublePendulum-v1',
-        # 'RoboschoolAtlasForwardWalk-v1'
+        'RoboschoolAtlasForwardWalk-v1'
     ]
-    policy_name_vec = ['SAC', 'TD3', 'ATD3', 'Average_TD3', 'ATD3_RNN']
-    # policy_name_vec = ['ATD3_RNN']
+    # policy_name_vec = ['SAC', 'TD3', 'ATD3', 'Average_TD3', 'ATD3_RNN']
+    policy_name_vec = ['ATD3_RNN']
     # for i in range(5):
     #     args.seed = i
     for env_name in env_name_vec:
@@ -94,6 +94,8 @@ if __name__ == "__main__":
             env.render('human')
         if 'Ant' in args.env_name:
             args.reward_name = 'r_d'
+        else:
+            args.reward_name = 'r_d_r_s'
         for policy_name in policy_name_vec:
             args.policy_name = policy_name
             main(env, args)

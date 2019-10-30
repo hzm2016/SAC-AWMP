@@ -50,6 +50,8 @@ def plot_reward_curves(reward_name_idx = None, policy_name_vec=None, result_path
     last_reward = 0.0
     for r in range(len(reward_name_idx)):
         reward_str = connect_str_list(reward_name_vec[:reward_name_idx[r]+1])
+        if 'Ant' in env_name:
+            reward_str = 'r_d'
         if 0 == reward_name_idx[r]:
             reward_legend = '$r^d$'
         else:
@@ -253,7 +255,7 @@ def plot_acc_mat(acc_mat, legend_vec, env_name, plot_std = True, smooth_weight =
     else:
         plot_error_line(t, mean_acc, legend_vec=legend_vec,
                         init_idx=init_idx, idx_step = idx_step, marker_size=marker_size)
-    plt.xlabel(r'Time steps ($1 \times 10^{5}$)' + '\n{}'.format(env_name))
+    plt.xlabel('Time steps ' + r'($1 \times 10^{5}$)' + '\n{}'.format(env_name))
     plt.xlim((min(t), max(t)))
     plt.ylabel(y_label)
     if fig is None:
@@ -352,23 +354,23 @@ def plot_roboschool_test_reward():
         # 'RoboschoolInvertedPendulumSwingup-v1',
         # 'RoboschoolInvertedDoublePendulum-v1',
     ]
-    fig = plt.figure(figsize=(5, 5))
+    fig = plt.figure(figsize=(6, 5))
     fig.tight_layout()
-    plt.rcParams.update({'font.size': 7, 'font.serif': 'Times New Roman'})
-    policy_name_vec = ['DDPG', 'SAC', 'TD3', 'ATD3', 'Average_TD3', 'ATD3_RNN']
+    plt.rcParams.update({'font.size': 8, 'font.serif': 'Times New Roman'})
+    policy_name_vec = ['SAC', 'TD3', 'ATD3', 'Average_TD3', 'ATD3_RNN']
 
     for i in range(len(env_name_vec)):
         plt.subplot(2, 2, i+1)
         legend_vec = plot_reward_curves(result_path='runs/Roboschool_new',
                                         env_name=env_name_vec[i],
                                         policy_name_vec=policy_name_vec,
-                                        reward_name_idx=np.ones(len(policy_name_vec),dtype=int), fig=fig)
+                                        reward_name_idx=[1, 1, 1, 1, 1], fig=fig)
         plt.yticks([0, 1000, 2000])
         plt.xticks([0, 1.5, 3])
 
     print(legend_vec)
     legend = fig.legend(policy_name_vec,
-                        loc='lower center', ncol=len(policy_name_vec), bbox_to_anchor=(0.50, 0.95), frameon=False)
+                        loc='lower center', ncol=len(policy_name_vec), bbox_to_anchor=(0.50, 0.96), frameon=False)
     fig.tight_layout()
     plt.savefig('images/Roboschool_test_mat.pdf', bbox_inches='tight', pad_inches=0.1)
     plt.show()
@@ -403,7 +405,7 @@ def plot_all_test_reward():
 
 
 def plot_all_gait_angle():
-    fig = plt.figure(figsize=(3.5, 3.5))
+    fig = plt.figure(figsize=(3.5, 1.5))
     plt.rcParams.update({'font.size': 7, 'font.serif': 'Times New Roman'})
     fig.tight_layout()
 
@@ -589,10 +591,10 @@ def smooth(scalars, weight = 0.8):
 #
 #
 # # # Fig: joint angle
-# print('-----Fig: joint angle-----')
-# plot_all_gait_angle()
+print('-----Fig: joint angle-----')
+plot_all_gait_angle()
 
 
-# Fig: test acc
-print('------Fig: test reward------')
-plot_roboschool_test_reward()
+# # Fig: test acc
+# print('------Fig: test reward------')
+# plot_roboschool_test_reward()

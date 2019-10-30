@@ -75,7 +75,8 @@ class Solver(object):
 
     def train_once(self):
         if self.total_timesteps != 0:
-            self.writer_train.add_scalar('ave_reward', self.episode_reward, self.total_timesteps)
+            if self.args.evaluate_Q_value:
+                self.writer_train.add_scalar('ave_reward', self.episode_reward, self.total_timesteps)
             self.policy.train(self.replay_buffer, self.args.batch_size, self.args.discount,
                               self.args.tau, self.args.policy_noise, self.args.noise_clip,
                               self.args.policy_freq)
@@ -166,7 +167,8 @@ class Solver(object):
         if not os.path.exists(self.log_dir):
             os.makedirs(self.log_dir)
         # TesnorboardX
-        self.writer_train = SummaryWriter(logdir=self.log_dir + '_train')
+        if self.args.evaluate_Q_value:
+            self.writer_train = SummaryWriter(logdir=self.log_dir + '_train')
         self.writer_test = SummaryWriter(logdir=self.log_dir)
         self.pbar = tqdm(total=self.args.max_timesteps, initial=self.total_timesteps, position=0, leave=True)
         done = True
@@ -315,11 +317,11 @@ class Solver(object):
         return reward
 
     def eval_only(self, is_reset = True):
-        video_dir = '{}/video_all/{}_{}_{}'.format(self.result_path, self.args.env_name,
-                                               self.args.policy_name, self.args.reward_name)
+        video_dir = '{}/video_all/{}_{}_{}'.format(self.result_path, self.args.policy_name, self.args.env_name,
+                                                self.args.reward_name)
         if not os.path.exists(video_dir):
             os.makedirs(video_dir)
-        model_path_vec = glob.glob(self.result_path + '/{}/*_{}_{}_{}'.format(
+        model_path_vec = glob.glob(self.result_path + '/{}/{}_{}_{}_seed*'.format(
             self.args.log_path, self.args.policy_name, self.args.env_name, self.args.reward_name))
         print(model_path_vec)
         for model_path in model_path_vec:
