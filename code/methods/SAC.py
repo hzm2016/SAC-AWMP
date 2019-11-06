@@ -11,7 +11,7 @@ class SAC(object):
     def __init__(self, state_dim, action_dim, max_action, action_space):
 
         # 'Ant': 0.05
-        self.alpha = 0.1
+        self.alpha = 0.2
         self.lr = 0.0003
 
         self.policy_type = "Gaussian"

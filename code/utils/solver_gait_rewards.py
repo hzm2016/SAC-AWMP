@@ -215,9 +215,7 @@ class SolverGait(object):
                 self.reward_str_list.append('r_s')
                 # foot_dim = state_dim - 8 - 2*action_dim
                 foot_num = len(self.env.observation_space.low) - 8 - 2 * len(self.env.action_space.low)
-                if np.sum(new_obs[-foot_num:]) > 1 and \
-                        np.array_equal(new_obs[-foot_num:], self.obs[-foot_num:]):
-                # if np.array_equal(new_obs[-2:], np.asarray([1., 1.])):
+                if np.sum(new_obs[-foot_num:]) >= 2:
                     self.still_steps += 1
                 else:
                     self.still_steps = 0
