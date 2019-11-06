@@ -52,7 +52,7 @@ if __name__ == "__main__":
     parser.add_argument("--start_timesteps", default=1e4,
                         type=int)  # How many time steps purely random policy is run for
     parser.add_argument("--eval_freq", default=5e3, type=int)  # How often (time steps) we evaluate
-    parser.add_argument("--max_timesteps", default=3e5, type=int)  # Max time steps to run environment for
+    parser.add_argument("--max_timesteps", default=1e6, type=int)  # Max time steps to run environment for
 
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
     parser.add_argument("--state_noise", default=0, type=float)  # Std of Gaussian exploration noise
@@ -66,9 +66,9 @@ if __name__ == "__main__":
 
     env_name_vec = [
         'RoboschoolWalker2d-v1',
-        # 'RoboschoolHalfCheetah-v1',
-        # 'RoboschoolHopper-v1',
-        # 'RoboschoolAnt-v1',
+        'RoboschoolHalfCheetah-v1',
+        'RoboschoolHopper-v1',
+        'RoboschoolAnt-v1',
         # 'Ant-v2',
         # 'HalfCheetah-v2',
         # 'Walker2d-v2',
@@ -79,8 +79,8 @@ if __name__ == "__main__":
         # 'RoboschoolInvertedDoublePendulum-v1',
         # 'RoboschoolAtlasForwardWalk-v1'
     ]
-    # policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
-    policy_name_vec = ['SAC']
+    policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
+    # policy_name_vec = ['SAC']
     for env_name in env_name_vec:
         args.env_name = env_name
         env = gym.make(args.env_name)
