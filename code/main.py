@@ -5,11 +5,13 @@ project_path = '../'
 sys.path.insert(0, project_path + 'code')
 print(sys.path)
 import roboschool, pybullet_envs, gym
-from roboschool import gym_forward_walker
+from roboschool import gym_forward_walker, gym_mujoco_walkers
 import pybullet as p
 import argparse
 import numpy as np
 from utils.solver import utils, Solver
+from utils.solver_gait_rewards import SolverGait
+
 
 def test_env(env):
     env.reset()
@@ -19,7 +21,10 @@ def test_env(env):
         env.render()
 
 def main(env, args):
-    solver = Solver(args, env, project_path)
+    if 'RoboschoolHalfCheetah' in args.env_name or 'RoboschoolWalker2d' in args.env_name:
+        solver = SolverGait(args, env, project_path)
+    else:
+        solver = Solver(args, env, project_path)
     if not args.eval_only:
         solver.train()
     else:
@@ -39,6 +44,7 @@ if __name__ == "__main__":
     parser.add_argument("--save_all_policy", default=False)
     parser.add_argument("--load_policy_idx", default='')
     parser.add_argument("--evaluate_Q_value", default=False)
+    parser.add_argument("--reward_name", default='r_s')
 
     parser.add_argument("--seq_len", default=2, type=int)
     parser.add_argument("--ini_seed", default=0, type=int)  # Sets Gym, PyTorch and Numpy seeds
@@ -59,18 +65,22 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     env_name_vec = [
-        'RoboschoolHopper-v1',
-        'RoboschoolAnt-v1',
         'RoboschoolWalker2d-v1',
         'RoboschoolHalfCheetah-v1',
+        'RoboschoolHopper-v1',
+        'RoboschoolAnt-v1',
+        # 'Ant-v2',
+        # 'HalfCheetah-v2',
+        # 'Walker2d-v2',
+        # 'Hopper-v2',
         # 'RoboschoolHumanoid-v1',
         # 'RoboschoolInvertedPendulum-v1',
         # 'RoboschoolInvertedPendulumSwingup-v1',
         # 'RoboschoolInvertedDoublePendulum-v1',
         # 'RoboschoolAtlasForwardWalk-v1'
     ]
-    # policy_name_vec = ['SAC', 'TD3', 'ATD3', 'Average_TD3', 'ATD3_RNN']
-    policy_name_vec = ['ATD3']
+    policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
+    policy_name_vec = ['SAC']
     for env_name in env_name_vec:
         args.env_name = env_name
         env = gym.make(args.env_name)

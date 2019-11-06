@@ -134,8 +134,9 @@ class RoboschoolForwardWalker(SharedMemoryClientEnv):
             self.scene.global_step()
         state = self.calc_state()  # also calculates self.joints_at_limit
         x_pos_after = self.body_xyz[0]
-
-
+        # potential_old = self.potential
+        # self.potential = self.calc_potential()
+        # forward_reward = float(self.potential - potential_old)
         forward_reward = (x_pos_after - x_pos_before) / self.scene.dt
         control_reward = -1e-3 * np.square(a).sum()
 

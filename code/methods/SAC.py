@@ -8,14 +8,15 @@ from utils.model import GaussianPolicy, QNetwork, DeterministicPolicy
 
 
 class SAC(object):
-    def __init__(self, state_dim, action_dim, max_action):
+    def __init__(self, state_dim, action_dim, max_action, action_space):
 
-        self.alpha = 0.2
+        # 'Ant': 0.05
+        self.alpha = 0.1
         self.lr = 0.0003
 
         self.policy_type = "Gaussian"
         self.target_update_interval = 1
-        self.automatic_entropy_tuning = False
+        self.automatic_entropy_tuning = True
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -28,10 +29,10 @@ class SAC(object):
 
         if self.policy_type == "Gaussian":
             # Target Entropy = −dim(A) (e.g. , -6 for HalfCheetah-v2) as given in the paper
-            # if self.automatic_entropy_tuning == True:
-            #     self.target_entropy = -torch.prod(torch.Tensor(action_space.shape).to(self.device)).item()
-            #     self.log_alpha = torch.zeros(1, requires_grad=True, device=self.device)
-            #     self.alpha_optim = Adam([self.log_alpha], lr=self.lr)
+            if self.automatic_entropy_tuning == True:
+                self.target_entropy = -torch.prod(torch.Tensor(action_space.shape).to(self.device)).item()
+                self.log_alpha = torch.zeros(1, requires_grad=True, device=self.device)
+                self.alpha_optim = Adam([self.log_alpha], lr=self.lr)
 
             self.policy = GaussianPolicy(state_dim, action_dim, 400, max_action).to(self.device)
             self.policy_optim = Adam(self.policy.parameters(), lr=self.lr)

@@ -53,7 +53,7 @@ class Solver(object):
         elif 'DDPG' == args.policy_name:
             policy = DDPG.DDPG(state_dim, action_dim, max_action)
         elif 'SAC' == args.policy_name:
-            policy = SAC.SAC(state_dim, action_dim, max_action)
+            policy = SAC.SAC(state_dim, action_dim, max_action, self.env.action_space)
         elif 'SAAC' == args.policy_name:
             policy = SAAC.SAAC(state_dim, action_dim, max_action)
         else:
