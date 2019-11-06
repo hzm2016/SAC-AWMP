@@ -8,6 +8,7 @@ from matplotlib import cm
 import matplotlib.pyplot as plt
 plt.rcParams['pdf.fonttype'] = 42
 import pandas as pd
+import openpyxl
 import numpy as np
 import glob
 import cv2
@@ -76,7 +77,11 @@ def plot_reward_curves(reward_name_idx = None, policy_name_vec=None, result_path
                 np.std(max_acc, axis=-1), np.mean(max_acc, axis=-1)-last_reward))
             last_reward = np.mean(max_acc, axis=-1)
 
+
     if reward_mat is not None:
+        # write_matrix_to_xlsx(np.max(reward_mat, axis = -1), env_name=env_name, index_label=policy_name_vec)
+        write_to_existing_table(np.max(reward_mat, axis = -1), file_name='data/state_of_art_test_reward.xlsx',
+                                sheet_name=env_name)
         plot_acc_mat(reward_mat, None, env_name, fig=fig, fig_name=fig_name,
                      smooth_weight=smooth_weight, eval_freq=eval_freq, marker_size=0)
     return legend_vec
@@ -85,6 +90,27 @@ def plot_reward_curves(reward_name_idx = None, policy_name_vec=None, result_path
 def read_csv_vec(file_name):
     data = np.loadtxt(open(file_name, "rb"), delimiter=",", skiprows=1)
     return data[:, -1]
+
+
+def write_matrix_to_xlsx(data_mat, file_path = 'data/state_of_art_test_reward.xlsx', env_name = 'Ant',
+                         index_label = ['DDPG']):
+    df = pd.DataFrame(data_mat)
+    writer = pd.ExcelWriter(file_path, engine='openpyxl', mode='a')
+    df.to_excel(writer, sheet_name=env_name, index_label=tuple(index_label), header=False)
+    writer.save()
+    writer.close()
+
+def write_to_existing_table(data, file_name, sheet_name = 'label'):
+    xl = pd.read_excel(file_name, sheet_name=None, header=0, index_col=0, dtype='object')
+    xl[sheet_name].iloc[1:, :5] = data
+    xl[sheet_name].iloc[1:, 5] = np.mean(data, axis=-1)
+    xl[sheet_name].iloc[0, 5] = np.max(xl[sheet_name].iloc[1:, 5])
+    xl[sheet_name].iloc[1:, 6] = np.std(data, axis=-1)
+    xl[sheet_name].iloc[0, 6] = np.min(xl[sheet_name].iloc[1:, 6])
+    print(xl[sheet_name])
+    with pd.ExcelWriter(file_name, engine='xlsxwriter') as writer:
+        for ws_name, df_sheet in xl.items():
+            df_sheet.to_excel(writer, sheet_name=ws_name)
 
 def plot_Q_vals(reward_name_idx = None, policy_name_vec=None, result_path ='runs/ATD3_walker2d',
                        env_name = 'RoboschoolWalker2d'):
@@ -357,14 +383,14 @@ def plot_roboschool_test_reward():
     fig = plt.figure(figsize=(6, 5))
     fig.tight_layout()
     plt.rcParams.update({'font.size': 8, 'font.serif': 'Times New Roman'})
-    policy_name_vec = ['SAC', 'TD3', 'ATD3', 'Average_TD3', 'ATD3_RNN']
+    policy_name_vec = ['DDPG', 'SAC', 'TD3', 'ATD3', 'Average_TD3', 'ATD3_RNN']
 
     for i in range(len(env_name_vec)):
         plt.subplot(2, 2, i+1)
         legend_vec = plot_reward_curves(result_path='runs/Roboschool_new',
                                         env_name=env_name_vec[i],
                                         policy_name_vec=policy_name_vec,
-                                        reward_name_idx=[1, 1, 1, 1, 1], fig=fig)
+                                        reward_name_idx=[1, 1, 1, 1, 1, 1], fig=fig)
         plt.yticks([0, 1000, 2000])
         plt.xticks([0, 1.5, 3])
 
@@ -590,11 +616,11 @@ def smooth(scalars, weight = 0.8):
 #             reward_name_idx = [0, 0, 0])
 #
 #
-# # # Fig: joint angle
-print('-----Fig: joint angle-----')
-plot_all_gait_angle()
+# # # # Fig: joint angle
+# print('-----Fig: joint angle-----')
+# plot_all_gait_angle()
 
 
-# # Fig: test acc
-# print('------Fig: test reward------')
-# plot_roboschool_test_reward()
+# Fig: test acc
+print('------Fig: test reward------')
+plot_roboschool_test_reward()

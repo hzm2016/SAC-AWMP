@@ -4,8 +4,9 @@ import sys
 project_path = '../'
 sys.path.insert(0, project_path + 'code')
 print(sys.path)
-import roboschool, gym
-from roboschool import gym_mujoco_xml_env
+import roboschool, pybullet_envs, gym
+from roboschool import gym_forward_walker
+import pybullet as p
 import argparse
 import numpy as np
 from utils.solver import utils, Solver
@@ -13,47 +14,42 @@ from utils.solver import utils, Solver
 def test_env(env):
     env.reset()
     state = np.random.rand(22)
-    # state = np.asarray([0.24301213, 0.93942997, 0.03958391, 0.93737306, 0.9552348, 0.72928275
-    #                        , 0.70990771, 0.28037012, 0.72994741, 0.5695038, 0.62305463, 0.19212616
-    #                        , 0.01702465, 0.00437125, 0.85252375, 0.97369661, 0.94323611, 0.76765484
-    #                        , 0.44252152, 0.32101413, 0.09566902, 0.84304301])
-    # state = np.asarray([0.24301213, 0.93942997, 0.03958391,
-    #                     0.0,  0.0,   0.0,
-    #                     0.70990771, 0.0,
-    #                     -0.78 , 0.8,  -0.15,   0.6, -0.49, 0.89,
-    #                     -0.51, 0.78, -0.05, 0.78, -0.23, 0.56,
-    #                     0.1, 0.3])
-    # print(state)
     print(env.set_robot(state) - state)
     while True:
         env.render()
 
-def main(env, reward_name ='', policy_name ='TD3', state_noise = 0.0, seed = 0, load_policy_idx = ''):
+def main(env, args):
+    solver = Solver(args, env, project_path)
+    if not args.eval_only:
+        solver.train()
+    else:
+        solver.eval_only()
+
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--policy_name", default=policy_name)  # Policy name
-    parser.add_argument("--env_name", default="RoboschoolWalker2d-v1")  # OpenAI gym environment name
-    parser.add_argument("--log_path", default='runs/ATD3_walker2d_new')
+    parser.add_argument("--policy_name", default='ATD3_RNN')  # Policy name
+    parser.add_argument("--env_name", default="HopperBulletEnv-v0")  # OpenAI gym environment name
+    parser.add_argument("--log_path", default='runs/Roboschool_1e6')
 
     parser.add_argument("--eval_only", default=False)
     parser.add_argument("--render", default=False)
     parser.add_argument("--save_video", default=False)
     parser.add_argument("--video_size", default=(600, 400))
     parser.add_argument("--save_all_policy", default=False)
-    parser.add_argument("--load_policy_idx", default=load_policy_idx)
+    parser.add_argument("--load_policy_idx", default='')
     parser.add_argument("--evaluate_Q_value", default=False)
-    parser.add_argument("--reward_name", default=reward_name,
-                        help='Name of your method (default: )')  # Name of the method
 
     parser.add_argument("--seq_len", default=2, type=int)
     parser.add_argument("--ini_seed", default=0, type=int)  # Sets Gym, PyTorch and Numpy seeds
-    parser.add_argument("--seed", default=seed, type=int)  # Sets Gym, PyTorch and Numpy seeds
+    parser.add_argument("--seed", default=0, type=int)  # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--start_timesteps", default=1e4,
                         type=int)  # How many time steps purely random policy is run for
     parser.add_argument("--eval_freq", default=5e3, type=int)  # How often (time steps) we evaluate
     parser.add_argument("--max_timesteps", default=3e5, type=int)  # Max time steps to run environment for
 
     parser.add_argument("--expl_noise", default=0.1, type=float)  # Std of Gaussian exploration noise
-    parser.add_argument("--state_noise", default=state_noise, type=float)  # Std of Gaussian exploration noise
+    parser.add_argument("--state_noise", default=0, type=float)  # Std of Gaussian exploration noise
     parser.add_argument("--batch_size", default=100, type=int)  # Batch size for both actor and critic
     parser.add_argument("--discount", default=0.99, type=float)  # Discount factor
     parser.add_argument("--tau", default=0.005, type=float)  # Target network update rate
@@ -62,46 +58,25 @@ def main(env, reward_name ='', policy_name ='TD3', state_noise = 0.0, seed = 0, 
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
     args = parser.parse_args()
 
-    solver = Solver(args, env, project_path)
-    if not args.eval_only:
-        solver.train()
-        return solver.best_reward
-    else:
-        solver.eval_only()
-        return 1500
-
-
-
-if __name__ == "__main__":
-    '''
-    Reward ablation study：default reward (r_d), still_steps (r_s), final speed (r_f), 
-    gait num (r_n), gait velocity (r_gv), left heel strike (r_lhs), 
-    gait symmetry (r_gs),  cross gait (r_cg), foot recovery (r_fr), push off (r_po)
-    '''
-    reward_name_vec =['r_d', 'r_s', 'r_n', 'r_lhs', 'r_cg', 'r_gs', 'r_fr', 'r_f', 'r_gv', 'r_po']
-    policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
-    env = gym.make('RoboschoolWalker2d-v1')
-    # env = gym.make('RoboschoolHalfCheetah-v1')
-    # for r in [0, 4]:
-    #     main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
-    #          policy_name = policy_name_vec[0])
-    # for p in [1]:
-    #     best_reward = 0.
-    #     while best_reward < 1200:
-    #         best_reward = main(env, reward_name=utils.connect_str_list([reward_name_vec[r]]),
-    #              policy_name=policy_name_vec[p])
-    r = 4
-    p = 2
-    main(env, reward_name=utils.connect_str_list(reward_name_vec[:r + 1]),
-         policy_name=policy_name_vec[p])
-    # r_vec = [0, 4, 4, 4]
-    # p_vec = [0, 0, 1, 2]
-    # for i in range(4):
-    #     r = r_vec[i]
-    #     p = p_vec[i]
-    #     for load_policy_idx in ['10000', '50000', '100000', '200000', '']:
-    #         main(env, reward_name=utils.connect_str_list(reward_name_vec[:r+1]),
-    #              policy_name=policy_name_vec[p], load_policy_idx=load_policy_idx)
-    # test_env(env)
-    env.close()
-
+    env_name_vec = [
+        'RoboschoolHopper-v1',
+        'RoboschoolAnt-v1',
+        'RoboschoolWalker2d-v1',
+        'RoboschoolHalfCheetah-v1',
+        # 'RoboschoolHumanoid-v1',
+        # 'RoboschoolInvertedPendulum-v1',
+        # 'RoboschoolInvertedPendulumSwingup-v1',
+        # 'RoboschoolInvertedDoublePendulum-v1',
+        # 'RoboschoolAtlasForwardWalk-v1'
+    ]
+    # policy_name_vec = ['SAC', 'TD3', 'ATD3', 'Average_TD3', 'ATD3_RNN']
+    policy_name_vec = ['ATD3']
+    for env_name in env_name_vec:
+        args.env_name = env_name
+        env = gym.make(args.env_name)
+        if args.render and 'Bullet' in env_name:
+            env.render('human')
+        for policy_name in policy_name_vec:
+            args.policy_name = policy_name
+            main(env, args)
+        env.close()

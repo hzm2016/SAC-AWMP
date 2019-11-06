@@ -124,11 +124,20 @@ class RoboschoolForwardWalker(SharedMemoryClientEnv):
     joints_at_limit_cost = -0.2    # discourage stuck joints
 
     def step(self, a):
+        '''
+        change the roboschool reward to the mujoco reward
+        '''
+        # change to mujoco reward
+        x_pos_before = self.body_xyz[0]
         if not self.scene.multiplayer:  # if multiplayer, action first applied to all robots, then global step() called, then step() for all robots with the same actions
             self.apply_action(a)
             self.scene.global_step()
-
         state = self.calc_state()  # also calculates self.joints_at_limit
+        x_pos_after = self.body_xyz[0]
+
+
+        forward_reward = (x_pos_after - x_pos_before) / self.scene.dt
+        control_reward = -1e-3 * np.square(a).sum()
 
         alive = float(self.alive_bonus(state[0]+self.initial_z, self.body_rpy[1]))   # state[0] is body height above ground, body_rpy[1] is pitch
         done = alive < 0
@@ -136,29 +145,9 @@ class RoboschoolForwardWalker(SharedMemoryClientEnv):
             print("~INF~", state)
             done = True
 
-        potential_old = self.potential
-        self.potential = self.calc_potential()
-        progress = float(self.potential - potential_old)
-
-        feet_collision_cost = 0.0
-        for i,f in enumerate(self.feet):
-            contact_names = set(x.name for x in f.contact_list())
-            #print("CONTACT OF '%s' WITH %s" % (f.name, ",".join(contact_names)) )
-            self.feet_contact[i] = 1.0 if (self.foot_ground_object_names & contact_names) else 0.0
-            if contact_names - self.foot_ground_object_names:
-                feet_collision_cost += self.foot_collision_cost
-
-        electricity_cost  = self.electricity_cost  * float(np.abs(a*self.joint_speeds).mean())  # let's assume we have DC motor with controller, and reverse current braking
-        electricity_cost += self.stall_torque_cost * float(np.square(a).mean())
-
-        joints_at_limit_cost = float(self.joints_at_limit_cost * self.joints_at_limit)
-
         self.rewards = [
-            alive,
-            progress,
-            electricity_cost,
-            joints_at_limit_cost,
-            feet_collision_cost
+            forward_reward,
+            control_reward
             ]
 
         self.frame  += 1

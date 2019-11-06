@@ -19,8 +19,10 @@ class Solver(object):
         args.seed = args.seed % 10
         self.args = args
         self.env = env
+        self.reward_str_list = []
 
         self.file_name = ''
+
         self.project_path = project_path
         self.result_path = project_path + "results"
 
@@ -66,6 +68,7 @@ class Solver(object):
         self.pre_num_steps = self.total_timesteps
         self.timesteps_since_eval = 0
         self.timesteps_calc_Q_vale = 0
+        self.episode_progress = 0.0
         self.best_reward = 0.0
 
         self.env_timeStep = 4
@@ -81,6 +84,11 @@ class Solver(object):
     def eval_once(self):
         self.pbar.update(self.total_timesteps - self.pre_num_steps)
         self.pre_num_steps = self.total_timesteps
+        if 'r_f' in self.args.reward_name:
+            self.reward_str_list.append('r_f')
+            if len(self.replay_buffer.storage) > self.env.frame:
+                self.replay_buffer.add_final_reward(self.episode_progress / 1000.0,
+                                                    self.env.frame)
         if self.args.evaluate_Q_value:
             if self.total_timesteps >= self.args.start_timesteps and \
                     self.timesteps_calc_Q_vale >= self.args.eval_freq/10:
@@ -126,16 +134,33 @@ class Solver(object):
     def reset(self):
         # Reset environment
         self.obs = self.env.reset()
-        self.obs_vec = np.dot(np.ones((self.args.seq_len, 1)), self.obs.reshape((1, -1)))
         self.episode_reward = 0
+        self.episode_progress = 0.0
         self.episode_timesteps = 0
+
+        self.obs_vec = np.dot(np.ones((self.args.seq_len, 1)), self.obs.reshape((1, -1)))
+
+        self.pre_foot_contact = 1
+        self.foot_contact = 1
+        self.foot_contact_vec = np.asarray([1, 1, 1])
+        self.delay_num = self.foot_contact_vec.shape[0] - 1
+        self.gait_num = 0
+        self.gait_state_mat = np.zeros((0, 10))
+        self.idx_angle = np.zeros(0)
+        self.reward_angle = np.zeros(0)
+
+        self.still_steps = 0
 
     def train(self):
         # Evaluate untrained policy
         self.evaluations = [evaluate_policy(self.env, self.policy, self.args)]
-        self.log_dir = '{}/{}/{}_{}_seed_{}'.format(self.result_path, self.args.log_path,
+        # self.log_dir = '{}/{}/seed_{}_{}_{}_{}'.format(self.result_path, self.args.log_path, self.args.seed,
+        #                                                   datetime.datetime.now().strftime("%d_%H-%M-%S"),
+        #                                                   self.args.policy_name, self.args.env_name,
+        #                                                   self.args.reward_name)
+        self.log_dir = '{}/{}/{}_{}_{}_seed_{}'.format(self.result_path, self.args.log_path,
                                                     self.args.policy_name, self.args.env_name,
-                                                    self.args.seed)
+                                                    self.args.reward_name, self.args.seed)
         print("---------------------------------------")
         print("Settings: %s" % self.log_dir)
         print("---------------------------------------")
@@ -180,6 +205,26 @@ class Solver(object):
             new_obs, reward, done, _ = self.env.step(action)
 
             self.episode_reward += reward
+            self.episode_progress += new_obs[3]
+
+            if 'r_n' in self.args.reward_name:
+                reward = self.update_gait_reward(new_obs, reward)
+
+            if 'r_s' in self.args.reward_name:
+                # reward -= 0.5
+                self.reward_str_list.append('r_s')
+                # foot_dim = state_dim - 8 - 2*action_dim
+                foot_num = len(self.env.observation_space.low) - 8 - 2 * len(self.env.action_space.low)
+                if np.sum(new_obs[-foot_num:]) > 1 and \
+                        np.array_equal(new_obs[-foot_num:], self.obs[-foot_num:]):
+                # if np.array_equal(new_obs[-2:], np.asarray([1., 1.])):
+                    self.still_steps += 1
+                else:
+                    self.still_steps = 0
+                if self.still_steps > int(400 / self.env_timeStep):
+                    self.replay_buffer.add_final_reward(-2.0, self.still_steps - 1)
+                    reward -= 2.0
+                    done = True
 
             done_bool = 0 if self.episode_timesteps + 1 == self.env._max_episode_steps else float(done)
 
@@ -226,14 +271,58 @@ class Solver(object):
             utils.write_table(self.log_dir + "/true_Q_vals", np.asarray(self.true_Q_vals))
         self.env.reset()
 
+    def update_gait_reward(self, new_obs, reward):
+        self.foot_contact_vec = utils.fifo_data(self.foot_contact_vec, new_obs[-2])
+        if 0 == np.std(self.foot_contact_vec):
+            self.foot_contact = np.mean(self.foot_contact_vec)
+        if 1 == (self.foot_contact - self.pre_foot_contact):
+            if self.gait_state_mat.shape[0] > int(100 / self.env_timeStep):
+                self.gait_num += 1
+                if self.gait_num >= 2:
+                    coefficient, cross_gait_reward_str = utils.calc_cross_gait_reward(self.gait_state_mat[:-self.delay_num + 1, :-2],
+                                                               self.gait_state_mat[:-self.delay_num + 1, -2],
+                                                               self.args.reward_name)
+                    self.reward_str_list += cross_gait_reward_str
+
+                    # print('gait_num:', self.gait_num, 'time steps in a gait: ', self.gait_state_mat.shape[0],
+                    #       'reward_str: ', utils.connect_str_list(list(set(self.reward_str_list))),
+                    #       'coefficient: ', np.round(coefficient, 2),
+                    #       'speed: ', np.round(np.linalg.norm(new_obs[3:6]), 2),
+                    #       'is cross gait: ', utils.check_cross_gait(self.gait_state_mat[:-self.delay_num, :-1]))
+
+                    self.reward_str_list = []
+
+                    self.replay_buffer.add_final_reward(coefficient, self.gait_state_mat.shape[0] - self.delay_num,
+                                                        delay=self.delay_num)
+                    reward_steps = min(int(2000 / self.env_timeStep), len(self.reward_angle))
+
+                    if 'r_n' in self.args.reward_name:
+                        self.reward_str_list.append('r_n')
+
+                        self.replay_buffer.add_specific_reward(self.reward_angle[-reward_steps:],
+                                                               self.idx_angle[-reward_steps:])
+
+                self.idx_angle = np.r_[self.idx_angle, self.gait_state_mat[:-self.delay_num, -1]]
+                self.reward_angle = np.r_[self.reward_angle,
+                                          0.05 * np.ones(self.gait_state_mat[:-self.delay_num, -1].shape[0])]
+            self.gait_state_mat = self.gait_state_mat[-self.delay_num:]
+
+        self.pre_foot_contact = self.foot_contact
+        gait_state = np.zeros((1, 10))
+        gait_state[0, 0:6] = new_obs[8:20:2]
+        gait_state[0, 6:-2] = new_obs[-2:]
+        gait_state[0, -2] = new_obs[3]
+        gait_state[0, -1] = self.total_timesteps
+        self.gait_state_mat = np.r_[self.gait_state_mat, gait_state]
+        return reward
 
     def eval_only(self, is_reset = True):
-        video_dir = '{}/video_all/{}_{}'.format(self.result_path, self.args.policy_name,
-                                                self.args.env_name)
+        video_dir = '{}/video_all/{}_{}_{}'.format(self.result_path, self.args.policy_name, self.args.env_name,
+                                                self.args.reward_name)
         if not os.path.exists(video_dir):
             os.makedirs(video_dir)
-        model_path_vec = glob.glob(self.result_path + '/{}/{}_{}_seed*'.format(
-            self.args.log_path, self.args.policy_name, self.args.env_name))
+        model_path_vec = glob.glob(self.result_path + '/{}/{}_{}_{}_seed*'.format(
+            self.args.log_path, self.args.policy_name, self.args.env_name, self.args.reward_name))
         print(model_path_vec)
         for model_path in model_path_vec:
             # print(model_path)
@@ -320,6 +409,8 @@ def cal_true_value(env, policy, replay_buffer, args, eval_episodes=1000):
     true_Q_val_vec = []
     init_state_vec, _, _, _, _ = replay_buffer.sample(eval_episodes)
     for i in range(eval_episodes):
+        # if 0 == i % 100:
+        #     print(i)
         env.reset()
         if 'RNN' in args.policy_name:
             obs, obs_error = env.set_robot(init_state_vec[i][-1])
@@ -346,6 +437,7 @@ def cal_true_value(env, policy, replay_buffer, args, eval_episodes=1000):
 
             # action = np.zeros(6, dtype=float)
             obs, reward, done, _ = env.step(action)
+            reward -= 0.5
             true_Q_value += dis_gamma * reward
             dis_gamma *= args.discount
             if 'RNN' in args.policy_name:
