@@ -38,45 +38,34 @@ def plot_error_line(t, acc_mean_mat, acc_std_mat = None, legend_vec = None,
         # plt.legend(legend_vec)
         plt.legend(legend_vec, loc = 'upper left')
 
-def plot_reward_curves(reward_name_idx = None, policy_name_vec=None, result_path ='runs/ATD3_walker2d',
+def plot_reward_curves(policy_name_vec=None, result_path ='runs/ATD3_walker2d',
                        env_name = 'RoboschoolWalker2d', fig = None, fig_name='test_reward',
                        smooth_weight=0.8, eval_freq = 0.05):
-    if reward_name_idx is None:
-        reward_name_idx = [0, 9, 9, 9]
     if policy_name_vec is None:
         policy_name_vec = ['TD3', 'TD3', 'ATD3', 'ATD3_RNN']
-    reward_name_vec = ['r_d', 'r_s', 'r_n', 'r_lhs', 'r_cg', 'r_gs', 'r_fr', 'r_f', 'r_gv', 'r_po']
     reward_mat = None
     legend_vec = []
     last_reward = 0.0
-    for r in range(len(reward_name_idx)):
-        reward_str = connect_str_list(reward_name_vec[:reward_name_idx[r]+1])
-        if 'Ant' in env_name:
-            reward_str = 'r_d'
-        if 0 == reward_name_idx[r]:
-            reward_legend = '$r^d$'
-        else:
-            reward_legend = '$r^d + \hat{r}^g$'
-        legend_vec.append(policy_name_vec[r] + ' + ' + reward_legend)
+    for r in range(len(policy_name_vec)):
+        legend_vec.append(policy_name_vec[r])
         file_name_vec = glob.glob('{}/{}_{}*/test_accuracy.xls'.format(
             result_path, policy_name_vec[r], env_name))
-        # print(file_name_vec)
+        print(file_name_vec)
         for c in range(len(file_name_vec)):
             file_name = file_name_vec[c]
             dfs = pd.read_excel(file_name)
             acc_vec = dfs.values.astype(np.float)[:, 0]
             if reward_mat is None:
-                reward_mat = np.zeros((len(reward_name_idx), len(file_name_vec), len(acc_vec)))
+                reward_mat = np.zeros((len(policy_name_vec), len(file_name_vec), len(acc_vec)))
             reward_mat[r, c, :] = acc_vec
 
         if reward_mat is not None:
             max_acc = np.max(reward_mat[r, :, :], axis=-1)
             # print(max_acc)
-            print('Max acc for {} and {}, mean: {}, std: {}, d_reward:{}'.format(
-                policy_name_vec[r], reward_str, np.mean(max_acc, axis=-1),
+            print('Max acc for {}, mean: {}, std: {}, d_reward:{}'.format(
+                policy_name_vec[r], np.mean(max_acc, axis=-1),
                 np.std(max_acc, axis=-1), np.mean(max_acc, axis=-1)-last_reward))
             last_reward = np.mean(max_acc, axis=-1)
-
 
     if reward_mat is not None:
         # write_matrix_to_xlsx(np.max(reward_mat, axis = -1), env_name=env_name, index_label=policy_name_vec)
@@ -371,27 +360,26 @@ def read_joint_angle_gait(file_name):
 
 def plot_roboschool_test_reward():
     env_name_vec = [
-        'RoboschoolHopper-v1',
-        'RoboschoolWalker2d-v1',
-        'RoboschoolHalfCheetah-v1',
-        'RoboschoolAnt-v1',
-        # 'RoboschoolHumanoid-v1',
-        # 'RoboschoolInvertedPendulum-v1',
-        # 'RoboschoolInvertedPendulumSwingup-v1',
-        # 'RoboschoolInvertedDoublePendulum-v1',
+        # 'RoboschoolHopper-v1',
+        # 'RoboschoolWalker2d-v1',
+        # 'RoboschoolHalfCheetah-v1',
+        # 'RoboschoolAnt-v1',
+        'Hopper-v2',
+        'Walker2d-v2',
+        'HalfCheetah-v2',
+        'Ant-v2',
     ]
     fig = plt.figure(figsize=(6, 5))
     fig.tight_layout()
     plt.rcParams.update({'font.size': 8, 'font.serif': 'Times New Roman'})
-    policy_name_vec = ['SAC', 'TD3', 'ATD3', 'ATD3_RNN']
+    policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
 
     for i in range(len(env_name_vec)):
         plt.subplot(2, 2, i+1)
         legend_vec = plot_reward_curves(result_path='runs/Roboschool_1e6',
                                         env_name=env_name_vec[i],
-                                        policy_name_vec=policy_name_vec,
-                                        reward_name_idx=[1, 1, 1, 1], fig=fig)
-        plt.yticks([0, 1000, 2000, 3000])
+                                        policy_name_vec=policy_name_vec, fig=fig)
+        # plt.yticks([0, 1000, 2000, 3000])
         plt.xticks([0, 5, 10])
 
     print(legend_vec)

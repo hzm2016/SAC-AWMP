@@ -12,14 +12,10 @@ from scipy import signal
 from methods import ATD3, ATD3_RNN, Average_TD3, DDPG, \
     TD3, SAC, DDPG_RNN, TD3_RNN, ATD3_IM, SAAC
 
-
 class Solver(object):
     def __init__(self, args, env, project_path):
-        args.seed += args.ini_seed
-        args.seed = args.seed % 10
         self.args = args
         self.env = env
-
         self.file_name = ''
         self.project_path = project_path
         self.result_path = project_path + "results"

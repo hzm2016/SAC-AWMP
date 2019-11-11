@@ -15,8 +15,6 @@ from methods import ATD3, ATD3_RNN, Average_TD3, DDPG, \
 
 class SolverGait(object):
     def __init__(self, args, env, project_path):
-        args.seed += args.ini_seed
-        args.seed = args.seed % 10
         self.args = args
         self.env = env
         self.reward_str_list = []

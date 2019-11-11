@@ -45,10 +45,8 @@ if __name__ == "__main__":
     parser.add_argument("--load_policy_idx", default='')
     parser.add_argument("--evaluate_Q_value", default=False)
     parser.add_argument("--reward_name", default='r_s')
-
     parser.add_argument("--seq_len", default=2, type=int)
-    parser.add_argument("--ini_seed", default=0, type=int)  # Sets Gym, PyTorch and Numpy seeds
-    parser.add_argument("--seed", default=0, type=int)  # Sets Gym, PyTorch and Numpy seeds
+    parser.add_argument("--seed", default=0, type=int) # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--start_timesteps", default=1e4,
                         type=int)  # How many time steps purely random policy is run for
     parser.add_argument("--eval_freq", default=5e3, type=int)  # How often (time steps) we evaluate
