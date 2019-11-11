@@ -58,8 +58,8 @@ def plot_reward_curves(reward_name_idx = None, policy_name_vec=None, result_path
         else:
             reward_legend = '$r^d + \hat{r}^g$'
         legend_vec.append(policy_name_vec[r] + ' + ' + reward_legend)
-        file_name_vec = glob.glob('{}/{}_{}_{}_seed*/test_accuracy.xls'.format(
-            result_path, policy_name_vec[r], env_name, reward_str))
+        file_name_vec = glob.glob('{}/{}_{}*/test_accuracy.xls'.format(
+            result_path, policy_name_vec[r], env_name))
         # print(file_name_vec)
         for c in range(len(file_name_vec)):
             file_name = file_name_vec[c]
@@ -80,8 +80,8 @@ def plot_reward_curves(reward_name_idx = None, policy_name_vec=None, result_path
 
     if reward_mat is not None:
         # write_matrix_to_xlsx(np.max(reward_mat, axis = -1), env_name=env_name, index_label=policy_name_vec)
-        write_to_existing_table(np.max(reward_mat, axis = -1), file_name='data/state_of_art_test_reward.xlsx',
-                                sheet_name=env_name)
+        # write_to_existing_table(np.max(reward_mat, axis = -1), file_name='data/state_of_art_test_reward_1e6.xlsx',
+        #                         sheet_name=env_name)
         plot_acc_mat(reward_mat, None, env_name, fig=fig, fig_name=fig_name,
                      smooth_weight=smooth_weight, eval_freq=eval_freq, marker_size=0)
     return legend_vec
@@ -383,22 +383,23 @@ def plot_roboschool_test_reward():
     fig = plt.figure(figsize=(6, 5))
     fig.tight_layout()
     plt.rcParams.update({'font.size': 8, 'font.serif': 'Times New Roman'})
-    policy_name_vec = ['DDPG', 'SAC', 'TD3', 'ATD3', 'Average_TD3', 'ATD3_RNN']
+    policy_name_vec = ['SAC', 'TD3', 'ATD3', 'ATD3_RNN']
 
     for i in range(len(env_name_vec)):
         plt.subplot(2, 2, i+1)
-        legend_vec = plot_reward_curves(result_path='runs/Roboschool_new',
+        legend_vec = plot_reward_curves(result_path='runs/Roboschool_1e6',
                                         env_name=env_name_vec[i],
                                         policy_name_vec=policy_name_vec,
-                                        reward_name_idx=[1, 1, 1, 1, 1, 1], fig=fig)
-        plt.yticks([0, 1000, 2000])
-        plt.xticks([0, 1.5, 3])
+                                        reward_name_idx=[1, 1, 1, 1], fig=fig)
+        plt.yticks([0, 1000, 2000, 3000])
+        plt.xticks([0, 5, 10])
 
     print(legend_vec)
     legend = fig.legend(policy_name_vec,
-                        loc='lower center', ncol=len(policy_name_vec), bbox_to_anchor=(0.50, 0.96), frameon=False)
+                        loc='lower center', ncol=len(policy_name_vec),
+                        bbox_to_anchor=(0.50, 0.96), frameon=False)
     fig.tight_layout()
-    plt.savefig('images/Roboschool_test_mat.pdf', bbox_inches='tight', pad_inches=0.1)
+    plt.savefig('images/Roboschool_1e6_test_with_RNN.pdf', bbox_inches='tight', pad_inches=0.1)
     plt.show()
 
 def plot_all_test_reward():
