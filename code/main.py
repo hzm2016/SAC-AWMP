@@ -35,7 +35,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy_name", default='ATD3_RNN')  # Policy name
     parser.add_argument("--env_name", default="HopperBulletEnv-v0")  # OpenAI gym environment name
-    parser.add_argument("--log_path", default='runs/Roboschool_1e6')
+    parser.add_argument("--log_path", default='runs/Roboschool_1e6_test')
 
     parser.add_argument("--eval_only", default=False)
     parser.add_argument("--render", default=False)
@@ -78,15 +78,15 @@ if __name__ == "__main__":
         # 'RoboschoolAtlasForwardWalk-v1'
     ]
     # policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
-    policy_name_vec = ['SAC']
-    for i in range(5):
-        args.seed = i
-        for env_name in env_name_vec:
-            args.env_name = env_name
-            env = gym.make(args.env_name)
-            if args.render and 'Bullet' in env_name:
-                env.render('human')
-            for policy_name in policy_name_vec:
-                args.policy_name = policy_name
-                best_reward = main(env, args)
-            env.close()
+    policy_name_vec = ['AAC']
+    # for i in range(5):
+    #     args.seed = i
+    for env_name in env_name_vec:
+        args.env_name = env_name
+        env = gym.make(args.env_name)
+        if args.render and 'Bullet' in env_name:
+            env.render('human')
+        for policy_name in policy_name_vec:
+            args.policy_name = policy_name
+            best_reward = main(env, args)
+        env.close()

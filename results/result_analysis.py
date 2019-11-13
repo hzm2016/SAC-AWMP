@@ -360,19 +360,19 @@ def read_joint_angle_gait(file_name):
 
 def plot_roboschool_test_reward():
     env_name_vec = [
-        # 'RoboschoolHopper-v1',
-        # 'RoboschoolWalker2d-v1',
-        # 'RoboschoolHalfCheetah-v1',
-        # 'RoboschoolAnt-v1',
-        'Hopper-v2',
-        'Walker2d-v2',
-        'HalfCheetah-v2',
-        'Ant-v2',
+        'RoboschoolHopper-v1',
+        'RoboschoolWalker2d-v1',
+        'RoboschoolHalfCheetah-v1',
+        'RoboschoolAnt-v1',
+        # 'Hopper-v2',
+        # 'Walker2d-v2',
+        # 'HalfCheetah-v2',
+        # 'Ant-v2',
     ]
     fig = plt.figure(figsize=(6, 5))
     fig.tight_layout()
     plt.rcParams.update({'font.size': 8, 'font.serif': 'Times New Roman'})
-    policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
+    policy_name_vec = ['DDPG', 'SAC', 'TD3', 'ATD3', 'ATD3_RNN']
 
     for i in range(len(env_name_vec)):
         plt.subplot(2, 2, i+1)
