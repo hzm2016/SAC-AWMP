@@ -46,7 +46,7 @@ class Actor(nn.Module):
 
 class Actor2D(nn.Module):
 	def __init__(self, state_dim, action_dim, max_action, option_num = 3):
-		super(Actor, self).__init__()
+		super(Actor2D, self).__init__()
 		'''
 		Input size: (batch_num, option_num, state_dim)
 		'''
@@ -60,12 +60,13 @@ class Actor2D(nn.Module):
 
 	def forward(self, x):
 		#(batch_num, state_dim) -> (batch_num, option_num, state_dim)
-		x = x.view(x.shape[0], 1, -1).repeat(1, self.option_num, 1)
+		x = x.view(x.shape[0], 1, 1, -1).repeat(1, 1, self.option_num, 1)
 		x = F.relu(self.conv1(x))
 		x = F.relu(self.conv2(x))
 		x = self.max_action * torch.tanh(self.conv3(x))
-		# (batch_num, option_num, action_dim) -> (batch_num, action_dim, option_num)
-		return x.transpose(1, 2)
+		# (batch_num, 1, option_num, action_dim) -> (batch_num, action_dim, option_num)
+		x = x.squeeze().transpose(1, 2)
+		return x
 
 class Critic(nn.Module):
 	def __init__(self, state_dim, action_dim):
