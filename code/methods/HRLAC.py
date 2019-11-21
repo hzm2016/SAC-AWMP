@@ -295,14 +295,17 @@ class HRLAC(object):
 		# 	q_predict_1, q_predict_2 = self.critic_target(states, action_o)
 		# 	q_predict[:, o] = torch.min(q_predict_1, q_predict_2).squeeze()
 		batch_size = states.shape[0]
-
-		action = self.actor(states) # (batch_num, action_dim, option_num)
+		action = self.actor(states) #
 		option_num = action.shape[-1]
+		# action: (batch_num, action_dim, option_num)-> (batch_num, option_num, action_dim)
+		# -> (batch_num * option_num, action_dim)
 		action = action.transpose(1, 2)
 		action = action.reshape((-1, action.shape[-1]))
-		states = states.repeat(option_num, 1)
-
+		# states: (batch_num, state_dim) -> (batch_num, state_dim * option_num)
+		# -> (batch_num * option_num, state_dim)
+		states = states.repeat(1, option_num).view(batch_size*option_num, -1)
 		q_predict_1, q_predict_2 = self.critic_target(states, action)
+		# q_predict: (batch_num * option_num, 1) -> (batch_num, option_num)
 		q_predict = torch.min(q_predict_1, q_predict_2).view(batch_size, -1)
 		po = softmax(q_predict)
 		return weighted_mean_array(q_predict, po)
@@ -317,12 +320,17 @@ class HRLAC(object):
 		batch_size = states.shape[0]
 		action = self.actor(states)  # (batch_num, action_dim, option_num)
 		option_num = action.shape[-1]
+		# action: (batch_num, action_dim, option_num)-> (batch_num, option_num, action_dim)
+		# -> (batch_num * option_num, action_dim)
 		action = action.transpose(1, 2)
 		action = action.reshape((-1, action.shape[-1]))
-		states = states.repeat(option_num, 1)
-
+		# states: (batch_num, state_dim) -> (batch_num, state_dim * option_num)
+		# -> (batch_num * option_num, state_dim)
+		states = states.repeat(1, option_num).view(batch_size*option_num, -1)
 		q_predict_1, _ = self.critic_target(states, action)
+		# q_predict: (batch_num * option_num, 1) -> (batch_num, option_num)
 		q_predict = q_predict_1.view(batch_size, -1)
+
 		p = softmax(q_predict)
 		o_softmax = p_sample(p)
 		q_softmax = q_predict[:, o_softmax]
