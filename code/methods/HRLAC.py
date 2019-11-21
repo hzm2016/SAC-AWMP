@@ -44,6 +44,29 @@ class Actor(nn.Module):
 		return torch.stack([x1, x2, x3], dim=2)
 
 
+class Actor2D(nn.Module):
+	def __init__(self, state_dim, action_dim, max_action, option_num = 3):
+		super(Actor, self).__init__()
+		'''
+		Input size: (batch_num, option_num, state_dim)
+		'''
+
+		self.conv1 = nn.Conv2d(state_dim, 400, kernel_size=[1, 1], stride=[1, 1], padding=[0, 0])
+		self.conv2 = nn.Conv2d(400, 300, kernel_size=[1, 1], stride=[1, 1], padding=[0, 0])
+		self.conv3 = nn.Conv2d(300, action_dim, kernel_size=[1, 1], stride=[1, 1], padding=[0, 0])
+		self.max_action = max_action
+		self.option_num = option_num
+
+
+	def forward(self, x):
+		#(batch_num, state_dim) -> (batch_num, option_num, state_dim)
+		x = x.view(x.shape[0], 1, -1).repeat(1, self.option_num, 1)
+		x = F.relu(self.conv1(x))
+		x = F.relu(self.conv2(x))
+		x = self.max_action * torch.tanh(self.conv3(x))
+		# (batch_num, option_num, action_dim) -> (batch_num, action_dim, option_num)
+		return x.transpose(1, 2)
+
 class Critic(nn.Module):
 	def __init__(self, state_dim, action_dim):
 		super(Critic, self).__init__()
@@ -113,8 +136,8 @@ class HRLAC(object):
 				 entropy_coeff=0.1, c_reg=1.0, c_ent=4, option_buffer_size=5000,
 				 action_noise=0.2, policy_noise=0.2, noise_clip = 0.5):
 
-		self.actor = Actor(state_dim, action_dim, max_action, option_num).to(device)
-		self.actor_target = Actor(state_dim, action_dim, max_action, option_num).to(device)
+		self.actor = Actor2D(state_dim, action_dim, max_action, option_num).to(device)
+		self.actor_target = Actor2D(state_dim, action_dim, max_action, option_num).to(device)
 		self.actor_target.load_state_dict(self.actor.state_dict())
 		self.actor_optimizer = torch.optim.Adam(self.actor.parameters())
 
