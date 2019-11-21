@@ -10,10 +10,8 @@ from utils.model import GaussianPolicy, QNetwork, DeterministicPolicy
 class SAC(object):
     def __init__(self, state_dim, action_dim, max_action, action_space):
 
-        # 'Ant': 0.05
         self.alpha = 0.05
         self.lr = 0.0003
-
         self.policy_type = "Gaussian"
         self.target_update_interval = 1
         self.automatic_entropy_tuning = False

@@ -110,7 +110,7 @@ class AAC(object):
 		action_tensor = actor(state)
 		action_discrepancy = action_tensor - torch.mean(action_tensor, dim=-1, keepdim=True)
 		action_mse = torch.mean(torch.sum(action_discrepancy**2, dim=-1))
-		return action_mse
+		return action_mse/(torch.abs(action_mse) + 1)
 
 	def select_action(self, state):
 		state = torch.FloatTensor(state.reshape(1, -1)).to(device)
@@ -169,8 +169,7 @@ class AAC(object):
 			action = self.select_optimal_action(
 			next_state, self.actor, self.critic)
 			current_Q1, current_Q2 = self.critic(state, action)
-			actor_loss = - 0.5 * (current_Q1 + current_Q2).mean() \
-						 - 0.1 * self.calc_actor_discrepancy(state, self.actor)
+			actor_loss = - 0.5 * (current_Q1 + current_Q2).mean()
 
 			# Optimize the actor
 			self.actor_optimizer.zero_grad()

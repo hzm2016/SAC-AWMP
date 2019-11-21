@@ -69,8 +69,8 @@ def plot_reward_curves(policy_name_vec=None, result_path ='runs/ATD3_walker2d',
 
     if reward_mat is not None:
         # write_matrix_to_xlsx(np.max(reward_mat, axis = -1), env_name=env_name, index_label=policy_name_vec)
-        # write_to_existing_table(np.max(reward_mat, axis = -1), file_name='data/state_of_art_test_reward_1e6.xlsx',
-        #                         sheet_name=env_name)
+        write_to_existing_table(np.max(reward_mat, axis = -1), file_name='data/state_of_art_test_reward_1e6.xlsx',
+                                sheet_name=env_name)
         plot_acc_mat(reward_mat, None, env_name, fig=fig, fig_name=fig_name,
                      smooth_weight=smooth_weight, eval_freq=eval_freq, marker_size=0)
     return legend_vec
@@ -372,13 +372,13 @@ def plot_roboschool_test_reward():
     fig = plt.figure(figsize=(6, 5))
     fig.tight_layout()
     plt.rcParams.update({'font.size': 8, 'font.serif': 'Times New Roman'})
-    policy_name_vec = ['DDPG', 'SAC', 'TD3', 'ATD3', 'ATD3_RNN']
+    policy_name_vec = ['DDPG', 'SAC', 'TD3', 'ATD3', 'AAC', 'ATD3_RNN']
 
     for i in range(len(env_name_vec)):
         plt.subplot(2, 2, i+1)
         legend_vec = plot_reward_curves(result_path='runs/Roboschool_1e6',
                                         env_name=env_name_vec[i],
-                                        policy_name_vec=policy_name_vec, fig=fig)
+                                        policy_name_vec=policy_name_vec, fig=fig, smooth_weight=0.8)
         # plt.yticks([0, 1000, 2000, 3000])
         plt.xticks([0, 5, 10])
 
@@ -387,7 +387,7 @@ def plot_roboschool_test_reward():
                         loc='lower center', ncol=len(policy_name_vec),
                         bbox_to_anchor=(0.50, 0.96), frameon=False)
     fig.tight_layout()
-    plt.savefig('images/Roboschool_1e6_test_with_RNN.pdf', bbox_inches='tight', pad_inches=0.1)
+    plt.savefig('images/Roboschool_1e6_test.pdf', bbox_inches='tight', pad_inches=0.1)
     plt.show()
 
 def plot_all_test_reward():

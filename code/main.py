@@ -63,9 +63,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     env_name_vec = [
-        'RoboschoolWalker2d-v1',
-        'RoboschoolHalfCheetah-v1',
-        'RoboschoolHopper-v1',
+        # 'RoboschoolWalker2d-v1',
+        # 'RoboschoolHalfCheetah-v1',
+        # 'RoboschoolHopper-v1',
         'RoboschoolAnt-v1',
         # 'Ant-v2',
         # 'HalfCheetah-v2',
@@ -78,7 +78,7 @@ if __name__ == "__main__":
         # 'RoboschoolAtlasForwardWalk-v1'
     ]
     # policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
-    policy_name_vec = ['AAC']
+    policy_name_vec = ['HRLAC']
     # for i in range(5):
     #     args.seed = i
     for env_name in env_name_vec:
@@ -88,5 +88,5 @@ if __name__ == "__main__":
             env.render('human')
         for policy_name in policy_name_vec:
             args.policy_name = policy_name
-            best_reward = main(env, args)
+            main(env, args)
         env.close()

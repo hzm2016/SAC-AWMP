@@ -12,6 +12,9 @@ from scipy import signal
 
 # Expects tuples of (state, next_state, action, reward, done)
 class ReplayBuffer(object):
+    '''
+    Change the buffer to array and delete for loop.
+    '''
     def __init__(self, max_size=1e6):
         self.storage = []
         self.max_size = max_size
@@ -41,41 +44,33 @@ class ReplayBuffer(object):
             item[3] += reward_vec[i]
             self.storage[time_step_num] = tuple(item)
 
-    def sample(self, batch_size):
-        ind = np.random.randint(0, len(self.storage), size=batch_size)
-        x, y, u, r, d = [], [], [], [], []
+    def sample_on_policy(self, batch_size, option_buffer_size):
+        return self.sample_from_storage(batch_size, self.storage[-option_buffer_size:])
 
+    def sample(self, batch_size):
+        return self.sample_from_storage(batch_size, self.storage)
+
+    @staticmethod
+    def sample_from_storage(batch_size, storage):
+        ind = np.random.randint(0, len(storage), size=batch_size)
+        x, y, u, r, d, p = [], [], [], [], [], []
         for i in ind:
-            X, Y, U, R, D = self.storage[i]
+            X, Y, U, R, D, P = storage[i]
             x.append(np.array(X, copy=False))
             y.append(np.array(Y, copy=False))
             u.append(np.array(U, copy=False))
             r.append(np.array(R, copy=False))
             d.append(np.array(D, copy=False))
-
-        return np.array(x), np.array(y), np.array(u), np.array(r).reshape(-1, 1), np.array(d).reshape(-1, 1)
-
-
-def read_table(file_name='../../data/joint_angle.xls', sheet_name='walk_fast'):
-    dfs = pd.read_excel(file_name, sheet_name=sheet_name)
-    data = dfs.values[1:-1, -6:].astype(np.float)
-    return data
+            p.append(np.array(P, copy=False))
+        return np.array(x), np.array(y), np.array(u), np.array(r).reshape(-1, 1), \
+               np.array(d).reshape(-1, 1), np.array(p).reshape(-1, 1)
 
 
-def write_table(file_name, data):
-    df = pd.DataFrame(data)
-    df.to_excel(file_name + '.xls', index=False)
-
-
-def calc_gait_symmetry(joint_angle):
-    joint_num = int(joint_angle.shape[-1] / 2)
-    half_num_sample = int(joint_angle.shape[0] / 2)
-    joint_angle_origin = np.copy(joint_angle)
-    joint_angle[0:half_num_sample, joint_num:] = joint_angle_origin[half_num_sample:, joint_num:]
-    joint_angle[half_num_sample:, joint_num:] = joint_angle_origin[0:half_num_sample, joint_num:]
-    dist = np.zeros(joint_num)
-    for c in range(joint_num):
-        dist[c] = 1 - distance.cosine(joint_angle[:, c], joint_angle[:, c + joint_num])
+def calc_array_symmetry(array_a, array_b):
+    cols = array_a.shape[-1]
+    dist = np.zeros(cols)
+    for c in range(cols):
+        dist[c] = 1 - distance.cosine(array_a[:, c], array_b[:, c])
     return np.mean(dist)
 
 
@@ -84,22 +79,6 @@ def calc_cos_similarity(joint_angle_resample, human_joint_angle):
     dist = np.zeros(joint_num)
     for c in range(joint_num):
         dist[c] = 1 - distance.cosine(joint_angle_resample[c, :], human_joint_angle[c, :])
-    return np.mean(dist)
-
-
-def joint_state_to_deg(joint_state_mat):
-    joint_deg_mat = np.zeros(joint_state_mat.shape)
-    joint_deg_mat[:, [0, 3]] = joint_state_mat[:, [0, 3]] * 80.0 + 35.0
-    joint_deg_mat[:, [1, 4]] = (1 - joint_state_mat[:, [1, 4]]) * 75.0
-    joint_deg_mat[:, [2, 5]] = joint_state_mat[:, [2, 5]] * 45.0
-    return joint_deg_mat
-
-
-def calc_array_symmetry(array_a, array_b):
-    cols = array_a.shape[-1]
-    dist = np.zeros(cols)
-    for c in range(cols):
-        dist[c] = 1 - distance.cosine(array_a[:, c], array_b[:, c])
     return np.mean(dist)
 
 
@@ -206,6 +185,34 @@ def calc_cross_gait_reward(gait_state_mat, gait_velocity, reward_name):
     return cross_gait_reward, reward_str_list
 
 
+def calc_gait_symmetry(joint_angle):
+    joint_num = int(joint_angle.shape[-1] / 2)
+    half_num_sample = int(joint_angle.shape[0] / 2)
+    joint_angle_origin = np.copy(joint_angle)
+    joint_angle[0:half_num_sample, joint_num:] = joint_angle_origin[half_num_sample:, joint_num:]
+    joint_angle[half_num_sample:, joint_num:] = joint_angle_origin[0:half_num_sample, joint_num:]
+    dist = np.zeros(joint_num)
+    for c in range(joint_num):
+        dist[c] = 1 - distance.cosine(joint_angle[:, c], joint_angle[:, c + joint_num])
+    return np.mean(dist)
+
+
+def calc_torque_from_impedance(action_im, joint_states, scale = 1.0):
+    k_vec = action_im[0::3]
+    b_vec = action_im[1::3]
+    q_e_vec = action_im[2::3]
+    q_vec = joint_states[0::2]
+    q_v_vec = joint_states[0::2]
+    action = (k_vec * (q_e_vec - q_vec) - b_vec * q_v_vec)/scale
+    return action
+
+
+def check_cross_gait(gait_state_mat):
+    gait_num_1 = np.mean((gait_state_mat[:, 0] - gait_state_mat[:, 3]) > 0.1)
+    gait_num_2 = np.mean((gait_state_mat[:, 0] - gait_state_mat[:, 3]) < -0.1)
+    return (gait_num_1 > 0) and (gait_num_2 > 0)
+
+
 def connect_str_list(str_list):
     if 0 >= len(str_list):
         return ''
@@ -215,19 +222,13 @@ def connect_str_list(str_list):
     return str_out
 
 
-def check_cross_gait(gait_state_mat):
-    gait_num_1 = np.mean((gait_state_mat[:, 0] - gait_state_mat[:, 3]) > 0.1)
-    gait_num_2 = np.mean((gait_state_mat[:, 0] - gait_state_mat[:, 3]) < -0.1)
-    return (gait_num_1 > 0) and (gait_num_2 > 0)
-
-
-def plot_joint_angle(joint_angle_resample, human_joint_angle):
-    fig, axs = plt.subplots(human_joint_angle.shape[1])
-    for c in range(len(axs)):
-        axs[c].plot(joint_angle_resample[:, c])
-        axs[c].plot(human_joint_angle[:, c])
-    plt.legend(['walker 2d', 'human'])
-    plt.show()
+def create_log_gaussian(mean, log_std, t):
+    quadratic = -((0.5 * (t - mean) / (log_std.exp())).pow(2))
+    len_mean = mean.shape
+    log_z = log_std
+    z = len_mean[-1] * math.log(2 * math.pi)
+    log_p = quadratic.sum(dim=-1) - log_z.sum(dim=-1) - 0.5 * z
+    return log_p
 
 
 def fifo_data(data_mat, data):
@@ -236,13 +237,17 @@ def fifo_data(data_mat, data):
     return data_mat
 
 
-def create_log_gaussian(mean, log_std, t):
-    quadratic = -((0.5 * (t - mean) / (log_std.exp())).pow(2))
-    len_mean = mean.shape
-    log_z = log_std
-    z = len_mean[-1] * math.log(2 * math.pi)
-    log_p = quadratic.sum(dim=-1) - log_z.sum(dim=-1) - 0.5 * z
-    return log_p
+def hard_update(target, source):
+    for target_param, param in zip(target.parameters(), source.parameters()):
+        target_param.data.copy_(param.data)
+
+
+def joint_state_to_deg(joint_state_mat):
+    joint_deg_mat = np.zeros(joint_state_mat.shape)
+    joint_deg_mat[:, [0, 3]] = joint_state_mat[:, [0, 3]] * 80.0 + 35.0
+    joint_deg_mat[:, [1, 4]] = (1 - joint_state_mat[:, [1, 4]]) * 75.0
+    joint_deg_mat[:, [2, 5]] = joint_state_mat[:, [2, 5]] * 45.0
+    return joint_deg_mat
 
 
 def logsumexp(inputs, dim=None, keepdim=False):
@@ -256,22 +261,40 @@ def logsumexp(inputs, dim=None, keepdim=False):
     return outputs
 
 
+def plot_joint_angle(joint_angle_resample, human_joint_angle):
+    fig, axs = plt.subplots(human_joint_angle.shape[1])
+    for c in range(len(axs)):
+        axs[c].plot(joint_angle_resample[:, c])
+        axs[c].plot(human_joint_angle[:, c])
+    plt.legend(['walker 2d', 'human'])
+    plt.show()
+
+
+def read_table(file_name='../../data/joint_angle.xls', sheet_name='walk_fast'):
+    dfs = pd.read_excel(file_name, sheet_name=sheet_name)
+    data = dfs.values[1:-1, -6:].astype(np.float)
+    return data
+
+
 def soft_update(target, source, tau):
     for target_param, param in zip(target.parameters(), source.parameters()):
         target_param.data.copy_(target_param.data * (1.0 - tau) + param.data * tau)
 
 
-def hard_update(target, source):
-    for target_param, param in zip(target.parameters(), source.parameters()):
-        target_param.data.copy_(param.data)
+def softmax(x):
+    # This function is different from the Eq. 17, but it does not matter because
+    # both the nominator and denominator are divided by the same value.
+    # Equation 17: pi(o|s) = ext(Q^pi - max(Q^pi))/sum(ext(Q^pi - max(Q^pi))
+    x_max = np.max(x, axis=-1, keepdims=True)
+    e_x = np.exp(x - x_max)
+    e_x_sum = np.sum(e_x, axis=-1, keepdims=True)
+    out = e_x / e_x_sum
+    return out
 
 
-def calc_torque_from_impedance(action_im, joint_states, scale = 1.0):
-    k_vec = action_im[0::3]
-    b_vec = action_im[1::3]
-    q_e_vec = action_im[2::3]
-    q_vec = joint_states[0::2]
-    q_v_vec = joint_states[0::2]
-    action = (k_vec * (q_e_vec - q_vec) - b_vec * q_v_vec)/scale
-    return action
+def write_table(file_name, data):
+    df = pd.DataFrame(data)
+    df.to_excel(file_name + '.xls', index=False)
+
+
 

@@ -7,10 +7,11 @@ import glob
 import roboschool, pybullet_envs, gym
 from utils import utils
 from tqdm import tqdm
+from scipy.stats import multivariate_normal
 from tensorboardX import SummaryWriter
 from scipy import signal
 from methods import ATD3, ATD3_RNN, Average_TD3, DDPG, \
-    TD3, SAC, DDPG_RNN, TD3_RNN, ATD3_IM, SAAC, AAC
+    TD3, SAC, DDPG_RNN, TD3_RNN, ATD3_IM, SAAC, AAC, HRLAC
 
 class Solver(object):
     def __init__(self, args, env, project_path):
@@ -54,11 +55,12 @@ class Solver(object):
             policy = AAC.AAC(state_dim, action_dim, max_action)
         elif 'SAAC' == args.policy_name:
             policy = SAAC.SAAC(state_dim, action_dim, max_action)
+        elif 'HRLAC' == args.policy_name:
+            policy = HRLAC.HRLAC(state_dim, action_dim, max_action)
         else:
             policy = TD3.TD3(state_dim, action_dim, max_action)
         self.policy = policy
         self.replay_buffer = utils.ReplayBuffer()
-
 
         self.total_timesteps = 0
         self.pre_num_steps = self.total_timesteps
@@ -146,7 +148,9 @@ class Solver(object):
         self.pbar = tqdm(total=self.args.max_timesteps, initial=self.total_timesteps, position=0, leave=True)
         done = True
         while self.total_timesteps < self.args.max_timesteps:
+            # ================ Train =============================================#
             self.train_once()
+            # ====================================================================#
             if done:
                 self.eval_once()
                 self.reset()
@@ -154,6 +158,7 @@ class Solver(object):
             # Select action randomly or according to policy
             if self.total_timesteps < self.args.start_timesteps:
                 action = self.env.action_space.sample()
+                p = 1
             else:
                 if 'RNN' in self.args.policy_name:
                     action = self.policy.select_action(np.array(self.obs_vec))
@@ -162,10 +167,18 @@ class Solver(object):
                 else:
                     action = self.policy.select_action(np.array(self.obs))
 
+                noise = np.random.normal(0, self.args.expl_noise,
+                                         size=self.env.action_space.shape[0])
                 if self.args.expl_noise != 0:
-                    action = (action + np.random.normal(0, self.args.expl_noise,
-                                                        size=self.env.action_space.shape[0])).clip(
+                    action = (action + noise).clip(
                         self.env.action_space.low, self.env.action_space.high)
+
+                if 'HRL' in self.args.policy_name:
+                    p_noise = multivariate_normal.pdf(
+                        noise, np.zeros(shape=self.env.action_space.shape[0]),
+                        self.args.expl_noise * self.args.expl_noise * np.identity(noise.shape[0]))
+
+                    p = (p_noise * utils.softmax(self.policy.q_predict)[self.policy.option_val])[0]
 
             if 'IM' in self.args.policy_name:
                 action_im = np.copy(action)
@@ -189,6 +202,8 @@ class Solver(object):
                 new_obs_vec = utils.fifo_data(np.copy(self.obs_vec), new_obs)
                 self.replay_buffer.add((np.copy(self.obs_vec), new_obs_vec, action, reward, done_bool))
                 self.obs_vec = utils.fifo_data(self.obs_vec, new_obs)
+            elif 'HRL' in self.args.policy_name:
+                self.replay_buffer.add((self.obs, new_obs, action, reward, done_bool, p))
             else:
                 self.replay_buffer.add((self.obs, new_obs, action, reward, done_bool))
 
@@ -223,7 +238,6 @@ class Solver(object):
             utils.write_table(self.log_dir + "/estimate_Q_vals", np.asarray(self.estimate_Q_vals))
             utils.write_table(self.log_dir + "/true_Q_vals", np.asarray(self.true_Q_vals))
         self.env.reset()
-
 
     def eval_only(self, is_reset = True):
         video_dir = '{}/video_all/{}_{}'.format(self.result_path, self.args.policy_name,
