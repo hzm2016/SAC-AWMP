@@ -289,21 +289,34 @@ class HRLAC(object):
 		return state, action, target_q, predicted_v, sampling_prob
 
 	def value_func(self, states):
-		q_predict = torch.zeros(states.shape[0], self.option_num, device=device)
-		for o in range(int(self.option_num)):
-			action_o = self.actor(states)[...,o]
-			q_predict_1, q_predict_2 = self.critic_target(states, action_o)
-			q_predict[:, o] = torch.min(q_predict_1, q_predict_2).squeeze()
+		# q_predict = torch.zeros(states.shape[0], self.option_num, device=device)
+		# for o in range(int(self.option_num)):
+		# 	action_o = self.actor(states)[...,o]
+		# 	q_predict_1, q_predict_2 = self.critic_target(states, action_o)
+		# 	q_predict[:, o] = torch.min(q_predict_1, q_predict_2).squeeze()
+		batch_size = states.shape[0]
+		action = self.actor(states) # (batch_num, action_dim, option_num)
+		action = action.transpose(1, 2).view(-1, action.shape[-1])
+		states = states.repeat(4, 1)
+		q_predict_1, q_predict_2 = self.critic_target(states, action)
+		q_predict = torch.min(q_predict_1, q_predict_2).view(batch_size, -1)
 		po = softmax(q_predict)
 		return weighted_mean_array(q_predict, po)
 
 	def softmax_option_target(self, states):
-		q_predict = torch.zeros(states.shape[0], self.option_num, device=device)
-		for o in range(int(self.option_num)):
-			action_o = self.actor(states)[...,o]
-			q1, _ = self.critic_target(states, action_o)  # (batch_num, 1)
-			q_predict[:, o] = q1.squeeze()
+		# q_predict = torch.zeros(states.shape[0], self.option_num, device=device)
+		# for o in range(int(self.option_num)):
+		# 	action_o = self.actor(states)[...,o]
+		# 	q1, _ = self.critic_target(states, action_o)  # (batch_num, 1)
+		# 	q_predict[:, o] = q1.squeeze()
 		# Q_predict_i: B*O， B: batch number, O: option number
+		batch_size = states.shape[0]
+		action = self.actor(states)  # (batch_num, action_dim, option_num)
+		action = action.transpose(1, 2).view(-1, action.shape[-1])
+		states = states.repeat(4, 1)
+		q_predict_1, _ = self.critic_target(states, action)
+		q_predict = q_predict_1.view(batch_size, -1)
+		print(q_predict.shape)
 		p = softmax(q_predict)
 		o_softmax = p_sample(p)
 		q_softmax = q_predict[:, o_softmax]
