@@ -66,45 +66,6 @@ class ReplayBuffer(object):
                np.array(d).reshape(-1, 1), np.array(p).reshape(-1, 1)
 
 
-# Expects tuples of (state, next_state, action, reward, done)
-class ReplayBufferMat(object):
-    '''
-    Change the buffer to array and delete for loop.
-    '''
-    def __init__(self, max_size=1e6):
-        self.storage = []
-        self.max_size = max_size
-        self.ptr = 0
-
-    def add(self, data):
-        data = list(data)
-        if 0 == len(self.storage):
-            for item in data:
-                self.storage.append(np.asarray(item).reshape((1, -1)))
-        else:
-            for i in range(len(data)):
-                if self.storage[0].shape[0] < int(self.max_size):
-                    self.storage[i] = np.r_[self.storage[i], np.asarray(data[i]).reshape((1, -1))]
-                else:
-                    self.storage[i][int(self.ptr)] = np.asarray(data[i])
-                    self.ptr = (self.ptr + 1) % self.max_size
-
-    def sample_on_policy(self, batch_size, option_buffer_size):
-        return self.sample_from_storage(
-            batch_size, start_idx = self.storage[0].shape[0] - option_buffer_size)
-
-    def sample(self, batch_size):
-        return self.sample_from_storage(batch_size)
-
-    def sample_from_storage(self, batch_size, start_idx = 0):
-        buffer_len = self.storage[0].shape[0]
-        ind = np.random.randint(start_idx, buffer_len, size=batch_size)
-        data_list = []
-        for i in range(len(self.storage)):
-            data_list.append(self.storage[i][ind])
-        return tuple(data_list)
-
-
 def calc_array_symmetry(array_a, array_b):
     cols = array_a.shape[-1]
     dist = np.zeros(cols)

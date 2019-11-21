@@ -63,10 +63,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     env_name_vec = [
-        #'RoboschoolHopper-v1',
+        # 'RoboschoolWalker2d-v1',
+        # 'RoboschoolHalfCheetah-v1',
+        # 'RoboschoolHopper-v1',
         'RoboschoolAnt-v1',
-        #'RoboschoolWalker2d-v1',
-        #'RoboschoolHalfCheetah-v1',
         # 'Ant-v2',
         # 'HalfCheetah-v2',
         # 'Walker2d-v2',

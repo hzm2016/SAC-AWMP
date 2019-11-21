@@ -44,29 +44,6 @@ class Actor(nn.Module):
 		return torch.stack([x1, x2, x3], dim=2)
 
 
-class Actor2D(nn.Module):
-	def __init__(self, state_dim, action_dim, max_action, option_num = 3):
-		super(Actor2D, self).__init__()
-		'''
-		Input size: (batch_num, channel = state_dim, rows = option_num, cols = 1)
-		'''
-
-		self.conv1 = nn.Conv2d(state_dim, 400, kernel_size=[1, 1], stride=[1, 1], padding=[0, 0])
-		self.conv2 = nn.Conv2d(400, 300, kernel_size=[1, 1], stride=[1, 1], padding=[0, 0])
-		self.conv3 = nn.Conv2d(300, action_dim, kernel_size=[1, 1], stride=[1, 1], padding=[0, 0])
-		self.max_action = max_action
-		self.option_num = option_num
-
-
-	def forward(self, x):
-		#(batch_num, state_dim) -> (batch_num, channel = state_dim, rows = option_num, cols = 1)
-		x = x.view(x.shape[0], -1, 1, 1).repeat(1, 1, self.option_num, 1)
-		x = F.relu(self.conv1(x))
-		x = F.relu(self.conv2(x))
-		x = self.max_action * torch.tanh(self.conv3(x))
-		# (batch_num, action_dim, option_num, 1) -> (batch_num, action_dim, option_num)
-		return x.view(x.shape[0], x.shape[1], -1)
-
 class Critic(nn.Module):
 	def __init__(self, state_dim, action_dim):
 		super(Critic, self).__init__()
@@ -136,8 +113,8 @@ class HRLAC(object):
 				 entropy_coeff=0.1, c_reg=1.0, c_ent=4, option_buffer_size=5000,
 				 action_noise=0.2, policy_noise=0.2, noise_clip = 0.5):
 
-		self.actor = Actor2D(state_dim, action_dim, max_action, option_num).to(device)
-		self.actor_target = Actor2D(state_dim, action_dim, max_action, option_num).to(device)
+		self.actor = Actor(state_dim, action_dim, max_action, option_num).to(device)
+		self.actor_target = Actor(state_dim, action_dim, max_action, option_num).to(device)
 		self.actor_target.load_state_dict(self.actor.state_dict())
 		self.actor_optimizer = torch.optim.Adam(self.actor.parameters())
 
@@ -289,48 +266,21 @@ class HRLAC(object):
 		return state, action, target_q, predicted_v, sampling_prob
 
 	def value_func(self, states):
-		# q_predict = torch.zeros(states.shape[0], self.option_num, device=device)
-		# for o in range(int(self.option_num)):
-		# 	action_o = self.actor(states)[...,o]
-		# 	q_predict_1, q_predict_2 = self.critic_target(states, action_o)
-		# 	q_predict[:, o] = torch.min(q_predict_1, q_predict_2).squeeze()
-		batch_size = states.shape[0]
-		action = self.actor(states) #
-		option_num = action.shape[-1]
-		# action: (batch_num, action_dim, option_num)-> (batch_num, option_num, action_dim)
-		# -> (batch_num * option_num, action_dim)
-		action = action.transpose(1, 2)
-		action = action.reshape((-1, action.shape[-1]))
-		# states: (batch_num, state_dim) -> (batch_num, state_dim * option_num)
-		# -> (batch_num * option_num, state_dim)
-		states = states.repeat(1, option_num).view(batch_size*option_num, -1)
-		q_predict_1, q_predict_2 = self.critic_target(states, action)
-		# q_predict: (batch_num * option_num, 1) -> (batch_num, option_num)
-		q_predict = torch.min(q_predict_1, q_predict_2).view(batch_size, -1)
+		q_predict = torch.zeros(states.shape[0], self.option_num, device=device)
+		for o in range(int(self.option_num)):
+			action_o = self.actor(states)[...,o]
+			q_predict_1, q_predict_2 = self.critic_target(states, action_o)
+			q_predict[:, o] = torch.min(q_predict_1, q_predict_2).squeeze()
 		po = softmax(q_predict)
 		return weighted_mean_array(q_predict, po)
 
 	def softmax_option_target(self, states):
-		# q_predict = torch.zeros(states.shape[0], self.option_num, device=device)
-		# for o in range(int(self.option_num)):
-		# 	action_o = self.actor(states)[...,o]
-		# 	q1, _ = self.critic_target(states, action_o)  # (batch_num, 1)
-		# 	q_predict[:, o] = q1.squeeze()
+		q_predict = torch.zeros(states.shape[0], self.option_num, device=device)
+		for o in range(int(self.option_num)):
+			action_o = self.actor(states)[...,o]
+			q1, _ = self.critic_target(states, action_o)  # (batch_num, 1)
+			q_predict[:, o] = q1.squeeze()
 		# Q_predict_i: B*O， B: batch number, O: option number
-		batch_size = states.shape[0]
-		action = self.actor(states)  # (batch_num, action_dim, option_num)
-		option_num = action.shape[-1]
-		# action: (batch_num, action_dim, option_num)-> (batch_num, option_num, action_dim)
-		# -> (batch_num * option_num, action_dim)
-		action = action.transpose(1, 2)
-		action = action.reshape((-1, action.shape[-1]))
-		# states: (batch_num, state_dim) -> (batch_num, state_dim * option_num)
-		# -> (batch_num * option_num, state_dim)
-		states = states.repeat(1, option_num).view(batch_size*option_num, -1)
-		q_predict_1, _ = self.critic_target(states, action)
-		# q_predict: (batch_num * option_num, 1) -> (batch_num, option_num)
-		q_predict = q_predict_1.view(batch_size, -1)
-
 		p = softmax(q_predict)
 		o_softmax = p_sample(p)
 		q_softmax = q_predict[:, o_softmax]

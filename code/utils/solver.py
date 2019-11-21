@@ -60,8 +60,7 @@ class Solver(object):
         else:
             policy = TD3.TD3(state_dim, action_dim, max_action)
         self.policy = policy
-        # self.replay_buffer = utils.ReplayBuffer()
-        self.replay_buffer = utils.ReplayBufferMat()
+        self.replay_buffer = utils.ReplayBuffer()
 
         self.total_timesteps = 0
         self.pre_num_steps = self.total_timesteps
