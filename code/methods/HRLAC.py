@@ -38,37 +38,10 @@ class Actor(nn.Module):
 		x2 = F.relu(self.l5(x2))
 		x2 = self.max_action * torch.tanh(self.l6(x2))
 
-		x3 = F.relu(self.l1(x))
-		x3 = F.relu(self.l2(x3))
-		x3 = self.max_action * torch.tanh(self.l3(x3))
+		x3 = F.relu(self.l7(x))
+		x3 = F.relu(self.l8(x3))
+		x3 = self.max_action * torch.tanh(self.l9(x3))
 		return torch.stack([x1, x2, x3], dim=2)
-
-#
-# class Actor(nn.Module):
-# 	def __init__(self, state_dim, action_dim, max_action, option_num=3):
-# 		super(Actor, self).__init__()
-# 		'''
-#         Change to 2D convolutional network to generate multiple independent actors.
-#         '''
-# 		self.l1_list = [nn.Linear(state_dim, 400), nn.Linear(state_dim, 400), nn.Linear(state_dim, 400)]
-# 		self.l2_list = [nn.Linear(400, 300), nn.Linear(400, 300), nn.Linear(400, 300)]
-# 		self.l3_list = [nn.Linear(300, action_dim), nn.Linear(300, action_dim), nn.Linear(300, action_dim)]
-# 		self.max_action = max_action
-# 		self.option_num = option_num
-#
-# 	def forward(self, x):
-# 		'''
-#         :param x: size: (batch_num, state_dim)
-#         :return: action_mat, size: (batch_num, action_dim, option_num)
-#         '''
-# 		x_list = []
-# 		for i in range(self.option_num):
-# 			x1 = F.relu(self.l1_list[i](x))
-# 			x1 = F.relu(self.l2_list[i](x1))
-# 			x1 = self.max_action * torch.tanh(self.l3_list[i](x1))
-# 			x_list.append(x1)
-# 		print(len(x_list))
-# 		return torch.stack(x_list, dim=2)
 
 
 class Critic(nn.Module):

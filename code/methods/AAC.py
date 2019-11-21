@@ -39,9 +39,9 @@ class Actor(nn.Module):
 		x2 = F.relu(self.l5(x2))
 		x2 = self.max_action * torch.tanh(self.l6(x2))
 
-		x3 = F.relu(self.l1(x))
-		x3 = F.relu(self.l2(x3))
-		x3 = self.max_action * torch.tanh(self.l3(x3))
+		x3 = F.relu(self.l7(x))
+		x3 = F.relu(self.l8(x3))
+		x3 = self.max_action * torch.tanh(self.l9(x3))
 		return torch.stack([x1, x2, x3], dim=2)
 
 
