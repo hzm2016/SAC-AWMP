@@ -288,6 +288,11 @@ class Option(nn.Module):
         return decoded_out
 
     def forward(self, x, u):
+        '''
+        :param x: (batch_num, state_dim)
+        :param u: (batch_num, action_dim)
+        :return: output_option: (batch_num, option_num)
+        '''
         xu = torch.cat([x, u], 1)
         encoded_option = self.encode(xu)
         output_option = torch.softmax(encoded_option, dim=-1)

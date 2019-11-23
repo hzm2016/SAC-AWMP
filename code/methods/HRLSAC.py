@@ -14,7 +14,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class HRLSAC(object):
 	def __init__(self, state_dim, action_dim, max_action, option_num=3,
 				 entropy_coeff=0.1, c_reg=1.0, c_ent=4, option_buffer_size=5000,
-				 action_noise=0.2, policy_noise=0.2, noise_clip = 0.5, alpha = 0.05):
+				 action_noise=0.2, policy_noise=0.2, noise_clip = 0.5, alpha = 0.05, weighted_action = True):
 
 		self.actor = GaussianPolicyList(state_dim, action_dim, max_action, option_num).to(device)
 		self.actor_optimizer = torch.optim.Adam(self.actor.parameters())
@@ -45,6 +45,7 @@ class HRLSAC(object):
 		self.q_predict = np.zeros(self.option_num)
 		self.option_val = 0
 		self.alpha = alpha
+		self.weighted_action = weighted_action
 
 	def train(self, replay_buffer, batch_size=100, discount=0.99, tau=0.005,
 			  policy_noise=0.2, noise_clip=0.5, policy_freq=1):
@@ -63,10 +64,16 @@ class HRLSAC(object):
 			state = torch.FloatTensor(x).to(device)
 			action = torch.FloatTensor(u).to(device)
 			_, _, option_estimated, _ = self.option(state, action)
-			max_option_idx = torch.argmax(option_estimated, dim=1)
+			p_normalized = option_estimated / torch.sum(option_estimated, dim=1, keepdim=True)
 			action_list, log_pi_list, _ = self.actor.sample(state)
-			action = action_list[torch.arange(state.shape[0]), :, max_option_idx]
-			log_pi = log_pi_list[torch.arange(state.shape[0]), :, max_option_idx]
+			# (batch_num, action_dim, option_num) x (batch_num, option, 1) -> (batch_num, action_dim)
+			if self.weighted_action:
+				action = torch.matmul(action_list, p_normalized[:, :, None])[:, :, 0]
+				log_pi = torch.matmul(log_pi_list, p_normalized[:, :, None])[:, :, 0]
+			else:
+				max_option_idx = torch.argmax(option_estimated, dim=1)
+				action = action_list[torch.arange(state.shape[0]), :, max_option_idx]
+				log_pi = log_pi_list[torch.arange(state.shape[0]), :, max_option_idx]
 			# ================ Train the actor =============================================#
 			self.train_actor(state, action, log_pi)
 			# ===============================================================================#
@@ -151,18 +158,24 @@ class HRLSAC(object):
 		reward = torch.FloatTensor(r).to(device)
 		sampling_prob = torch.FloatTensor(p).to(device)
 
-		next_option_batch, _, q_predict = self.softmax_option_target(next_state)
+		next_option_batch, _, q_predict, p_normalized = self.softmax_option_target(next_state)
 		# Select action according to policy and add clipped noise
 		noise = torch.FloatTensor(u).data.normal_(0, policy_noise).to(device)
 		noise = noise.clamp(-noise_clip, noise_clip)
 		next_action_list, next_log_pi_list, _ = self.actor.sample(next_state)
-		next_action = (next_action_list[torch.arange(next_state.shape[0]),:,next_option_batch]
-					   + noise).clamp(-self.max_action, self.max_action)
+		# (batch_num, action_dim, option_num) x (batch_num, option, 1) -> (batch_num, action_dim)
+		if self.weighted_action:
+			next_action = torch.matmul(next_action_list, p_normalized[:, :, None])[:, :, 0]
+			next_log_pi = torch.matmul(next_log_pi_list, p_normalized[:, :, None])[:, :, 0]
+		else:
+			next_action = (next_action_list[torch.arange(next_state.shape[0]),:,next_option_batch]
+						   + noise).clamp(-self.max_action, self.max_action)
+			next_log_pi = next_log_pi_list[torch.arange(next_state.shape[0]),:,next_option_batch]
 
+		next_action = (next_action + noise).clamp(-self.max_action, self.max_action)
 		target_q1, target_q2 = self.critic_target(next_state, next_action)
 
-		target_q = torch.min(target_q1, target_q2)\
-				   - self.alpha * next_log_pi_list[torch.arange(next_state.shape[0]),:,next_option_batch]
+		target_q = torch.min(target_q1, target_q2) - self.alpha * next_log_pi
 		target_q = reward + (done * discount * target_q)
 
 		predicted_v = self.value_func(state)
@@ -205,17 +218,26 @@ class HRLSAC(object):
 		p_sum = torch.sum(p, dim=1, keepdim=True)
 		p_normalized = p / p_sum
 		o_softmax = p_sample(p)
-		q_softmax = q_predict[:, o_softmax]
-		return o_softmax, q_softmax, q_predict
+		if self.weighted_action:
+			q_softmax = torch.matmul(q_predict[:,None,:], p_normalized[:, :, None])[:, 0, 0]
+		else:
+			q_softmax = q_predict[:, o_softmax]
+		return o_softmax, q_softmax, q_predict, p_normalized
 
 	def select_action(self, state, eval=True):
 		state = torch.FloatTensor(state.reshape(1, -1)).to(device)
-		option_batch, _, q_predict = self.softmax_option_target(state)
+		option_batch, _, q_predict, p_normalized = self.softmax_option_target(state)
 		if eval == False:
 			action_list, _, _ = self.actor.sample(state)
 		else:
 			_, _, action_list = self.actor.sample(state)
-		action = action_list[torch.arange(state.shape[0]), :, option_batch]
+		## The weighted sum of the action
+		# (batch_num, action_dim, option_num) x (batch_num, option, 1) -> (batch_num, action_dim)
+		if self.weighted_action:
+			action = torch.matmul(action_list, p_normalized[:, :, None])[:, :, 0]
+		else:
+			# Below is to select action based on the option
+			action = action_list[torch.arange(state.shape[0]), :, option_batch]
 		self.q_predict = q_predict.cpu().data.numpy().flatten()
 		self.option_val = option_batch.cpu().data.numpy().flatten()
 		return action.cpu().data.numpy().flatten()
