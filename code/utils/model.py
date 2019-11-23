@@ -7,6 +7,11 @@ LOG_SIG_MAX = 2
 LOG_SIG_MIN = -20
 epsilon = 1e-6
 
+if torch.cuda.is_available():
+	torch.cuda.empty_cache()
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
 # Initialize Policy weights
 def weights_init_(m):
     if isinstance(m, nn.Linear):
@@ -110,6 +115,69 @@ class GaussianPolicy(nn.Module):
         return super(GaussianPolicy, self).to(device)
 
 
+class GaussianPolicyList(nn.Module):
+    def __init__(self, state_dim, action_dim, max_action=None, option_num = 3):
+        super(GaussianPolicyList, self).__init__()
+        self.l1 = nn.ModuleList([nn.Linear(state_dim, 400) for i in range(option_num)])
+        self.l2 = nn.ModuleList([nn.Linear(400, 300) for i in range(option_num)])
+
+        self.mean_linear = nn.ModuleList([nn.Linear(300, action_dim) for i in range(option_num)])
+        self.log_std_linear = nn.ModuleList([nn.Linear(300, action_dim) for i in range(option_num)])
+
+        self.apply(weights_init_)
+
+        self.option_num = option_num
+        # action rescaling
+        if max_action is None:
+            self.action_scale = torch.tensor(1.)
+            self.action_bias = torch.tensor(0.)
+        else:
+            self.action_scale = torch.tensor(max_action)
+            self.action_bias = torch.tensor(0.)
+
+    def forward(self, state):
+        '''
+        :param state: size: (batch_num, state_dim)
+        :return: mean_mat, log_std_mat: (batch_num, action_dim, option_num)
+        '''
+        mean_list = []
+        log_std_list = []
+        for o in range(self.option_num):
+            state_o = F.relu(self.l1[o](state))
+            state_o = F.relu(self.l2[o](state_o))
+            mean_o = self.mean_linear[o](state_o)
+            log_std_o = self.log_std_linear[o](state_o)
+            log_std_o = torch.clamp(log_std_o, min=LOG_SIG_MIN, max=LOG_SIG_MAX)
+            mean_list.append(mean_o)
+            log_std_list.append(log_std_o)
+        return torch.stack(mean_list, dim=2), torch.stack(log_std_list, dim=2)
+
+    def sample(self, state):
+        '''
+        :param state: (batch_num, state_dim)
+        :return: action: (batch_num, action_dim, option_num)
+        log_prob: (batch_num, option_num)
+        mean_mat: (batch_num, action_dim, option_num)
+        '''
+        mean_mat, log_std_mat = self.forward(state)
+        std_mat = log_std_mat.exp()
+        normal = Normal(mean_mat, std_mat)
+        x_t = normal.rsample()  # for reparameterization trick (mean + std * N(0,1))
+        y_t = torch.tanh(x_t)
+        action = y_t * self.action_scale + self.action_bias
+        log_prob = normal.log_prob(x_t)  # log(pi(at|st))
+        # Enforcing Action Bound, because the Gaussian distribution changes from (-inf, inf) to (-1, 1)
+        log_prob -= torch.log(self.action_scale * (1 - y_t.pow(2)) + epsilon)
+        log_prob = log_prob.sum(1, keepdim=True)
+        mean_mat = torch.tanh(mean_mat) * self.action_scale + self.action_bias
+        return action, log_prob, mean_mat
+
+    def to(self, device):
+        self.action_scale = self.action_scale.to(device)
+        self.action_bias = self.action_bias.to(device)
+        return super(GaussianPolicyList, self).to(device)
+
+
 class DeterministicPolicy(nn.Module):
     def __init__(self, state_dim, action_dim, hidden_dim, max_action=None):
         super(DeterministicPolicy, self).__init__()
@@ -146,3 +214,95 @@ class DeterministicPolicy(nn.Module):
         self.action_scale = self.action_scale.to(device)
         self.action_bias = self.action_bias.to(device)
         return super(GaussianPolicy, self).to(device)
+
+
+class ActorList(nn.Module):
+    def __init__(self, state_dim, action_dim, max_action, option_num = 3):
+        super(ActorList, self).__init__()
+        self.l1 = nn.ModuleList([nn.Linear(state_dim, 400) for i in range(option_num)])
+        self.l2 = nn.ModuleList([nn.Linear(400, 300) for i in range(option_num)])
+        self.l3 = nn.ModuleList([nn.Linear(300, action_dim) for i in range(option_num)])
+        self.max_action = max_action
+        self.option_num = option_num
+
+    def forward(self, x):
+        x_out = []
+        for o in range(self.option_num):
+            x_o = F.relu(self.l1[o](x))
+            x_o = F.relu(self.l2[o](x_o))
+            x_o = self.max_action * torch.tanh(self.l3[o](x_o))
+            x_out.append(x_o)
+
+        return torch.stack(x_out, dim=2)
+
+
+class Critic(nn.Module):
+    def __init__(self, state_dim, action_dim):
+        super(Critic, self).__init__()
+
+        # Q1 architecture
+        self.l1 = nn.Linear(state_dim + action_dim, 400)
+        self.l2 = nn.Linear(400, 300)
+        self.l3 = nn.Linear(300, 1)
+
+        # Q2 architecture
+        self.l4 = nn.Linear(state_dim + action_dim, 400)
+        self.l5 = nn.Linear(400, 300)
+        self.l6 = nn.Linear(300, 1)
+
+    def forward(self, x, u):
+        xu = torch.cat([x, u], 1)
+
+        q1 = F.relu(self.l1(xu))
+        q1 = F.relu(self.l2(q1))
+        q1 = self.l3(q1)
+
+        q2 = F.relu(self.l4(xu))
+        q2 = F.relu(self.l5(q2))
+        q2 = self.l6(q2)
+        return q1, q2
+
+
+class Option(nn.Module):
+    def __init__(self, state_dim, action_dim, option_num=3):
+        super(Option, self).__init__()
+        self.encoder_1 = nn.Linear(state_dim + action_dim, 400)
+        self.encoder_2 = nn.Linear(400, 300)
+        self.encoder_3 = nn.Linear(300, option_num)
+
+        self.decoder_1 = nn.Linear(option_num, 300)
+        self.decoder_2 = nn.Linear(300, 400)
+        self.decoder_3 = nn.Linear(400, state_dim + action_dim)
+        self.option_num = option_num
+
+    def encode(self, xu):
+        encoded_out = F.relu(self.encoder_1(xu))
+        encoded_out = F.relu(self.encoder_2(encoded_out))
+        encoded_out = self.encoder_3(encoded_out)
+        return encoded_out
+
+    def decode(self, encoded_out):
+        decoded_out = F.relu(self.decoder_1(encoded_out))
+        decoded_out = F.relu(self.decoder_2(decoded_out))
+        decoded_out = self.decoder_3(decoded_out)
+        return decoded_out
+
+    def forward(self, x, u):
+        xu = torch.cat([x, u], 1)
+        encoded_option = self.encode(xu)
+        output_option = torch.softmax(encoded_option, dim=-1)
+
+        xu_noise = add_randn(xu, vat_noise=0.005)
+        encoded_option_noise = self.encode(xu_noise)
+        output_option_noise = torch.softmax(encoded_option_noise, dim=-1)
+        decoded_xu = self.decode(encoded_option)
+
+        return xu, decoded_xu, output_option, output_option_noise
+
+
+def add_randn(x_input, vat_noise):
+    """
+    add normal noise to the input
+    """
+    epsilon = torch.FloatTensor(torch.randn(size=x_input.size())).to(device)
+    return x_input + vat_noise * epsilon * torch.abs(x_input)
