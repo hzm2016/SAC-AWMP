@@ -28,7 +28,6 @@ class Actor(nn.Module):
 
 		self.max_action = max_action
 
-
 	def forward(self, x):
 		x1 = F.relu(self.l1(x))
 		x1 = F.relu(self.l2(x1))
@@ -62,30 +61,6 @@ class ActorList(nn.Module):
 			x_out.append(x_o)
 
 		return torch.stack(x_out, dim=2)
-
-
-class Actor2D(nn.Module):
-	def __init__(self, state_dim, action_dim, max_action, option_num = 3):
-		super(Actor2D, self).__init__()
-		'''
-		Input size: (batch_num, channel = state_dim, rows = option_num, cols = 1)
-		'''
-
-		self.conv1 = nn.Conv2d(state_dim, 400, kernel_size=[1, 1], stride=[1, 1], padding=[0, 0])
-		self.conv2 = nn.Conv2d(400, 300, kernel_size=[1, 1], stride=[1, 1], padding=[0, 0])
-		self.conv3 = nn.Conv2d(300, action_dim, kernel_size=[1, 1], stride=[1, 1], padding=[0, 0])
-		self.max_action = max_action
-		self.option_num = option_num
-
-
-	def forward(self, x):
-		#(batch_num, state_dim) -> (batch_num, channel = state_dim, rows = option_num, cols = 1)
-		x = x.view(x.shape[0], -1, 1, 1).repeat(1, 1, self.option_num, 1)
-		x = F.relu(self.conv1(x))
-		x = F.relu(self.conv2(x))
-		x = self.max_action * torch.tanh(self.conv3(x))
-		# (batch_num, action_dim, option_num, 1) -> (batch_num, action_dim, option_num)
-		return x.view(x.shape[0], x.shape[1], -1)
 
 class Critic(nn.Module):
 	def __init__(self, state_dim, action_dim):
@@ -154,7 +129,7 @@ class Option(nn.Module):
 class HRLAC(object):
 	def __init__(self, state_dim, action_dim, max_action, option_num=3,
 				 entropy_coeff=0.1, c_reg=1.0, c_ent=4, option_buffer_size=5000,
-				 action_noise=0.2, policy_noise=0.2, noise_clip = 0.5):
+				 action_noise=0.2, policy_noise=0.2, noise_clip = 0.5, use_option_net = True):
 
 		self.actor = ActorList(state_dim, action_dim, max_action, option_num).to(device)
 		self.actor_target = ActorList(state_dim, action_dim, max_action, option_num).to(device)
@@ -166,10 +141,12 @@ class HRLAC(object):
 		self.critic_target.load_state_dict(self.critic.state_dict())
 		self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
 
-		self.option = Option(state_dim, action_dim, option_num).to(device)
-		self.option_optimizer = torch.optim.Adam(self.option.parameters())
 
+		if use_option_net:
+			self.option = Option(state_dim, action_dim, option_num).to(device)
+			self.option_optimizer = torch.optim.Adam(self.option.parameters())
 
+		self.use_option_net = use_option_net
 		self.max_action = max_action
 		self.it = 0
 
@@ -203,8 +180,14 @@ class HRLAC(object):
 			x, y, u, r, d, p = replay_buffer.sample(batch_size)
 			state = torch.FloatTensor(x).to(device)
 			action = torch.FloatTensor(u).to(device)
-			_, _, option_estimated, _ = self.option(state, action)
-			max_option_idx = torch.argmax(option_estimated, dim=1)
+			if self.use_option_net:
+				_, _, option_estimated, _ = self.option(state, action)
+				max_option_idx = torch.argmax(option_estimated, dim=1)
+			else:
+				_, _, q_predict = self.softmax_option_target(state)
+				option_prob = softmax(q_predict)
+				max_option_idx = torch.argmax(option_prob, dim=1)
+
 			action = self.actor(state)[torch.arange(state.shape[0]), :, max_option_idx]
 			# ================ Train the actor =============================================#
 			self.train_actor(state, action)
@@ -217,16 +200,17 @@ class HRLAC(object):
 			for param, target_param in zip(self.actor.parameters(), self.actor_target.parameters()):
 				target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
 
-		# Delayed option updates
-		if self.it % self.option_buffer_size == 0:
-			# s_batch, a_batch, r_batch, t_batch, s2_batch, p_batch = \
-			state, action, target_q, predicted_v, sampling_prob = \
-				self.calc_target_q(replay_buffer, batch_size, discount, is_on_poliy=True)
-			# Compute actor loss
-			# ================ Train the actor =============================================#
-			for _ in range(self.option_buffer_size):
-				self.train_option(state, action, target_q, predicted_v, sampling_prob)
-		# ===============================================================================#
+		if self.use_option_net:
+			# Delayed option updates
+			if self.it % self.option_buffer_size == 0:
+				# s_batch, a_batch, r_batch, t_batch, s2_batch, p_batch = \
+				state, action, target_q, predicted_v, sampling_prob = \
+					self.calc_target_q(replay_buffer, batch_size, discount, is_on_poliy=True)
+				# Compute actor loss
+				# ================ Train the actor =============================================#
+				for _ in range(self.option_buffer_size):
+					self.train_option(state, action, target_q, predicted_v, sampling_prob)
+			# ===============================================================================#
 
 	def train_critic(self, state, action, target_q):
 		'''

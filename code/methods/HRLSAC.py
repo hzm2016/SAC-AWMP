@@ -4,8 +4,9 @@ import torch.nn as nn
 import glob
 from torch.autograd import Variable
 import torch.nn.functional as F
+from utils.utils import soft_update, hard_update
 from torch.distributions import Categorical
-from utils.model import GaussianPolicyList, ActorList, Critic, Option
+from utils.model import GaussianPolicyList, ActorList, Critic, Option, ValueNetwork
 if torch.cuda.is_available():
 	torch.cuda.empty_cache()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -20,13 +21,16 @@ class HRLSAC(object):
 		self.actor_optimizer = torch.optim.Adam(self.actor.parameters())
 
 		self.critic = Critic(state_dim, action_dim).to(device)
-		self.critic_target = Critic(state_dim, action_dim).to(device)
-		self.critic_target.load_state_dict(self.critic.state_dict())
 		self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
+
+		self.value_net = ValueNetwork(state_dim, 400).to(device=device)
+		self.value_net_optim = torch.optim.Adam(self.value_net.parameters())
+
+		self.value_net_target = ValueNetwork(state_dim, 400).to(device=device)
+		hard_update(self.value_net_target, self.value_net)
 
 		self.option = Option(state_dim, action_dim, option_num).to(device)
 		self.option_optimizer = torch.optim.Adam(self.option.parameters())
-
 
 		self.max_action = max_action
 		self.it = 0
@@ -50,37 +54,41 @@ class HRLSAC(object):
 	def train(self, replay_buffer, batch_size=100, discount=0.99, tau=0.005,
 			  policy_noise=0.2, noise_clip=0.5, policy_freq=1):
 		self.it += 1
-		state, action, target_q, predicted_v, sampling_prob = \
-			self.calc_target_q(replay_buffer, batch_size, discount, is_on_poliy=False)
+		state, action, target_q, phi_val_target, predicted_v, sampling_prob = \
+			self.calc_target_phi(replay_buffer, batch_size, discount, is_on_poliy=False)
 
 		# ================ Train the critic =============================================#
 		self.train_critic(state, action, target_q)
 		# ===============================================================================#
 
-		# Delayed policy updates
+		# ================ Train the value net =============================================#
+		self.train_value_net(state, phi_val_target)
 		if self.it % policy_freq == 0:
-			# Compute actor loss
-			x, y, u, r, d, p = replay_buffer.sample(batch_size)
-			state = torch.FloatTensor(x).to(device)
-			action = torch.FloatTensor(u).to(device)
-			_, _, option_estimated, _ = self.option(state, action)
-			p_normalized = option_estimated / torch.sum(option_estimated, dim=1, keepdim=True)
-			action_list, log_pi_list, _ = self.actor.sample(state)
-			# (batch_num, action_dim, option_num) x (batch_num, option, 1) -> (batch_num, action_dim)
-			if self.weighted_action:
-				action = torch.matmul(action_list, p_normalized[:, :, None])[:, :, 0]
-				log_pi = torch.matmul(log_pi_list, p_normalized[:, :, None])[:, :, 0]
-			else:
-				max_option_idx = torch.argmax(option_estimated, dim=1)
-				action = action_list[torch.arange(state.shape[0]), :, max_option_idx]
-				log_pi = log_pi_list[torch.arange(state.shape[0]), :, max_option_idx]
 			# ================ Train the actor =============================================#
-			self.train_actor(state, action, log_pi)
+			self.train_actor(phi_val_target)
 			# ===============================================================================#
-
 			# Update the frozen target models
-			for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
+			for param, target_param in zip(self.value_net.parameters(), self.value_net_target.parameters()):
 				target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
+		# ==================================================================================#
+
+		# Delayed policy updates
+		# if self.it % policy_freq == 0:
+			# # Compute actor loss
+			# x, y, u, r, d, p = replay_buffer.sample(batch_size)
+			# state = torch.FloatTensor(x).to(device)
+			# action = torch.FloatTensor(u).to(device)
+			# _, _, option_estimated, _ = self.option(state, action)
+			# p_normalized = option_estimated / torch.sum(option_estimated, dim=1, keepdim=True)
+			# action_list, log_pi_list, _ = self.actor.sample(state)
+			# # (batch_num, action_dim, option_num) x (batch_num, option, 1) -> (batch_num, action_dim)
+			# if self.weighted_action:
+			# 	action = torch.matmul(action_list, p_normalized[:, :, None])[:, :, 0]
+			# 	log_pi = torch.matmul(log_pi_list, p_normalized[:, :, None])[:, :, 0]
+			# else:
+			# 	max_option_idx = torch.argmax(option_estimated, dim=1)
+			# 	action = action_list[torch.arange(state.shape[0]), :, max_option_idx]
+			# 	log_pi = log_pi_list[torch.arange(state.shape[0]), :, max_option_idx]
 
 		# Delayed option updates
 		if self.it % self.option_buffer_size == 0:
@@ -97,9 +105,6 @@ class HRLSAC(object):
 		'''
 		Calculate the loss of the critic and train the critic.
 		'''
-		# target_q1, target_q2 = self.critic_target(next_state, next_action)
-		# target_q = torch.min(target_q1, target_q2)
-		# target_q = reward + (done * discount * target_q).detach()
 		current_q1, current_q2 = self.critic(state, action)
 		critic_loss = F.mse_loss(current_q1, target_q) + \
 					  F.mse_loss(current_q2, target_q)
@@ -108,12 +113,21 @@ class HRLSAC(object):
 		critic_loss.backward()  # 2. Back propagation
 		self.critic_optimizer.step()  # 3. Update the parameters of the net
 
-	def train_actor(self, state, action, log_pi=0.0):
+	def train_value_net(self, state, phi_val_target):
+		phi_val = self.value_net(state)
+		phi_loss = F.mse_loss(phi_val, phi_val_target)
+		# Three steps of training net using PyTorch:
+		self.value_net_optim.zero_grad()  # 1. Clear cumulative gradient
+		phi_loss.backward(retain_graph=True)  # 2. Back propagation
+		self.value_net_optim.step()  # 3. Update the parameters of the net
+
+	def train_actor(self, phi_val_target):
 		'''
 		Calculate the loss of the actor and train the actor
 		'''
-		current_q1, current_q2 = self.critic(state, action)
-		actor_loss = ((self.alpha * log_pi) - current_q1).mean()
+		# current_q1, current_q2 = self.critic(state, action)
+		# actor_loss = ((self.alpha * log_pi) - current_q1).mean()
+		actor_loss = (- phi_val_target).mean()
 		# Optimize the actor
 		# Three steps of training net using PyTorch:
 		self.actor_optimizer.zero_grad()  # 1. Clear cumulative gradient
@@ -142,7 +156,7 @@ class HRLSAC(object):
 		option_loss.backward(retain_graph=True)  # 2. Back propagation
 		self.option_optimizer.step()  # 3. Update the parameters of the net
 
-	def calc_target_q(self, replay_buffer, batch_size=100, discount=0.99, is_on_poliy=True):
+	def calc_target_phi(self, replay_buffer, batch_size=100, discount=0.99, is_on_poliy=True):
 		policy_noise = self.policy_noise
 		noise_clip = self.noise_clip
 		if is_on_poliy:
@@ -154,32 +168,56 @@ class HRLSAC(object):
 		state = torch.FloatTensor(x).to(device)
 		action = torch.FloatTensor(u).to(device)
 		next_state = torch.FloatTensor(y).to(device)
-		done = torch.FloatTensor(1 - d).to(device)
+		not_done = torch.FloatTensor(1 - d).to(device)
 		reward = torch.FloatTensor(r).to(device)
 		sampling_prob = torch.FloatTensor(p).to(device)
 
-		next_option_batch, _, q_predict, p_normalized = self.softmax_option_target(next_state)
-		# Select action according to policy and add clipped noise
-		noise = torch.FloatTensor(u).data.normal_(0, policy_noise).to(device)
-		noise = noise.clamp(-noise_clip, noise_clip)
-		next_action_list, next_log_pi_list, _ = self.actor.sample(next_state)
+		action_list, log_pi_list, _ = self.actor.sample(state)
+		_, _, option_estimated, _ = self.option(state, action)
+		p_normalized = option_estimated / torch.sum(option_estimated, dim=1, keepdim=True)
 		# (batch_num, action_dim, option_num) x (batch_num, option, 1) -> (batch_num, action_dim)
 		if self.weighted_action:
-			next_action = torch.matmul(next_action_list, p_normalized[:, :, None])[:, :, 0]
-			next_log_pi = torch.matmul(next_log_pi_list, p_normalized[:, :, None])[:, :, 0]
+			action_pi = torch.matmul(action_list, p_normalized[:, :, None])[:, :, 0]
+			log_pi = torch.matmul(log_pi_list, p_normalized[:, :, None])[:, :, 0]
 		else:
-			next_action = (next_action_list[torch.arange(next_state.shape[0]),:,next_option_batch]
-						   + noise).clamp(-self.max_action, self.max_action)
-			next_log_pi = next_log_pi_list[torch.arange(next_state.shape[0]),:,next_option_batch]
+			max_option_idx = torch.argmax(p_normalized, dim=1)
+			action_pi = action_list[torch.arange(state.shape[0]), :, max_option_idx]
+			log_pi = log_pi_list[torch.arange(state.shape[0]), :, max_option_idx]
 
-		next_action = (next_action + noise).clamp(-self.max_action, self.max_action)
-		target_q1, target_q2 = self.critic_target(next_state, next_action)
+		# option_batch, _, q_predict, p_normalized = self.softmax_option_target(state)
+		# # (batch_num, action_dim, option_num) x (batch_num, option, 1) -> (batch_num, action_dim)
+		# if self.weighted_action:
+		# 	action_pi = torch.matmul(action_list, p_normalized[:, :, None])[:, :, 0]
+		# 	log_pi = torch.matmul(log_pi_list, p_normalized[:, :, None])[:, :, 0]
+		# else:
+		# 	action_pi = action_list[torch.arange(state.shape[0]),:,option_batch]
+		# 	log_pi = log_pi_list[torch.arange(state.shape[0]),:,option_batch]
 
-		target_q = torch.min(target_q1, target_q2) - self.alpha * next_log_pi
-		target_q = reward + (done * discount * target_q)
+		qf1_pi, qf2_pi = self.critic(state, action_pi)
+		phi_val_target = torch.min(qf1_pi, qf2_pi) - self.alpha * log_pi
 
+		target_q = reward + not_done * discount * self.value_net_target(next_state)
+		predicted_v = self.value_func(state)
+		return state, action, target_q, phi_val_target, predicted_v, sampling_prob
+
+	def calc_target_q(self, replay_buffer, batch_size=100, discount=0.99, is_on_poliy=True):
+		if is_on_poliy:
+			x, y, u, r, d, p = \
+				replay_buffer.sample_on_policy(batch_size, self.option_buffer_size)
+		else:
+			x, y, u, r, d, p = \
+				replay_buffer.sample(batch_size)
+		state = torch.FloatTensor(x).to(device)
+		next_state = torch.FloatTensor(y).to(device)
+		action = torch.FloatTensor(u).to(device)
+		not_done = torch.FloatTensor(1 - d).to(device)
+		reward = torch.FloatTensor(r).to(device)
+		sampling_prob = torch.FloatTensor(p).to(device)
+
+		target_q = reward + not_done * discount * self.value_net_target(next_state)
 		predicted_v = self.value_func(state)
 		return state, action, target_q, predicted_v, sampling_prob
+
 
 	def value_func(self, states):
 		batch_size = states.shape[0]
@@ -192,7 +230,7 @@ class HRLSAC(object):
 		# states: (batch_num, state_dim) -> (batch_num, state_dim * option_num)
 		# -> (batch_num * option_num, state_dim)
 		states = states.repeat(1, option_num).view(batch_size*option_num, -1)
-		q_predict_1, q_predict_2 = self.critic_target(states, action_list)
+		q_predict_1, q_predict_2 = self.critic(states, action_list)
 		# q_predict: (batch_num * option_num, 1) -> (batch_num, option_num)
 		q_predict = torch.min(q_predict_1, q_predict_2).view(batch_size, -1)
 		po = softmax(q_predict)
@@ -210,7 +248,7 @@ class HRLSAC(object):
 		# states: (batch_num, state_dim) -> (batch_num, state_dim * option_num)
 		# -> (batch_num * option_num, state_dim)
 		states = states.repeat(1, option_num).view(batch_size*option_num, -1)
-		q_predict_1, _ = self.critic_target(states, action_list)
+		q_predict_1, _ = self.critic(states, action_list)
 		# q_predict: (batch_num * option_num, 1) -> (batch_num, option_num)
 		q_predict = q_predict_1.view(batch_size, -1)
 
