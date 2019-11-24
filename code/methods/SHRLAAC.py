@@ -5,13 +5,13 @@ import glob
 from torch.autograd import Variable
 import torch.nn.functional as F
 from torch.distributions import Categorical
-from utils.model import ActorList, Critic, Option
+from utils.model import ActorList, Critic, StateOption
 if torch.cuda.is_available():
 	torch.cuda.empty_cache()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-class HRLAAC(object):
+class SHRLAAC(object):
 	def __init__(self, state_dim, action_dim, max_action, option_num=3,
 				 entropy_coeff=0.1, c_reg=1.0, c_ent=4, option_buffer_size=5000,
 				 action_noise=0.2, policy_noise=0.2, noise_clip = 0.5):
@@ -28,7 +28,7 @@ class HRLAAC(object):
 
 		# The option network is not to generate an option, but associate the advantage information
 		# with the option. Then pi(o|s) can be used to sample the option.
-		self.option = Option(state_dim, action_dim, option_num).to(device)
+		self.option = StateOption(state_dim, action_dim, option_num).to(device)
 		self.option_optimizer = torch.optim.Adam(self.option.parameters())
 
 		self.max_action = max_action
@@ -46,6 +46,7 @@ class HRLAAC(object):
 		self.policy_noise = policy_noise
 		self.noise_clip = noise_clip
 		self.q_predict = np.zeros(self.option_num)
+		self.option_prob = 0.0
 		self.option_val = 0
 
 	def train(self, replay_buffer, batch_size=100, discount=0.99, tau=0.005,
@@ -65,7 +66,7 @@ class HRLAAC(object):
 			state = torch.FloatTensor(x).to(device)
 			action = torch.FloatTensor(u).to(device)
 			# select action based on the previous state-action space?
-			_, _, option_estimated, _ = self.option(state, action)
+			_, _, option_estimated, _, _ = self.option(state)
 			max_option_idx = torch.argmax(option_estimated, dim=1)
 			action = self.actor(state)[torch.arange(state.shape[0]), :, max_option_idx]
 			# ================ Train the actor =============================================#
@@ -116,7 +117,7 @@ class HRLAAC(object):
 		self.actor_optimizer.step()  # 3. Update the parameters of the net
 
 	def train_option(self, state, action, target_q, predicted_v, sampling_prob):
-		xu, decoded_xu, output_option, output_option_noise = self.option(state, action)
+		x, decoded_x, output_option, output_option_noise, _ = self.option(state)
 		# Associate the classification with the advantage value.
 		advantage = target_q - predicted_v
 
@@ -130,7 +131,7 @@ class HRLAAC(object):
 
 		vat_loss = kl(output_option, output_option_noise)
 
-		reg_loss = F.l1_loss(xu, decoded_xu)
+		reg_loss = F.l1_loss(x, decoded_x)
 		option_loss = reg_loss + self.entropy_coeff * critic_entropy + self.c_reg * vat_loss
 
 		# Optimize the option
@@ -155,7 +156,8 @@ class HRLAAC(object):
 		reward = torch.FloatTensor(r).to(device)
 		sampling_prob = torch.FloatTensor(p).to(device)
 
-		next_option_batch, _, q_predict = self.softmax_option_target(next_state)
+		_, _, next_option_prob, _, _ = self.option(state)
+		next_option_batch = p_sample(next_option_prob)
 		# Select action according to policy and add clipped noise
 		noise = torch.FloatTensor(u).data.normal_(0, policy_noise).to(device)
 		noise = noise.clamp(-noise_clip, noise_clip)
@@ -212,9 +214,11 @@ class HRLAAC(object):
 		# The option probability is the function of the q value.
 		# Tht option network is to train
 		state = torch.FloatTensor(state.reshape(1, -1)).to(device)
-		option_batch, _, q_predict = self.softmax_option_target(state)
+		_, _, option_prob, _, encoded_option = self.option(state)
+		option_batch = p_sample(option_prob)
 		action = self.actor(state)[torch.arange(state.shape[0]), :, option_batch]
-		self.q_predict = q_predict.cpu().data.numpy().flatten()
+		self.q_predict = encoded_option.cpu().data.numpy().flatten()
+		self.option_prob = option_prob.cpu().data.numpy().flatten()
 		self.option_val = option_batch.cpu().data.numpy().flatten()
 		return action.cpu().data.numpy().flatten()
 

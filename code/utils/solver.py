@@ -12,7 +12,7 @@ from tensorboardX import SummaryWriter
 from scipy import signal
 from methods import ATD3, ATD3_RNN, Average_TD3, DDPG, \
     TD3, SAC, DDPG_RNN, TD3_RNN, ATD3_IM, SAAC, AAC, \
-    HRLAC, HRLSAC, HRLAAC
+    HRLAC, HRLSAC, HRLAAC, SHRLAAC
 
 class Solver(object):
     def __init__(self, args, env, project_path):
@@ -62,6 +62,8 @@ class Solver(object):
             policy = HRLSAC.HRLSAC(state_dim, action_dim, max_action)
         elif 'HRLAAC' == args.policy_name:
             policy = HRLAAC.HRLAAC(state_dim, action_dim, max_action)
+        elif 'SHRLAAC' == args.policy_name:
+            policy = SHRLAAC.SHRLAAC(state_dim, action_dim, max_action)
         else:
             policy = TD3.TD3(state_dim, action_dim, max_action)
         self.policy = policy
@@ -183,8 +185,11 @@ class Solver(object):
                     p_noise = multivariate_normal.pdf(
                         noise, np.zeros(shape=self.env.action_space.shape[0]),
                         self.args.expl_noise * self.args.expl_noise * np.identity(noise.shape[0]))
+                    if 'SHRL' in self.args.policy_name:
+                        p = (p_noise * utils.softmax(self.policy.option_prob))[0]
+                    else:
+                        p = (p_noise * utils.softmax(self.policy.q_predict)[self.policy.option_val])[0]
 
-                    p = (p_noise * utils.softmax(self.policy.q_predict)[self.policy.option_val])[0]
 
             if 'IM' in self.args.policy_name:
                 action_im = np.copy(action)

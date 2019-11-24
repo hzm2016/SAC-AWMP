@@ -293,6 +293,46 @@ class OptionEncode(nn.Module):
         return xu, xu, output_option, output_option_noise
 
 
+class StateOption(nn.Module):
+    def __init__(self, state_dim, action_dim, option_num=3):
+        super(StateOption, self).__init__()
+        self.encoder_1 = nn.Linear(state_dim, 400)
+        self.encoder_2 = nn.Linear(400, 300)
+        self.encoder_3 = nn.Linear(300, option_num)
+
+        self.decoder_1 = nn.Linear(option_num, 300)
+        self.decoder_2 = nn.Linear(300, 400)
+        self.decoder_3 = nn.Linear(400, state_dim)
+        self.option_num = option_num
+
+    def encode(self, xu):
+        encoded_out = F.relu(self.encoder_1(xu))
+        encoded_out = F.relu(self.encoder_2(encoded_out))
+        encoded_out = self.encoder_3(encoded_out)
+        return encoded_out
+
+    def decode(self, encoded_out):
+        decoded_out = F.relu(self.decoder_1(encoded_out))
+        decoded_out = F.relu(self.decoder_2(decoded_out))
+        decoded_out = self.decoder_3(decoded_out)
+        return decoded_out
+
+    def forward(self, x):
+        '''
+        :param x: (batch_num, state_dim)
+        :param u: (batch_num, action_dim)
+        :return: output_option: (batch_num, option_num)
+        '''
+        encoded_option = self.encode(x)
+        output_option = torch.softmax(encoded_option, dim=-1)
+
+        x_noise = add_randn(x, vat_noise=0.005)
+        encoded_option_noise = self.encode(x_noise)
+        output_option_noise = torch.softmax(encoded_option_noise, dim=-1)
+        decoded_x = self.decode(encoded_option)
+
+        return x, decoded_x, output_option, output_option_noise, encoded_option
+
 class Option(nn.Module):
     def __init__(self, state_dim, action_dim, option_num=3):
         super(Option, self).__init__()

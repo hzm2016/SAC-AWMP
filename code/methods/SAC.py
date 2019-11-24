@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import glob
 from torch.optim import Adam
 from utils.utils import soft_update, hard_update
-from utils.model import GaussianPolicy, QNetwork, DeterministicPolicy
+from utils.model import GaussianPolicy, QNetwork, DeterministicPolicy, ValueNetwork
 
 
 class SAC(object):
@@ -21,8 +21,14 @@ class SAC(object):
         self.critic = QNetwork(state_dim, action_dim, 400).to(device=self.device)
         self.critic_optim = Adam(self.critic.parameters(), lr=self.lr)
 
-        self.critic_target = QNetwork(state_dim, action_dim, 400).to(self.device)
-        hard_update(self.critic_target, self.critic)
+        self.value_net = ValueNetwork(state_dim, 400).to(device=self.device)
+        self.value_net_optim = Adam(self.value_net.parameters(), lr=self.lr)
+
+        self.value_net_target = ValueNetwork(state_dim, 400).to(device=self.device)
+        hard_update(self.value_net_target, self.value_net)
+
+        # self.critic_target = QNetwork(state_dim, action_dim, 400).to(self.device)
+        # hard_update(self.critic_target, self.critic)
         self.it = 0
 
         if self.policy_type == "Gaussian":
@@ -61,17 +67,21 @@ class SAC(object):
         reward = torch.FloatTensor(reward).to(self.device)
         not_done = torch.FloatTensor(1 - done).to(self.device)
 
-        with torch.no_grad():
-            # V(s_t+1) = Ea_t+1~pi(Q(s_t+1, a_t+1)- log(pi(a_t+1|s_t+1)))
-            next_state_action, next_state_log_pi, _ = self.policy.sample(next_state)
-            qf1_next_target, qf2_next_target = self.critic_target(next_state, next_state_action)
-            min_qf_next_target = torch.min(qf1_next_target, qf2_next_target) - self.alpha * next_state_log_pi
-            next_q_value = reward + not_done * discount * (min_qf_next_target)
+        # Two Q-functions to mitigate positive bias in the policy improvement step
+        # Jv(phi) = 0.5(phi(s_t) - (Q(s_t, a_t) - log pi (a_t|s_t)))**2
+        qf1, qf2 = self.critic(state, action)
+        state_action, state_log_pi, _ = self.policy.sample(state)
+        min_phi_next = torch.min(qf1, qf2) - self.alpha * state_log_pi
+        phi_val_target = reward + not_done * discount * min_phi_next
+        phi_val = self.value_net(state)
+        phi_loss = F.mse_loss(phi_val, phi_val_target)
 
-        qf1, qf2 = self.critic(state, action)    # Two Q-functions to mitigate positive bias in the policy improvement step
+        # Jq(theta) = 0.5(q_theta - (r_t + V_target(s_t+1)))**2
+        q_val_target = reward + not_done * discount * self.value_net_target(next_state)
+
         # The default mse_loss reduce to the mean of the element-wise mse loss.
-        qf1_loss = F.mse_loss(qf1, next_q_value) # JQ = 𝔼(st,at)~D[0.5(Q1(st,at) - r(st,at) - γ(𝔼st+1~p[V(st+1)]))^2]
-        qf2_loss = F.mse_loss(qf2, next_q_value) # JQ = 𝔼(st,at)~D[0.5(Q1(st,at) - r(st,at) - γ(𝔼st+1~p[V(st+1)]))^2]
+        qf1_loss = F.mse_loss(qf1, q_val_target) # JQ = 𝔼(st,at)~D[0.5(Q1(st,at) - r(st,at) - γ(𝔼st+1~p[V(st+1)]))^2]
+        qf2_loss = F.mse_loss(qf2, q_val_target) # JQ = 𝔼(st,at)~D[0.5(Q1(st,at) - r(st,at) - γ(𝔼st+1~p[V(st+1)]))^2]
 
         pi, log_pi, _ = self.policy.sample(state)
 
@@ -80,8 +90,12 @@ class SAC(object):
 
         policy_loss = ((self.alpha * log_pi) - qf_pi).mean() # Jπ = 𝔼st∼D,εt∼N[α * logπ(f(εt;st)|st) − Q(st,f(εt;st))]
 
+        self.value_net_optim.zero_grad()
+        phi_loss.backward(retain_graph=True)
+        self.value_net_optim.step()
+
         self.critic_optim.zero_grad()
-        qf1_loss.backward()
+        qf1_loss.backward(retain_graph=True)
         self.critic_optim.step()
 
         self.critic_optim.zero_grad()
@@ -107,7 +121,7 @@ class SAC(object):
 
 
         if self.it % self.target_update_interval == 0:
-            soft_update(self.critic_target, self.critic, tau)
+            soft_update(self.value_net_target, self.value_net, tau)
 
         return qf1_loss.item(), qf2_loss.item(), policy_loss.item(), alpha_loss.item(), alpha_tlogs.item()
 
