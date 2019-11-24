@@ -263,6 +263,36 @@ class Critic(nn.Module):
         return q1, q2
 
 
+class OptionEncode(nn.Module):
+    def __init__(self, state_dim, action_dim, option_num=3):
+        super(OptionEncode, self).__init__()
+        self.encoder_1 = nn.Linear(state_dim + action_dim, 400)
+        self.encoder_2 = nn.Linear(400, 300)
+        self.encoder_3 = nn.Linear(300, option_num)
+        self.option_num = option_num
+
+    def encode(self, xu):
+        encoded_out = F.relu(self.encoder_1(xu))
+        encoded_out = F.relu(self.encoder_2(encoded_out))
+        encoded_out = self.encoder_3(encoded_out)
+        return encoded_out
+
+    def forward(self, x, u):
+        '''
+        :param x: (batch_num, state_dim)
+        :param u: (batch_num, action_dim)
+        :return: output_option: (batch_num, option_num)
+        '''
+        xu = torch.cat([x, u], 1)
+        encoded_option = self.encode(xu)
+        output_option = torch.softmax(encoded_option, dim=-1)
+
+        xu_noise = add_randn(xu, vat_noise=0.005)
+        encoded_option_noise = self.encode(xu_noise)
+        output_option_noise = torch.softmax(encoded_option_noise, dim=-1)
+        return xu, xu, output_option, output_option_noise
+
+
 class Option(nn.Module):
     def __init__(self, state_dim, action_dim, option_num=3):
         super(Option, self).__init__()

@@ -11,7 +11,8 @@ from scipy.stats import multivariate_normal
 from tensorboardX import SummaryWriter
 from scipy import signal
 from methods import ATD3, ATD3_RNN, Average_TD3, DDPG, \
-    TD3, SAC, DDPG_RNN, TD3_RNN, ATD3_IM, SAAC, AAC, HRLAC, HRLSAC
+    TD3, SAC, DDPG_RNN, TD3_RNN, ATD3_IM, SAAC, AAC, \
+    HRLAC, HRLSAC, HRLAAC
 
 class Solver(object):
     def __init__(self, args, env, project_path):
@@ -59,6 +60,8 @@ class Solver(object):
             policy = HRLAC.HRLAC(state_dim, action_dim, max_action)
         elif 'HRLSAC' == args.policy_name:
             policy = HRLSAC.HRLSAC(state_dim, action_dim, max_action)
+        elif 'HRLAAC' == args.policy_name:
+            policy = HRLAAC.HRLAAC(state_dim, action_dim, max_action)
         else:
             policy = TD3.TD3(state_dim, action_dim, max_action)
         self.policy = policy
