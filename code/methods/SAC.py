@@ -69,30 +69,26 @@ class SAC(object):
 
         # Two Q-functions to mitigate positive bias in the policy improvement step
         # Jv(phi) = 0.5(phi(s_t) - (Q(s_t, a_t) - log pi (a_t|s_t)))**2
-        qf1, qf2 = self.critic(state, action)
-        state_action, state_log_pi, _ = self.policy.sample(state)
-        min_phi_next = torch.min(qf1, qf2) - self.alpha * state_log_pi
-        phi_val_target = reward + not_done * discount * min_phi_next
+
+        pi, log_pi, _ = self.policy.sample(state)
+        qf1_pi, qf2_pi = self.critic(state, pi)
+        phi_val_target = torch.min(qf1_pi, qf2_pi) - self.alpha * log_pi
+
         phi_val = self.value_net(state)
         phi_loss = F.mse_loss(phi_val, phi_val_target)
 
         # Jq(theta) = 0.5(q_theta - (r_t + V_target(s_t+1)))**2
         q_val_target = reward + not_done * discount * self.value_net_target(next_state)
-
+        q1, q2 = self.critic(state, action)
         # The default mse_loss reduce to the mean of the element-wise mse loss.
-        qf1_loss = F.mse_loss(qf1, q_val_target) # JQ = 𝔼(st,at)~D[0.5(Q1(st,at) - r(st,at) - γ(𝔼st+1~p[V(st+1)]))^2]
-        qf2_loss = F.mse_loss(qf2, q_val_target) # JQ = 𝔼(st,at)~D[0.5(Q1(st,at) - r(st,at) - γ(𝔼st+1~p[V(st+1)]))^2]
+        qf1_loss = F.mse_loss(q1, q_val_target) # JQ = 𝔼(st,at)~D[0.5(Q1(st,at) - r(st,at) - γ(𝔼st+1~p[V(st+1)]))^2]
+        qf2_loss = F.mse_loss(q2, q_val_target) # JQ = 𝔼(st,at)~D[0.5(Q1(st,at) - r(st,at) - γ(𝔼st+1~p[V(st+1)]))^2]
 
-        pi, log_pi, _ = self.policy.sample(state)
+        # pi, log_pi, _ = self.policy.sample(state)
+        # qf1_pi, qf2_pi = self.critic(state, pi)
+        # qf_pi = torch.min(qf1_pi, qf2_pi)
 
-        qf1_pi, qf2_pi = self.critic(state, pi)
-        qf_pi = torch.min(qf1_pi, qf2_pi)
-
-        policy_loss = ((self.alpha * log_pi) - qf_pi).mean() # Jπ = 𝔼st∼D,εt∼N[α * logπ(f(εt;st)|st) − Q(st,f(εt;st))]
-
-        self.value_net_optim.zero_grad()
-        phi_loss.backward(retain_graph=True)
-        self.value_net_optim.step()
+        policy_loss = (-phi_val_target).mean() # Jπ = 𝔼st∼D,εt∼N[α * logπ(f(εt;st)|st) − Q(st,f(εt;st))]
 
         self.critic_optim.zero_grad()
         qf1_loss.backward(retain_graph=True)
@@ -101,7 +97,11 @@ class SAC(object):
         self.critic_optim.zero_grad()
         qf2_loss.backward()
         self.critic_optim.step()
-        
+
+        self.value_net_optim.zero_grad()
+        phi_loss.backward(retain_graph=True)
+        self.value_net_optim.step()
+
         self.policy_optim.zero_grad()
         policy_loss.backward()
         self.policy_optim.step()
