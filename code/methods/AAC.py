@@ -166,8 +166,7 @@ class AAC(object):
 		# Delayed policy updates
 		if self.it % policy_freq == 0:
 			# Compute actor loss
-			action = self.select_optimal_action(
-			next_state, self.actor, self.critic)
+			action = self.select_optimal_action(next_state, self.actor, self.critic)
 			current_Q1, current_Q2 = self.critic(state, action)
 			actor_loss = - 0.5 * (current_Q1 + current_Q2).mean()
 

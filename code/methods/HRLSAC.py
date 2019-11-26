@@ -6,7 +6,7 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 from utils.utils import soft_update, hard_update
 from torch.distributions import Categorical
-from utils.model import GaussianPolicyList, ActorList, Critic, Option, ValueNetwork
+from utils.model import GaussianPolicy1D, ActorList, Critic, Option, ValueNetwork
 if torch.cuda.is_available():
 	torch.cuda.empty_cache()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -15,9 +15,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class HRLSAC(object):
 	def __init__(self, state_dim, action_dim, max_action, option_num=3,
 				 entropy_coeff=0.1, c_reg=1.0, c_ent=4, option_buffer_size=5000,
-				 action_noise=0.2, policy_noise=0.2, noise_clip = 0.5, alpha = 0.05, weighted_action = True):
+				 action_noise=0.2, policy_noise=0.2, noise_clip = 0.5, alpha = 0.05, weighted_action = False):
 
-		self.actor = GaussianPolicyList(state_dim, action_dim, max_action, option_num).to(device)
+		self.actor = GaussianPolicy1D(state_dim, action_dim, max_action, option_num).to(device)
 		self.actor_optimizer = torch.optim.Adam(self.actor.parameters())
 
 		self.critic = Critic(state_dim, action_dim).to(device)

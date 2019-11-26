@@ -175,7 +175,74 @@ class GaussianPolicyList(nn.Module):
     def to(self, device):
         self.action_scale = self.action_scale.to(device)
         self.action_bias = self.action_bias.to(device)
-        return super(GaussianPolicyList, self).to(device)
+        return super(GaussianPolicy1D, self).to(device)
+
+
+class GaussianPolicy1D(nn.Module):
+    def __init__(self, state_dim, action_dim, max_action=None, option_num = 3):
+        super(GaussianPolicy1D, self).__init__()
+        '''
+            Input size: (batch_num, channel = state_dim * option_num, length = 1)
+        '''
+        self.conv1 = nn.Conv1d(state_dim * option_num, 400 * option_num, kernel_size=1, groups=option_num)
+        self.conv2 = nn.Conv1d(400 * option_num, 300 * option_num, kernel_size=1, groups=option_num)
+        self.mean_linear = nn.Conv1d(300 * option_num, action_dim * option_num, kernel_size=1, groups=option_num)
+        self.log_std_linear = nn.Conv1d(300 * option_num, action_dim * option_num, kernel_size=1, groups=option_num)
+
+        self.apply(weights_init_)
+
+        self.option_num = option_num
+        # action rescaling
+        if max_action is None:
+            self.action_scale = torch.tensor(1.)
+            self.action_bias = torch.tensor(0.)
+        else:
+            self.action_scale = torch.tensor(max_action)
+            self.action_bias = torch.tensor(0.)
+
+        self.max_action = max_action
+        self.option_num = option_num
+
+    def forward(self, x):
+        # (batch_num, state_dim) -> (batch_num, channel = state_dim * option_num, length = 1)
+        x = x.view(x.shape[0], -1, 1).repeat(1, self.option_num, 1)
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        # (batch_num, action_dim * self.option_num, 1) -> (batch_num, action_dim, option_num)
+        mean_mat = self.mean_linear(x)
+        mean_mat = mean_mat.view(x.shape[0], self.option_num, -1)
+        mean_mat = mean_mat.transpose(dim0=1, dim1=2)
+        # (batch_num, action_dim * self.option_num, 1) -> (batch_num, action_dim, option_num)
+        log_std_mat = self.log_std_linear(x)
+        log_std_mat = torch.clamp(log_std_mat, min=LOG_SIG_MIN, max=LOG_SIG_MAX)
+        log_std_mat = log_std_mat.view(x.shape[0], self.option_num, -1)
+        log_std_mat = log_std_mat.transpose(dim0=1, dim1=2)
+        return mean_mat, log_std_mat
+
+    def sample(self, state):
+        '''
+        :param state: (batch_num, state_dim)
+        :return: action: (batch_num, action_dim, option_num)
+        log_prob: (batch_num, option_num)
+        mean_mat: (batch_num, action_dim, option_num)
+        '''
+        mean_mat, log_std_mat = self.forward(state)
+        std_mat = log_std_mat.exp()
+        normal = Normal(mean_mat, std_mat)
+        x_t = normal.rsample()  # for reparameterization trick (mean + std * N(0,1))
+        y_t = torch.tanh(x_t)
+        action = y_t * self.action_scale + self.action_bias
+        log_prob = normal.log_prob(x_t)  # log(pi(at|st))
+        # Enforcing Action Bound, because the Gaussian distribution changes from (-inf, inf) to (-1, 1)
+        log_prob -= torch.log(self.action_scale * (1 - y_t.pow(2)) + epsilon)
+        log_prob = log_prob.sum(1, keepdim=True)
+        mean_mat = torch.tanh(mean_mat) * self.action_scale + self.action_bias
+        return action, log_prob, mean_mat
+
+    def to(self, device):
+        self.action_scale = self.action_scale.to(device)
+        self.action_bias = self.action_bias.to(device)
+        return super(GaussianPolicy1D, self).to(device)
 
 
 class DeterministicPolicy(nn.Module):
@@ -234,6 +301,30 @@ class ActorList(nn.Module):
             x_out.append(x_o)
 
         return torch.stack(x_out, dim=2)
+
+
+class Actor1D(nn.Module):
+    def __init__(self, state_dim, action_dim, max_action, option_num = 3):
+        super(Actor1D, self).__init__()
+        '''
+        Input size: (batch_num, channel = state_dim * option_num, length = 1)
+        '''
+        self.conv1 = nn.Conv1d(state_dim * option_num, 400 * option_num, kernel_size=1, groups=option_num)
+        self.conv2 = nn.Conv1d(400 * option_num, 300 * option_num, kernel_size=1, groups=option_num)
+        self.conv3 = nn.Conv1d(300 * option_num, action_dim * option_num, kernel_size=1, groups=option_num)
+        self.max_action = max_action
+        self.option_num = option_num
+
+    def forward(self, x):
+        #(batch_num, state_dim) -> (batch_num, channel = state_dim * option_num, length = 1)
+        x = x.view(x.shape[0], -1, 1).repeat(1, self.option_num, 1)
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = self.max_action * torch.tanh(self.conv3(x))
+        # (batch_num, action_dim * self.option_num) -> (batch_num, action_dim, option_num)
+        x = x.view(x.shape[0], self.option_num, -1)
+        x = x.transpose(dim0=1, dim1=2)
+        return x
 
 
 class Critic(nn.Module):
