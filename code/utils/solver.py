@@ -12,7 +12,7 @@ from tensorboardX import SummaryWriter
 from scipy import signal
 from methods import ATD3, ATD3_RNN, Average_TD3, DDPG, \
     TD3, SAC, DDPG_RNN, TD3_RNN, ATD3_IM, SAAC, AAC, \
-    HRLAC, HRLSAC, HRLAAC, SHRLAAC
+    HRLAC, HRLSAC, HRLAAC, HRLLAC, SHRLAAC
 
 class Solver(object):
     def __init__(self, args, env, project_path):
@@ -62,6 +62,8 @@ class Solver(object):
             policy = HRLSAC.HRLSAC(state_dim, action_dim, max_action)
         elif 'HRLAAC' == args.policy_name:
             policy = HRLAAC.HRLAAC(state_dim, action_dim, max_action)
+        elif 'HRLLAC' == args.policy_name:
+            policy = HRLLAC.HRLLAC(state_dim, action_dim, max_action)
         elif 'SHRLAAC' == args.policy_name:
             policy = SHRLAAC.SHRLAAC(state_dim, action_dim, max_action)
         else:

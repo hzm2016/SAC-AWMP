@@ -203,12 +203,11 @@ class HRLAC(object):
 		if self.use_option_net:
 			# Delayed option updates
 			if self.it % self.option_buffer_size == 0:
-				# s_batch, a_batch, r_batch, t_batch, s2_batch, p_batch = \
-				state, action, target_q, predicted_v, sampling_prob = \
-					self.calc_target_q(replay_buffer, batch_size, discount, is_on_poliy=True)
 				# Compute actor loss
 				# ================ Train the actor =============================================#
 				for _ in range(self.option_buffer_size):
+					state, action, target_q, predicted_v, sampling_prob = \
+						self.calc_target_q(replay_buffer, batch_size, discount, is_on_poliy=True)
 					self.train_option(state, action, target_q, predicted_v, sampling_prob)
 			# ===============================================================================#
 

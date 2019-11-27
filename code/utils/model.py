@@ -424,6 +424,7 @@ class StateOption(nn.Module):
 
         return x, decoded_x, output_option, output_option_noise, encoded_option
 
+
 class Option(nn.Module):
     def __init__(self, state_dim, action_dim, option_num=3):
         super(Option, self).__init__()
@@ -465,6 +466,33 @@ class Option(nn.Module):
 
         return xu, decoded_xu, output_option, output_option_noise
 
+class Encoder(nn.Module):
+    def __init__(self, state_dim, action_dim):
+        super(Encoder, self).__init__()
+        self.encoder_1 = nn.Linear(state_dim, 400)
+        self.encoder_2 = nn.Linear(400, 300)
+        self.encoder_3 = nn.Linear(300, 2 * action_dim)
+
+    def forward(self, xu):
+        encoded_out = F.relu(self.encoder_1(xu))
+        encoded_out = F.relu(self.encoder_2(encoded_out))
+        encoded_out = self.encoder_3(encoded_out)
+        return encoded_out
+
+class ANN(nn.Module):
+    def __init__(self, input_dim, output_dim, hidden_dim, use_tanh = True):
+        super(ANN, self).__init__()
+        self.l1 = nn.Linear(input_dim, hidden_dim)
+        self.l2 = nn.Linear(hidden_dim, output_dim)
+        self.use_tanh = use_tanh
+
+    def forward(self, encoded_out):
+        decoded_out = F.relu(self.l1(encoded_out))
+        decoded_out = self.l2(decoded_out)
+        if self.use_tanh:
+            decoded_out = F.tanh(decoded_out)
+        return decoded_out
+
 
 def add_randn(x_input, vat_noise):
     """
@@ -472,3 +500,5 @@ def add_randn(x_input, vat_noise):
     """
     epsilon = torch.FloatTensor(torch.randn(size=x_input.size())).to(device)
     return x_input + vat_noise * epsilon * torch.abs(x_input)
+
+
