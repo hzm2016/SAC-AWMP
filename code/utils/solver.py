@@ -12,7 +12,7 @@ from tensorboardX import SummaryWriter
 from scipy import signal
 from methods import ATD3, ATD3_RNN, Average_TD3, DDPG, \
     TD3, SAC, DDPG_RNN, TD3_RNN, ATD3_IM, SAAC, AAC, \
-    HRLAC, HRLSAC, HRLAAC, HRLLAC, SHRLAAC
+    HRLAC, HRLSAC, HRLAAC, HRLLAC, SHRLAAC, MATD3
 
 class Solver(object):
     def __init__(self, args, env, project_path):
@@ -38,6 +38,8 @@ class Solver(object):
         # Initialize policy
         if 'ATD3' == args.policy_name:
             policy = ATD3.ATD3(state_dim, action_dim, max_action)
+        elif 'MATD3' == args.policy_name:
+            policy = MATD3.MATD3(state_dim, action_dim, max_action)
         elif 'ATD3_IM' == args.policy_name:
             policy = ATD3_IM.ATD3_IM(state_dim, action_dim, max_action)
         elif 'ATD3_RNN' == args.policy_name:

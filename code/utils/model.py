@@ -66,6 +66,8 @@ class QNetwork(nn.Module):
         return x1, x2
 
 
+
+
 class GaussianPolicy(nn.Module):
     def __init__(self, state_dim, action_dim, hidden_dim, max_action=None):
         super(GaussianPolicy, self).__init__()
@@ -283,6 +285,23 @@ class DeterministicPolicy(nn.Module):
         return super(GaussianPolicy, self).to(device)
 
 
+class Actor(nn.Module):
+    def __init__(self, state_dim, action_dim, max_action):
+        super(Actor, self).__init__()
+
+        self.l1 = nn.Linear(state_dim, 400)
+        self.l2 = nn.Linear(400, 300)
+        self.l3 = nn.Linear(300, action_dim)
+
+        self.max_action = max_action
+
+    def forward(self, x):
+        x = F.relu(self.l1(x))
+        x = F.relu(self.l2(x))
+        x = self.max_action * torch.tanh(self.l3(x))
+        return x
+
+
 class ActorList(nn.Module):
     def __init__(self, state_dim, action_dim, max_action, option_num = 3):
         super(ActorList, self).__init__()
@@ -352,6 +371,29 @@ class Critic(nn.Module):
         q2 = F.relu(self.l5(q2))
         q2 = self.l6(q2)
         return q1, q2
+
+
+class Critic1D(nn.Module):
+    def __init__(self, state_dim, action_dim, critic_num = 5):
+        super(Critic1D, self).__init__()
+        '''
+        Input size: (batch_num, channel = state_dim * option_num, length = 1)
+        '''
+        self.conv1 = nn.Conv1d((state_dim + action_dim) * critic_num, 400 * critic_num, kernel_size=1, groups=critic_num)
+        self.conv2 = nn.Conv1d(400 * critic_num, 300 * critic_num, kernel_size=1, groups=critic_num)
+        self.conv3 = nn.Conv1d(300 * critic_num, 1 * critic_num, kernel_size=1, groups=critic_num)
+        self.critic_num = critic_num
+
+    def forward(self, x, u):
+        #(batch_num, input_dim) -> (batch_num, channel = input_dim * critic_num, length = 1)
+        xu = torch.cat([x, u], dim=1)
+        xu = xu.view(xu.shape[0], -1, 1).repeat(1, self.critic_num, 1)
+        xu = F.relu(self.conv1(xu))
+        xu = F.relu(self.conv2(xu))
+        xu = self.conv3(xu)
+        # (batch_num, 1 * critic_num, 1) -> (batch_num, critic_num)
+        q_val_mat = xu.view(xu.shape[0], self.critic_num)
+        return torch.mean(q_val_mat, dim=-1), torch.std(q_val_mat, dim=-1)
 
 
 class OptionEncode(nn.Module):
