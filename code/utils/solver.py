@@ -172,7 +172,7 @@ class Solver(object):
             else:
                 if 'RNN' in self.args.policy_name:
                     action = self.policy.select_action(np.array(self.obs_vec))
-                elif 'SAC' in self.args.policy_name:
+                elif 'SAC' in self.args.policy_name or 'AAC' in self.args.policy_name:
                     action = self.policy.select_action(np.array(self.obs), eval=False)
                 else:
                     action = self.policy.select_action(np.array(self.obs))

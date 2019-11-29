@@ -78,7 +78,7 @@ if __name__ == "__main__":
         # 'RoboschoolAtlasForwardWalk-v1'
     ]
     # policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
-    policy_name_vec = ['HRLAAC']
+    policy_name_vec = ['HRLSAC']
     # for i in range(5):
     #     args.seed = i
     for env_name in env_name_vec:

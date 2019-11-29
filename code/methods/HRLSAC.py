@@ -13,9 +13,10 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class HRLSAC(object):
-	def __init__(self, state_dim, action_dim, max_action, option_num=3,
+	def __init__(self, state_dim, action_dim, max_action, option_num=2,
 				 entropy_coeff=0.1, c_reg=1.0, c_ent=4, option_buffer_size=5000,
-				 action_noise=0.2, policy_noise=0.2, noise_clip = 0.5, alpha = 0.05, weighted_action = False):
+				 action_noise=0.2, policy_noise=0.2, noise_clip = 0.5, alpha = 0.05,
+				 weighted_action = False):
 
 		self.actor = GaussianPolicy1D(state_dim, action_dim, max_action, option_num).to(device)
 		self.actor_optimizer = torch.optim.Adam(self.actor.parameters())
@@ -92,13 +93,11 @@ class HRLSAC(object):
 
 		# Delayed option updates
 		if self.it % self.option_buffer_size == 0:
-			# s_batch, a_batch, r_batch, t_batch, s2_batch, p_batch = \
-			state, action, target_q, predicted_v, sampling_prob = \
-				self.calc_target_q(replay_buffer, batch_size, discount, is_on_poliy=True)
-			# Compute actor loss
-			# ================ Train the actor =============================================#
-			for _ in range(self.option_buffer_size):
-				self.train_option(state, action, target_q, predicted_v, sampling_prob)
+			for _ in range(int(self.option_buffer_size)):
+				state, action, target_q, predicted_v, sampling_prob = \
+					self.calc_target_q(replay_buffer, batch_size, discount, is_on_poliy=True)
+				for _ in range(int(self.option_num)):
+					self.train_option(state, action, target_q, predicted_v, sampling_prob)
 		# ===============================================================================#
 
 	def train_critic(self, state, action, target_q):
@@ -198,6 +197,7 @@ class HRLSAC(object):
 
 		target_q = reward + not_done * discount * self.value_net_target(next_state)
 		predicted_v = self.value_func(state)
+		# predicted_v = self.value_net_target(state)
 		return state, action, target_q, phi_val_target, predicted_v, sampling_prob
 
 	def calc_target_q(self, replay_buffer, batch_size=100, discount=0.99, is_on_poliy=True):
@@ -216,6 +216,7 @@ class HRLSAC(object):
 
 		target_q = reward + not_done * discount * self.value_net_target(next_state)
 		predicted_v = self.value_func(state)
+		# predicted_v = self.value_net_target(state)
 		return state, action, target_q, predicted_v, sampling_prob
 
 
@@ -248,9 +249,10 @@ class HRLSAC(object):
 		# states: (batch_num, state_dim) -> (batch_num, state_dim * option_num)
 		# -> (batch_num * option_num, state_dim)
 		states = states.repeat(1, option_num).view(batch_size*option_num, -1)
-		q_predict_1, _ = self.critic(states, action_list)
+
+		q_predict_1, q_predict_2 = self.critic(states, action_list)
 		# q_predict: (batch_num * option_num, 1) -> (batch_num, option_num)
-		q_predict = q_predict_1.view(batch_size, -1)
+		q_predict = (0.5 * (q_predict_1 + q_predict_2)).view(batch_size, -1)
 
 		p = softmax(q_predict)
 		p_sum = torch.sum(p, dim=1, keepdim=True)
@@ -268,6 +270,7 @@ class HRLSAC(object):
 		if eval == False:
 			action_list, _, _ = self.actor.sample(state)
 		else:
+			option_batch = torch.argmax(q_predict, dim=-1)
 			_, _, action_list = self.actor.sample(state)
 		## The weighted sum of the action
 		# (batch_num, action_dim, option_num) x (batch_num, option, 1) -> (batch_num, action_dim)
