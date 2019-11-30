@@ -57,6 +57,7 @@ class SAC(object):
 
     def train(self, replay_buffer, batch_size=100, discount=0.99, tau=0.005,
         policy_noise=0.2, noise_clip=0.5, policy_freq=2):
+
         self.it += 1
         # Sample a batch from memory
         state, next_state, action, reward, done = replay_buffer.sample(batch_size)

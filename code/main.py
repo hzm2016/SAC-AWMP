@@ -4,9 +4,9 @@ import sys
 project_path = '../'
 sys.path.insert(0, project_path + 'code')
 print(sys.path)
-import roboschool, pybullet_envs, gym
+import roboschool, gym
 from roboschool import gym_forward_walker, gym_mujoco_walkers
-import pybullet as p
+# import pybullet as p
 import argparse
 import numpy as np
 from utils.solver import utils, Solver
@@ -49,6 +49,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", default=0, type=int) # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--start_timesteps", default=1e4,
                         type=int)  # How many time steps purely random policy is run for
+
     parser.add_argument("--eval_freq", default=5e3, type=int)  # How often (time steps) we evaluate
     parser.add_argument("--max_timesteps", default=1e6, type=int)  # Max time steps to run environment for
 
@@ -60,6 +61,11 @@ if __name__ == "__main__":
     parser.add_argument("--policy_noise", default=0.2, type=float)  # Noise added to target policy during critic update
     parser.add_argument("--noise_clip", default=0.5, type=float)  # Range to clip target policy noise
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
+
+    parser.add_argument("--option_batch_size", default=50, type=int)  # Batch size for both actor and critic
+    parser.add_argument("--policy_batch_size", default=100, type=int)  # Batch size for both actor and critic
+    parser.add_argument("--critic_batch_size", default=400, type=int)  # Batch size for both actor and critic
+
     args = parser.parse_args()
 
     env_name_vec = [
@@ -78,7 +84,7 @@ if __name__ == "__main__":
         # 'RoboschoolAtlasForwardWalk-v1'
     ]
     # policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
-    policy_name_vec = ['HRLAC']
+    policy_name_vec = ['HRLSAC']
     # for i in range(5):
     #     args.seed = i
     for env_name in env_name_vec:

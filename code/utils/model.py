@@ -66,8 +66,6 @@ class QNetwork(nn.Module):
         return x1, x2
 
 
-
-
 class GaussianPolicy(nn.Module):
     def __init__(self, state_dim, action_dim, hidden_dim, max_action=None):
         super(GaussianPolicy, self).__init__()
@@ -181,7 +179,7 @@ class GaussianPolicyList(nn.Module):
 
 
 class GaussianPolicy1D(nn.Module):
-    def __init__(self, state_dim, action_dim, max_action=None, option_num = 3):
+    def __init__(self, state_dim, action_dim, max_action=None, option_num=3):
         super(GaussianPolicy1D, self).__init__()
         '''
             Input size: (batch_num, channel = state_dim * option_num, length = 1)
@@ -194,6 +192,7 @@ class GaussianPolicy1D(nn.Module):
         self.apply(weights_init_)
 
         self.option_num = option_num
+
         # action rescaling
         if max_action is None:
             self.action_scale = torch.tensor(1.)
@@ -235,9 +234,11 @@ class GaussianPolicy1D(nn.Module):
         y_t = torch.tanh(x_t)
         action = y_t * self.action_scale + self.action_bias
         log_prob = normal.log_prob(x_t)  # log(pi(at|st))
+
         # Enforcing Action Bound, because the Gaussian distribution changes from (-inf, inf) to (-1, 1)
         log_prob -= torch.log(self.action_scale * (1 - y_t.pow(2)) + epsilon)
         log_prob = log_prob.sum(1, keepdim=True)
+
         mean_mat = torch.tanh(mean_mat) * self.action_scale + self.action_bias
         return action, log_prob, mean_mat
 

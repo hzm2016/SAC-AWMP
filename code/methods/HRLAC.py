@@ -142,7 +142,6 @@ class HRLAC(object):
 		self.critic_target.load_state_dict(self.critic.state_dict())
 		self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
 
-
 		if use_option_net:
 			self.option = Option(state_dim, action_dim, option_num).to(device)
 			self.option_optimizer = torch.optim.Adam(self.option.parameters())
