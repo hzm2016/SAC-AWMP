@@ -128,7 +128,7 @@ class Option(nn.Module):
 
 
 class HRLAC(object):
-	def __init__(self, state_dim, action_dim, max_action, option_num=3,
+	def __init__(self, state_dim, action_dim, max_action, option_num=2,
 				 entropy_coeff=0.1, c_reg=1.0, c_ent=4, option_buffer_size=5000,
 				 action_noise=0.2, policy_noise=0.2, noise_clip = 0.5, use_option_net = True):
 
@@ -209,7 +209,8 @@ class HRLAC(object):
 				for _ in range(self.option_buffer_size):
 					state, action, target_q, predicted_v, sampling_prob = \
 						self.calc_target_q(replay_buffer, batch_size, discount, is_on_poliy=True)
-					self.train_option(state, action, target_q, predicted_v, sampling_prob)
+					for _ in range(int(self.option_num)):
+						self.train_option(state, action, target_q, predicted_v, sampling_prob)
 			# ===============================================================================#
 
 	def train_critic(self, state, action, target_q):
@@ -340,9 +341,11 @@ class HRLAC(object):
 		q_softmax = q_predict[:, o_softmax]
 		return o_softmax, q_softmax, q_predict
 
-	def select_action(self, state):
+	def select_action(self, state, eval=True):
 		state = torch.FloatTensor(state.reshape(1, -1)).to(device)
 		option_batch, _, q_predict = self.softmax_option_target(state)
+		if eval:
+			option_batch = torch.argmax(q_predict, dim=-1)
 		action = self.actor(state)[torch.arange(state.shape[0]), :, option_batch]
 		self.q_predict = q_predict.cpu().data.numpy().flatten()
 		self.option_val = option_batch.cpu().data.numpy().flatten()

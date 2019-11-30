@@ -34,7 +34,7 @@ class MATD3(object):
 		x, _, u, _, _ = replay_buffer.sample(eval_states)
 		state = torch.FloatTensor(x).to(device)
 		action = torch.FloatTensor(u).to(device)
-		q_mean, _ = self.critic(state, action)
+		q_mean, _, _ = self.critic(state, action)
 		q_mean = torch.mean(q_mean)
 		return q_mean.detach().cpu().numpy()
 
@@ -56,15 +56,16 @@ class MATD3(object):
 		next_action = (self.actor_target(next_state) + noise).clamp(-self.max_action, self.max_action)
 
 		# Compute the target Q value
-		target_q_mean, _ = self.critic_target(next_state, next_action)
-
-		target_q = reward + (done * discount * target_q_mean).detach()
+		_, _, target_q_min = self.critic_target(next_state, next_action)
+		target_q = reward + (done * discount * target_q_min).detach()
 
 		# Get current Q estimates
-		current_q_mean, current_q_std = self.critic(state, action)
+		current_q_mean, q_discrepancy, _ = self.critic(state, action)
 		# Compute critic loss
-		critic_loss = F.mse_loss(current_q_mean, target_q) - 0.1 * current_q_std.mean()
-
+		critic_loss = F.mse_loss(current_q_mean, target_q) - 0.1 * q_discrepancy
+		if self.it % 5000 == 0:
+			print('Error: {}, std: {}'.format(F.mse_loss(current_q_mean, target_q),
+											  0.1 * q_discrepancy))
 		# Optimize the critic
 		self.critic_optimizer.zero_grad()
 		critic_loss.backward()
@@ -74,7 +75,7 @@ class MATD3(object):
 		if self.it % policy_freq == 0:
 
 			# Compute actor loss
-			current_q_mean, current_q_std = self.critic(state, self.actor(state))
+			current_q_mean, _, _ = self.critic(state, self.actor(state))
 			actor_loss = -current_q_mean.mean()
 
 			# actor_loss = -self.critic.Q1(state, self.actor(state)).mean()

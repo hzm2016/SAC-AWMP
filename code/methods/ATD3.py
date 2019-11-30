@@ -128,7 +128,9 @@ class ATD3(object):
 		# Compute critic loss
 		critic_loss = F.mse_loss(current_Q1, target_Q) + F.mse_loss(current_Q2, target_Q) - \
 					  0.1 * F.mse_loss(current_Q1, current_Q2)
-
+		if self.it % 5000 == 0:
+			print('Error: {}, std: {}'.format(F.mse_loss(current_Q1, target_Q),
+											  0.1 * F.mse_loss(current_Q1, current_Q2)))
 		# Optimize the critic
 		self.critic_optimizer.zero_grad()
 		critic_loss.backward()

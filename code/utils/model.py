@@ -380,20 +380,26 @@ class Critic1D(nn.Module):
         Input size: (batch_num, channel = state_dim * option_num, length = 1)
         '''
         self.conv1 = nn.Conv1d((state_dim + action_dim) * critic_num, 400 * critic_num, kernel_size=1, groups=critic_num)
+        self.bn1 = nn.BatchNorm1d(400 * critic_num)
         self.conv2 = nn.Conv1d(400 * critic_num, 300 * critic_num, kernel_size=1, groups=critic_num)
+        self.bn2 = nn.BatchNorm1d(300 * critic_num)
         self.conv3 = nn.Conv1d(300 * critic_num, 1 * critic_num, kernel_size=1, groups=critic_num)
+        self.apply(weights_init_)
+
         self.critic_num = critic_num
 
     def forward(self, x, u):
         #(batch_num, input_dim) -> (batch_num, channel = input_dim * critic_num, length = 1)
         xu = torch.cat([x, u], dim=1)
         xu = xu.view(xu.shape[0], -1, 1).repeat(1, self.critic_num, 1)
-        xu = F.relu(self.conv1(xu))
-        xu = F.relu(self.conv2(xu))
+        xu = F.relu(self.bn1(self.conv1(xu)))
+        xu = F.relu(self.bn2(self.conv2(xu)))
         xu = self.conv3(xu)
         # (batch_num, 1 * critic_num, 1) -> (batch_num, critic_num)
         q_val_mat = xu.view(xu.shape[0], self.critic_num)
-        return torch.mean(q_val_mat, dim=-1), torch.std(q_val_mat, dim=-1)
+        q_mean = torch.mean(q_val_mat, dim=-1, keepdim=True)
+        return q_mean, F.mse_loss(q_val_mat, q_mean.repeat(1, self.critic_num)), \
+               torch.min(q_val_mat, dim=-1, keepdim=True).values
 
 
 class OptionEncode(nn.Module):
