@@ -46,7 +46,7 @@ if __name__ == "__main__":
     parser.add_argument("--evaluate_Q_value", default=False)
     parser.add_argument("--reward_name", default='r_s')
     parser.add_argument("--seq_len", default=2, type=int)
-    parser.add_argument("--seed", default=0, type=int) # Sets Gym, PyTorch and Numpy seeds
+    parser.add_argument("--seed", default=0, type=int)  # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--start_timesteps", default=1e4,
                         type=int)  # How many time steps purely random policy is run for
 
@@ -69,10 +69,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     env_name_vec = [
-        #'RoboschoolHopper-v1',
+        'RoboschoolHopper-v1',
         'RoboschoolAnt-v1',
-        #'RoboschoolWalker2d-v1',
-        #'RoboschoolHalfCheetah-v1',
+        'RoboschoolWalker2d-v1',
+        'RoboschoolHalfCheetah-v1',
         # 'Ant-v2',
         # 'HalfCheetah-v2',
         # 'Walker2d-v2',
@@ -84,14 +84,12 @@ if __name__ == "__main__":
         # 'RoboschoolAtlasForwardWalk-v1'
     ]
     # policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
-    policy_name_vec = ['HRLSAC']
+    policy_name_vec = ['HRLSAC', 'SAC']
     # for i in range(5):
     #     args.seed = i
     for env_name in env_name_vec:
         args.env_name = env_name
         env = gym.make(args.env_name)
-        if args.render and 'Bullet' in env_name:
-            env.render('human')
         for policy_name in policy_name_vec:
             args.policy_name = policy_name
             main(env, args)
