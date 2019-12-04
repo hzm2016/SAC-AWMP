@@ -8,10 +8,12 @@ from utils.model import GaussianPolicy, QNetwork, DeterministicPolicy, ValueNetw
 
 
 class SAC(object):
-    def __init__(self, state_dim, action_dim, max_action, action_space):
+    def __init__(self, args, state_dim, action_dim, max_action, action_space):
 
-        self.alpha = 0.05
-        self.lr = 0.0003
+        self.args = args
+
+        self.alpha = self.args.entropy_alpha
+        self.lr = self.args.earning_rate
         self.policy_type = "Gaussian"
         self.target_update_interval = 1
         self.automatic_entropy_tuning = False
@@ -47,6 +49,7 @@ class SAC(object):
             self.policy = DeterministicPolicy(state_dim, action_dim, 400, max_action).to(self.device)
             self.policy_optim = Adam(self.policy.parameters(), lr=self.lr)
 
+
     def select_action(self, state, eval=True):
         state = torch.FloatTensor(state).to(self.device).unsqueeze(0)
         if eval == False:
@@ -54,6 +57,7 @@ class SAC(object):
         else:
             _, _, action = self.policy.sample(state)
         return action.detach().cpu().numpy()[0]
+
 
     def train(self, replay_buffer, batch_size=100, discount=0.99, tau=0.005,
         policy_noise=0.2, noise_clip=0.5, policy_freq=2):
@@ -81,6 +85,7 @@ class SAC(object):
         # Jq(theta) = 0.5(q_theta - (r_t + V_target(s_t+1)))**2
         q_val_target = reward + not_done * discount * self.value_net_target(next_state)
         q1, q2 = self.critic(state, action)
+
         # The default mse_loss reduce to the mean of the element-wise mse loss.
         qf1_loss = F.mse_loss(q1, q_val_target) # JQ = 𝔼(st,at)~D[0.5(Q1(st,at) - r(st,at) - γ(𝔼st+1~p[V(st+1)]))^2]
         qf2_loss = F.mse_loss(q2, q_val_target) # JQ = 𝔼(st,at)~D[0.5(Q1(st,at) - r(st,at) - γ(𝔼st+1~p[V(st+1)]))^2]
@@ -119,7 +124,6 @@ class SAC(object):
         else:
             alpha_loss = torch.tensor(0.).to(self.device)
             alpha_tlogs = torch.tensor(self.alpha) # For TensorboardX logs
-
 
         if self.it % self.target_update_interval == 0:
             soft_update(self.value_net_target, self.value_net, tau)

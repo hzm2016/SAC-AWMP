@@ -13,15 +13,16 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class HRLSAC(object):
-	def __init__(self, args, state_dim, action_dim, max_action, option_num=2,
-				 entropy_coeff=0.1, c_reg=1.0, c_ent=4, option_buffer_size=5000,
-				 action_noise=0.2, policy_noise=0.2, noise_clip=0.5, alpha=0.05,
-				 weighted_action=True):
+	def __init__(self, args, state_dim, action_dim, max_action,
+				 entropy_coeff=0.1, c_reg=1.0, c_ent=4,
+				 action_noise=0.2, policy_noise=0.2, noise_clip=0.5,
+				 alpha=0.05, option_buffer_size=5000,
+				 option_num=2, weighted_action=True):
 
 		self.args = args
 
-		self.actor = GaussianPolicy1D(state_dim, action_dim, max_action, option_num).to(device)
-		self.actor_optimizer = torch.optim.Adam(self.actor.parameters())
+		self.actor = GaussianPolicy1D(state_dim, action_dim, max_action, self.args.option_num).to(device)
+		self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=self.args.learning_rate)
 
 		self.critic = Critic(state_dim, action_dim).to(device)
 		self.critic_optimizer = torch.optim.Adam(self.critic.parameters())
@@ -30,13 +31,13 @@ class HRLSAC(object):
 		hard_update(self.critic_target, self.critic)
 
 		self.value_net = ValueNetwork(state_dim, 400).to(device=device)
-		self.value_net_optim = torch.optim.Adam(self.value_net.parameters())
+		self.value_net_optim = torch.optim.Adam(self.value_net.parameters(), lr=self.args.learning_rate)
 
 		self.value_net_target = ValueNetwork(state_dim, 400).to(device=device)
 		hard_update(self.value_net_target, self.value_net)
 
-		self.option = Option(state_dim, action_dim, option_num).to(device)
-		self.option_optimizer = torch.optim.Adam(self.option.parameters())
+		self.option = Option(state_dim, action_dim, self.args.option_num).to(device)
+		self.option_optimizer = torch.optim.Adam(self.option.parameters(), lr=self.args.learning_rate)
 
 		self.max_action = max_action
 		self.it = 0
@@ -45,20 +46,19 @@ class HRLSAC(object):
 		self.c_reg = c_reg
 		self.c_ent = c_ent
 
-		self.option_buffer_size = option_buffer_size
+		self.option_buffer_size = self.args.option_buffer_size
 		self.state_dim = state_dim
 		self.action_dim = action_dim
-		self.option_num = option_num
+		self.option_num = self.args.option_num
 		self.action_noise = action_noise
 		self.policy_noise = policy_noise
 		self.noise_clip = noise_clip
 		self.q_predict = np.zeros(self.option_num)
 		self.option_val = 0
-		self.alpha = alpha
-		self.weighted_action = weighted_action
+		self.alpha = self.args.entropy_alpha
+		self.weighted_action = self.args.weighted_action
 
-	def train(self, replay_buffer, batch_size=100, discount=0.99, tau=0.005,
-			  policy_noise=0.2, noise_clip=0.5, policy_freq=1):
+	def train(self, replay_buffer, discount=0.99, tau=0.005, policy_freq=1):
 
 		self.it += 1
 		state, action, target_q, phi_val_target, _, sampling_prob = \
@@ -315,9 +315,9 @@ class HRLSAC(object):
 		# (batch_num, action_dim, option_num) x (batch_num, option, 1) -> (batch_num, action_dim)
 		if self.weighted_action:
 			action = torch.matmul(action_list, p_normalized[:, :, None])[:, :, 0]
-			print('weighted', p_normalized[:, :, None])
-			print('action_list', action_list)
-			print('action', action)
+			# print('weighted', p_normalized[:, :, None])
+			# print('action_list', action_list)
+			# print('action', action)
 		else:
 			# Below is to select action based on the option
 			action = action_list[torch.arange(state.shape[0]), :, option_batch]

@@ -35,6 +35,7 @@ class Solver(object):
         state_dim = env.observation_space.shape[0]
         action_dim = env.action_space.shape[0]
         max_action = float(env.action_space.high[0])
+        print('action_space_high', max_action)
 
         # Initialize policy
         if 'ATD3' == args.policy_name:
@@ -54,7 +55,7 @@ class Solver(object):
         elif 'DDPG' == args.policy_name:
             policy = DDPG.DDPG(state_dim, action_dim, max_action)
         elif 'SAC' == args.policy_name:
-            policy = SAC.SAC(state_dim, action_dim, max_action, self.env.action_space)
+            policy = SAC.SAC(args, state_dim, action_dim, max_action, self.env.action_space)
         elif 'AAC' == args.policy_name:
             policy = AAC.AAC(state_dim, action_dim, max_action)
         elif 'SAAC' == args.policy_name:
@@ -71,6 +72,7 @@ class Solver(object):
             policy = SHRLAAC.SHRLAAC(state_dim, action_dim, max_action)
         else:
             policy = TD3.TD3(state_dim, action_dim, max_action)
+
         self.policy = policy
         # self.replay_buffer = utils.ReplayBuffer()
         self.replay_buffer = utils.ReplayBufferMat()
@@ -112,9 +114,8 @@ class Solver(object):
 
             if self.args.save_all_policy:
                 self.policy.save(
-                    self.file_name + str(int(int(self.total_timesteps/self.args.eval_freq)* self.args.eval_freq)),
+                    self.file_name + str(int(int(self.total_timesteps/self.args.eval_freq) * self.args.eval_freq)),
                     directory=self.log_dir)
-
 
             if self.args.evaluate_Q_value:
                 true_Q_value = cal_true_value(env=self.env, policy=self.policy,
@@ -135,7 +136,6 @@ class Solver(object):
                     utils.write_table(self.log_dir + "/estimate_Q_vals", np.asarray(self.estimate_Q_vals))
                     utils.write_table(self.log_dir + "/true_Q_vals", np.asarray(self.true_Q_vals))
 
-
     def reset(self):
         # Reset environment
         self.obs = self.env.reset()
@@ -144,16 +144,22 @@ class Solver(object):
         self.episode_timesteps = 0
 
     def train(self):
+
         # Evaluate untrained policy
         self.evaluations = [evaluate_policy(self.env, self.policy, self.args)]
         self.log_dir = '{}/{}/{}_{}_seed_{}'.format(self.result_path, self.args.log_path,
                                                     self.args.policy_name, self.args.env_name,
                                                     self.args.seed)
+
         print("---------------------------------------")
         print("Settings: %s" % self.log_dir)
         print("---------------------------------------")
         if not os.path.exists(self.log_dir):
             os.makedirs(self.log_dir)
+
+        if self.args.load_policy:
+            self.policy.load(self.file_name + str(self.args.load_policy_idx), self.log_dir)
+
         # TesnorboardX
         if self.args.evaluate_Q_value:
             self.writer_train = SummaryWriter(logdir=self.log_dir + '_train')
@@ -164,11 +170,13 @@ class Solver(object):
             # ================ Train =============================================#
             self.train_once()
             # ====================================================================#
+
             if done:
                 self.eval_once()
                 self.reset()
                 done = False
             # Select action randomly or according to policy
+
             if self.total_timesteps < self.args.start_timesteps:
                 action = self.env.action_space.sample()
                 p = 1
@@ -195,13 +203,11 @@ class Solver(object):
                     else:
                         p = (p_noise * utils.softmax(self.policy.q_predict)[self.policy.option_val])[0]
 
-
             if 'IM' in self.args.policy_name:
                 action_im = np.copy(action)
                 action = utils.calc_torque_from_impedance(action_im,
                                                           np.asarray(self.obs)[8:-2]).clip(
                         self.env.action_space.low, self.env.action_space.high)
-
 
             # Perform action
             new_obs, reward, done, _ = self.env.step(action)
@@ -224,7 +230,6 @@ class Solver(object):
                 self.replay_buffer.add((self.obs, new_obs, action, reward, done_bool))
 
             self.obs = new_obs
-
             self.episode_timesteps += 1
             self.total_timesteps += 1
             self.timesteps_since_eval += 1
