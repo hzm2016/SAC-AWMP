@@ -231,7 +231,7 @@ class HRLSAC(object):
 		# 	log_pi = log_pi_list[torch.arange(state.shape[0]),:,option_batch]
 
 		# target v-value
-		print('target_q', qf1_pi.shape)
+		# print('target_q', qf1_pi.shape)
 		phi_val_target = torch.min(qf1_pi, qf2_pi) - self.alpha * log_pi
 
 		# target q-value
@@ -262,9 +262,8 @@ class HRLSAC(object):
 
 		target_q = torch.min(q_predict_1, q_predict_2)
 
-		predicted_v = self.value_func(state)
-
-		# predicted_v = self.value_net_target(state)
+		# predicted_v = self.value_func(state)
+		predicted_v = self.value_net_target(state)
 		return state, action, target_q, predicted_v, sampling_prob
 
 	def value_func(self, states):
