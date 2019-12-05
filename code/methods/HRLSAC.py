@@ -58,7 +58,8 @@ class HRLSAC(object):
 		self.alpha = self.args.entropy_alpha
 		self.weighted_action = self.args.weighted_action
 
-	def train(self, replay_buffer, discount=0.99, tau=0.005, policy_freq=1):
+	def train(self, replay_buffer, batch_size=100, discount=0.99, tau=0.005,
+			  policy_noise=0.2, noise_clip=0.5, policy_freq=1):
 
 		self.it += 1
 		state, action, target_q, phi_val_target, _, sampling_prob = \
@@ -72,9 +73,11 @@ class HRLSAC(object):
 		self.train_value_net(state, phi_val_target)
 
 		if self.it % policy_freq == 0:
+
 			# ================ Train the actor =============================================#
 			self.train_actor(phi_val_target)
 			# ===============================================================================#
+
 			# Update the frozen target models
 			for param, target_param in zip(self.value_net.parameters(), self.value_net_target.parameters()):
 				target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
@@ -149,6 +152,7 @@ class HRLSAC(object):
 
 	def train_option(self, state, action, target_q, predicted_v, sampling_prob):
 		xu, decoded_xu, output_option, output_option_noise = self.option(state, action)
+
 		advantage = target_q - predicted_v
 
 		weight = torch.exp(advantage - torch.max(advantage)) / sampling_prob
@@ -190,15 +194,32 @@ class HRLSAC(object):
 		action_list, log_pi_list, _ = self.actor.sample(state)
 		_, _, option_estimated, _ = self.option(state, action)
 		p_normalized = option_estimated / torch.sum(option_estimated, dim=1, keepdim=True)
-
 		# (batch_num, action_dim, option_num) x (batch_num, option, 1) -> (batch_num, action_dim)
+
+
+		# new version
+		qf1_pi_list = torch.zeros((action_list.shape[0], 1, self.option_num))
+		qf2_pi_list = torch.zeros((action_list.shape[0], 1, self.option_num))
 		if self.weighted_action:
-			action_pi = torch.matmul(action_list, p_normalized[:, :, None])[:, :, 0]
+			for i in range(self.option_num):
+				qf1_pi_list[:, :, i], qf2_pi_list[:, :, i] = self.critic(state, action_list[:, :, i])
 			log_pi = torch.matmul(log_pi_list, p_normalized[:, :, None])[:, :, 0]
+			qf1_pi = torch.matmul(qf1_pi_list, p_normalized[:, :, None])[:, :, 0]
+			qf2_pi = torch.matmul(qf2_pi_list, p_normalized[:, :, None])[:, :, 0]
 		else:
 			max_option_idx = torch.argmax(p_normalized, dim=1)
 			action_pi = action_list[torch.arange(state.shape[0]), :, max_option_idx]
 			log_pi = log_pi_list[torch.arange(state.shape[0]), :, max_option_idx]
+			qf1_pi, qf2_pi = self.critic(state, action_pi)
+
+		# old version
+		# if self.weighted_action:
+		# 	action_pi = torch.matmul(action_list, p_normalized[:, :, None])[:, :, 0]
+		# 	log_pi = torch.matmul(log_pi_list, p_normalized[:, :, None])[:, :, 0]
+		# else:
+		# 	max_option_idx = torch.argmax(p_normalized, dim=1)
+		# 	action_pi = action_list[torch.arange(state.shape[0]), :, max_option_idx]
+		# 	log_pi = log_pi_list[torch.arange(state.shape[0]), :, max_option_idx]
 
 		# option_batch, _, q_predict, p_normalized = self.softmax_option_target(state)
 		# # (batch_num, action_dim, option_num) x (batch_num, option, 1) -> (batch_num, action_dim)
@@ -209,15 +230,17 @@ class HRLSAC(object):
 		# 	action_pi = action_list[torch.arange(state.shape[0]),:,option_batch]
 		# 	log_pi = log_pi_list[torch.arange(state.shape[0]),:,option_batch]
 
-		qf1_pi, qf2_pi = self.critic(state, action_pi)
+		# target v-value
+		print('target_q', qf1_pi.shape)
 		phi_val_target = torch.min(qf1_pi, qf2_pi) - self.alpha * log_pi
 
+		# target q-value
 		target_q = reward + not_done * discount * self.value_net_target(next_state)
 
-		predicted_v = self.value_func(state)
-
+		# predicted_v = self.value_func(state)
 		# predicted_v = self.value_net_target(state)
-		return state, action, target_q, phi_val_target, predicted_v, sampling_prob
+
+		return state, action, target_q, phi_val_target, _, sampling_prob
 
 	def calc_target_q(self, replay_buffer, batch_size=100, discount=0.99, is_on_poliy=True):
 		if is_on_poliy:
@@ -281,6 +304,7 @@ class HRLSAC(object):
 		# -> (batch_num * option_num, state_dim)
 		states = states.repeat(1, option_num).view(batch_size * option_num, -1)
 
+		# behavior policy
 		q_predict_1, q_predict_2 = self.critic_target(states, action_list)
 
 		# q_predict: (batch_num * option_num, 1) -> (batch_num, option_num)

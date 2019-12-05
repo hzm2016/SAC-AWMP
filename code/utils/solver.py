@@ -218,7 +218,6 @@ class Solver(object):
 
             if 'IM' in self.args.policy_name:
                 action = action_im
-
             if 'RNN' in self.args.policy_name:
                 # Store data in replay buffer
                 new_obs_vec = utils.fifo_data(np.copy(self.obs_vec), new_obs)
@@ -260,7 +259,7 @@ class Solver(object):
             utils.write_table(self.log_dir + "/true_Q_vals", np.asarray(self.true_Q_vals))
         self.env.reset()
 
-    def eval_only(self, is_reset = True):
+    def eval_only(self, is_reset=True):
         video_dir = '{}/video_all/{}_{}'.format(self.result_path, self.args.policy_name,
                                                 self.args.env_name)
         if not os.path.exists(video_dir):
@@ -321,6 +320,7 @@ class Solver(object):
         if is_reset:
             self.env.reset()
 
+
 # Runs policy for X episodes and returns average reward
 def evaluate_policy(env, policy, args, eval_episodes=10):
     avg_reward = 0.
@@ -348,6 +348,7 @@ def evaluate_policy(env, policy, args, eval_episodes=10):
     # print ("Evaluation over %d episodes: %f" % (eval_episodes, avg_reward))
     # print ("---------------------------------------"                      )
     return avg_reward
+
 
 def cal_true_value(env, policy, replay_buffer, args, eval_episodes=1000):
     true_Q_val_vec = []
