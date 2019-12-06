@@ -13,7 +13,7 @@ class SAC(object):
         self.args = args
 
         self.alpha = self.args.entropy_alpha
-        self.lr = self.args.earning_rate
+        self.lr = self.args.learning_rate
         self.policy_type = "Gaussian"
         self.target_update_interval = 1
         self.automatic_entropy_tuning = False
@@ -49,7 +49,6 @@ class SAC(object):
             self.policy = DeterministicPolicy(state_dim, action_dim, 400, max_action).to(self.device)
             self.policy_optim = Adam(self.policy.parameters(), lr=self.lr)
 
-
     def select_action(self, state, eval=True):
         state = torch.FloatTensor(state).to(self.device).unsqueeze(0)
         if eval == False:
@@ -58,11 +57,11 @@ class SAC(object):
             _, _, action = self.policy.sample(state)
         return action.detach().cpu().numpy()[0]
 
-
     def train(self, replay_buffer, batch_size=100, discount=0.99, tau=0.005,
         policy_noise=0.2, noise_clip=0.5, policy_freq=2):
 
         self.it += 1
+
         # Sample a batch from memory
         state, next_state, action, reward, done = replay_buffer.sample(batch_size)
 
@@ -120,7 +119,7 @@ class SAC(object):
             self.alpha_optim.step()
 
             self.alpha = self.log_alpha.exp()
-            alpha_tlogs = self.alpha.clone() # For TensorboardX logs
+            alpha_tlogs = self.alpha.clone()   # For TensorboardX logs
         else:
             alpha_loss = torch.tensor(0.).to(self.device)
             alpha_tlogs = torch.tensor(self.alpha) # For TensorboardX logs

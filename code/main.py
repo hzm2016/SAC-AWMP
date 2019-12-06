@@ -87,11 +87,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     env_name_vec = [
-        # 'Walker2d-v2',
+        'Walker2d-v2',
         # 'Hopper-v2',
         # 'Ant-v2',
         # 'HalfCheetah-v2',
-        'RoboschoolWalker2d-v1',
+        # 'RoboschoolWalker2d-v1',
         # 'RoboschoolHalfCheetah-v1',
         # 'RoboschoolHopper-v1',
         # 'RoboschoolAnt-v1',
@@ -103,8 +103,7 @@ if __name__ == "__main__":
     ]
 
     # policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
-    policy_name_vec = ['HRLSAC', 'SAC']
-
+    policy_name_vec = ['SAC', 'HRLSAC']
     # for i in range(5):
     #     args.seed = i
     for env_name in env_name_vec:

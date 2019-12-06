@@ -65,6 +65,85 @@ class QNetwork(nn.Module):
 
         return x1, x2
 
+    def cal_list_actor(self, state, action_list, option_num):
+        # print('action_list_shape', action_list.shape)
+        action_list = action_list.transpose(dim0=1, dim1=2)
+        action_list = action_list.reshape(action_list.shape[0] * option_num, action_list.shape[2])
+        # print('trapse_action_list_shape', action_list.shape)
+        # print('state_shape', state.shape)
+        state = state.view(state.shape[0], -1, 1).repeat(1, 1, option_num)
+        # print('state_shape', state.shape)
+        state = state.transpose(dim0=1, dim1=2)
+        # print('state_shape_tras', state.shape)
+        state = state.reshape(state.shape[0] * option_num, state.shape[2])
+        # print('state', state.shape)
+
+        q1_list, q2_list = self.forward(state, action_list)
+
+        q1_list = q1_list.reshape(-1, option_num, 1)
+        q1_list = q1_list.transpose(dim0=1, dim1=2)
+
+        q2_list = q2_list.reshape(-1, option_num, 1)
+        q2_list = q2_list.transpose(dim0=1, dim1=2)
+
+        return q1_list, q2_list
+
+
+class Critic(nn.Module):
+    def __init__(self, state_dim, action_dim):
+        super(Critic, self).__init__()
+
+        # Q1 architecture
+        self.l1 = nn.Linear(state_dim + action_dim, 400)
+        self.l2 = nn.Linear(400, 300)
+        self.l3 = nn.Linear(300, 1)
+
+        # Q2 architecture
+        self.l4 = nn.Linear(state_dim + action_dim, 400)
+        self.l5 = nn.Linear(400, 300)
+        self.l6 = nn.Linear(300, 1)
+
+    def forward(self, x, u):
+        xu = torch.cat([x, u], 1)
+
+        q1 = F.relu(self.l1(xu))
+        q1 = F.relu(self.l2(q1))
+        q1 = self.l3(q1)
+
+        q2 = F.relu(self.l4(xu))
+        q2 = F.relu(self.l5(q2))
+        q2 = self.l6(q2)
+        return q1, q2
+
+
+class Critic1D(nn.Module):
+    def __init__(self, state_dim, action_dim, critic_num = 5):
+        super(Critic1D, self).__init__()
+        '''
+        Input size: (batch_num, channel = state_dim * option_num, length = 1)
+        '''
+        self.conv1 = nn.Conv1d((state_dim + action_dim) * critic_num, 400 * critic_num, kernel_size=1, groups=critic_num)
+        self.bn1 = nn.BatchNorm1d(400 * critic_num)
+        self.conv2 = nn.Conv1d(400 * critic_num, 300 * critic_num, kernel_size=1, groups=critic_num)
+        self.bn2 = nn.BatchNorm1d(300 * critic_num)
+        self.conv3 = nn.Conv1d(300 * critic_num, 1 * critic_num, kernel_size=1, groups=critic_num)
+        self.apply(weights_init_)
+
+        self.critic_num = critic_num
+
+    def forward(self, x, u):
+        #(batch_num, input_dim) -> (batch_num, channel = input_dim * critic_num, length = 1)
+        xu = torch.cat([x, u], dim=1)
+        xu = xu.view(xu.shape[0], -1, 1).repeat(1, self.critic_num, 1)
+        xu = F.relu(self.bn1(self.conv1(xu)))
+        xu = F.relu(self.bn2(self.conv2(xu)))
+        xu = self.conv3(xu)
+        # (batch_num, 1 * critic_num, 1) -> (batch_num, critic_num)
+        q_val_mat = xu.view(xu.shape[0], self.critic_num)
+        q_mean = torch.mean(q_val_mat, dim=-1, keepdim=True)
+        return q_mean, F.mse_loss(q_val_mat, q_mean.repeat(1, self.critic_num)), \
+               torch.min(q_val_mat, dim=-1, keepdim=True).values
+
 
 class GaussianPolicy(nn.Module):
     def __init__(self, state_dim, action_dim, hidden_dim, max_action=None):
@@ -345,62 +424,6 @@ class Actor1D(nn.Module):
         x = x.view(x.shape[0], self.option_num, -1)
         x = x.transpose(dim0=1, dim1=2)
         return x
-
-
-class Critic(nn.Module):
-    def __init__(self, state_dim, action_dim):
-        super(Critic, self).__init__()
-
-        # Q1 architecture
-        self.l1 = nn.Linear(state_dim + action_dim, 400)
-        self.l2 = nn.Linear(400, 300)
-        self.l3 = nn.Linear(300, 1)
-
-        # Q2 architecture
-        self.l4 = nn.Linear(state_dim + action_dim, 400)
-        self.l5 = nn.Linear(400, 300)
-        self.l6 = nn.Linear(300, 1)
-
-    def forward(self, x, u):
-        xu = torch.cat([x, u], 1)
-
-        q1 = F.relu(self.l1(xu))
-        q1 = F.relu(self.l2(q1))
-        q1 = self.l3(q1)
-
-        q2 = F.relu(self.l4(xu))
-        q2 = F.relu(self.l5(q2))
-        q2 = self.l6(q2)
-        return q1, q2
-
-
-class Critic1D(nn.Module):
-    def __init__(self, state_dim, action_dim, critic_num = 5):
-        super(Critic1D, self).__init__()
-        '''
-        Input size: (batch_num, channel = state_dim * option_num, length = 1)
-        '''
-        self.conv1 = nn.Conv1d((state_dim + action_dim) * critic_num, 400 * critic_num, kernel_size=1, groups=critic_num)
-        self.bn1 = nn.BatchNorm1d(400 * critic_num)
-        self.conv2 = nn.Conv1d(400 * critic_num, 300 * critic_num, kernel_size=1, groups=critic_num)
-        self.bn2 = nn.BatchNorm1d(300 * critic_num)
-        self.conv3 = nn.Conv1d(300 * critic_num, 1 * critic_num, kernel_size=1, groups=critic_num)
-        self.apply(weights_init_)
-
-        self.critic_num = critic_num
-
-    def forward(self, x, u):
-        #(batch_num, input_dim) -> (batch_num, channel = input_dim * critic_num, length = 1)
-        xu = torch.cat([x, u], dim=1)
-        xu = xu.view(xu.shape[0], -1, 1).repeat(1, self.critic_num, 1)
-        xu = F.relu(self.bn1(self.conv1(xu)))
-        xu = F.relu(self.bn2(self.conv2(xu)))
-        xu = self.conv3(xu)
-        # (batch_num, 1 * critic_num, 1) -> (batch_num, critic_num)
-        q_val_mat = xu.view(xu.shape[0], self.critic_num)
-        q_mean = torch.mean(q_val_mat, dim=-1, keepdim=True)
-        return q_mean, F.mse_loss(q_val_mat, q_mean.repeat(1, self.critic_num)), \
-               torch.min(q_val_mat, dim=-1, keepdim=True).values
 
 
 class OptionEncode(nn.Module):
