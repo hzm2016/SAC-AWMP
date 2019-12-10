@@ -58,6 +58,7 @@ class HRLSAC(object):
         self.q_predict = np.zeros(self.option_num)
         self.option_val = 0
         self.alpha = self.args.entropy_alpha
+        self.alpha_h = self.args.entropy_alpha_h
         self.weighted_action = self.args.weighted_action
 
     def train(self, replay_buffer, batch_size=100, discount=0.99, tau=0.005,
@@ -197,26 +198,31 @@ class HRLSAC(object):
         # (batch_num, action_dim, option_num) x (batch_num, option, 1) -> (batch_num, action_dim)
 
         # new version
-        qf1_pi_list = torch.zeros((action_list.shape[0], 1, self.option_num))
-        qf2_pi_list = torch.zeros((action_list.shape[0], 1, self.option_num))
-        if self.weighted_action:
-            for i in range(self.option_num):
-                qf1_pi_list[:, :, i], qf2_pi_list[:, :, i] = self.critic(state, action_list[:, :, i])
-            log_pi = torch.matmul(log_pi_list, p_normalized[:, :, None])[:, :, 0]
-            qf1_pi = torch.matmul(qf1_pi_list, p_normalized[:, :, None])[:, :, 0]
-            qf2_pi = torch.matmul(qf2_pi_list, p_normalized[:, :, None])[:, :, 0]
-        else:
-            max_option_idx = torch.argmax(p_normalized, dim=1)
-            action_pi = action_list[torch.arange(state.shape[0]), :, max_option_idx]
-            log_pi = log_pi_list[torch.arange(state.shape[0]), :, max_option_idx]
-            qf1_pi, qf2_pi = self.critic(state, action_pi)
+        # qf1_pi_list = torch.zeros((action_list.shape[0], 1, self.option_num))
+        # qf2_pi_list = torch.zeros((action_list.shape[0], 1, self.option_num))
+        # if self.weighted_action:
+        #     for i in range(self.option_num):
+        #         qf1_pi_list[:, :, i], qf2_pi_list[:, :, i] = self.critic(state, action_list[:, :, i])
+        #     log_pi = torch.matmul(log_pi_list, p_normalized[:, :, None])[:, :, 0]
+        #     qf1_pi = torch.matmul(qf1_pi_list, p_normalized[:, :, None])[:, :, 0]
+        #     qf2_pi = torch.matmul(qf2_pi_list, p_normalized[:, :, None])[:, :, 0]
+        # else:
+        #     max_option_idx = torch.argmax(p_normalized, dim=1)
+        #     action_pi = action_list[torch.arange(state.shape[0]), :, max_option_idx]
+        #     log_pi = log_pi_list[torch.arange(state.shape[0]), :, max_option_idx]
+        #     qf1_pi, qf2_pi = self.critic(state, action_pi)
 
         # matrix version
-        by_matrix = False
-        if by_matrix and self.weighted_action:
+        if self.weighted_action:
             # batch_size x option_num x 1
-            qf1_pi_list, qf1_pi_list = self.critic.cal_list_actor(state, action_list, self.option_num)
+            qf1_pi_list, qf2_pi_list = self.critic.cal_list_actor(state, action_list, self.option_num)
             log_pi = torch.matmul(log_pi_list, p_normalized[:, :, None])[:, :, 0]
+            # print('p_normalized:::', p_normalized[:, :, None].shape)
+            log_weights = torch.log(p_normalized[:, :, None]).transpose(1, 2)
+            # print('log weights:::', log_weights)
+            # print('p_normalize:::', p_normalized[:, :, None])
+            mean_log_weight = torch.matmul(log_weights, p_normalized[:, :, None])[:, :, 0]
+            # print('log weights:::', mean_log_weight)
             qf1_pi = torch.matmul(qf1_pi_list, p_normalized[:, :, None])[:, :, 0]
             qf2_pi = torch.matmul(qf2_pi_list, p_normalized[:, :, None])[:, :, 0]
         else:
@@ -245,7 +251,7 @@ class HRLSAC(object):
 
         # target v-value
         # print('target_q', qf1_pi.shape)
-        phi_val_target = torch.min(qf1_pi, qf2_pi) - self.alpha * log_pi
+        phi_val_target = torch.min(qf1_pi, qf2_pi) - self.alpha * log_pi - self.alpha_h * mean_log_weight
 
         # target q-value
         target_q = reward + not_done * discount * self.value_net_target(next_state)

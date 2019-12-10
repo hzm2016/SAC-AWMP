@@ -7,6 +7,7 @@ LOG_SIG_MAX = 2
 LOG_SIG_MIN = -20
 epsilon = 1e-6
 
+
 if torch.cuda.is_available():
 	torch.cuda.empty_cache()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -69,14 +70,12 @@ class QNetwork(nn.Module):
         # print('action_list_shape', action_list.shape)
         action_list = action_list.transpose(dim0=1, dim1=2)
         action_list = action_list.reshape(action_list.shape[0] * option_num, action_list.shape[2])
-        # print('trapse_action_list_shape', action_list.shape)
-        # print('state_shape', state.shape)
+
         state = state.view(state.shape[0], -1, 1).repeat(1, 1, option_num)
-        # print('state_shape', state.shape)
+
         state = state.transpose(dim0=1, dim1=2)
-        # print('state_shape_tras', state.shape)
+
         state = state.reshape(state.shape[0] * option_num, state.shape[2])
-        # print('state', state.shape)
 
         q1_list, q2_list = self.forward(state, action_list)
 
@@ -181,7 +180,7 @@ class GaussianPolicy(nn.Module):
         y_t = torch.tanh(x_t)
         action = y_t * self.action_scale + self.action_bias
 
-        log_prob = normal.log_prob(x_t) # log(pi(at|st))
+        log_prob = normal.log_prob(x_t)  # log(pi(at|st))
         # Enforcing Action Bound, because the Gaussian distribution changes from (-inf, inf) to (-1, 1)
         log_prob -= torch.log(self.action_scale * (1 - y_t.pow(2)) + epsilon)
         log_prob = log_prob.sum(1, keepdim=True)
