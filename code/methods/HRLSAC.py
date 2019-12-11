@@ -198,31 +198,14 @@ class HRLSAC(object):
         # (batch_num, action_dim, option_num) x (batch_num, option, 1) -> (batch_num, action_dim)
 
         # new version
-        # qf1_pi_list = torch.zeros((action_list.shape[0], 1, self.option_num))
-        # qf2_pi_list = torch.zeros((action_list.shape[0], 1, self.option_num))
-        # if self.weighted_action:
-        #     for i in range(self.option_num):
-        #         qf1_pi_list[:, :, i], qf2_pi_list[:, :, i] = self.critic(state, action_list[:, :, i])
-        #     log_pi = torch.matmul(log_pi_list, p_normalized[:, :, None])[:, :, 0]
-        #     qf1_pi = torch.matmul(qf1_pi_list, p_normalized[:, :, None])[:, :, 0]
-        #     qf2_pi = torch.matmul(qf2_pi_list, p_normalized[:, :, None])[:, :, 0]
-        # else:
-        #     max_option_idx = torch.argmax(p_normalized, dim=1)
-        #     action_pi = action_list[torch.arange(state.shape[0]), :, max_option_idx]
-        #     log_pi = log_pi_list[torch.arange(state.shape[0]), :, max_option_idx]
-        #     qf1_pi, qf2_pi = self.critic(state, action_pi)
-
-        # matrix version
         if self.weighted_action:
-            # batch_size x option_num x 1
-            qf1_pi_list, qf2_pi_list = self.critic.cal_list_actor(state, action_list, self.option_num)
+            qf1_pi_list = torch.zeros((action_list.shape[0], 1, self.option_num)).to(device)
+            qf2_pi_list = torch.zeros((action_list.shape[0], 1, self.option_num)).to(device)
+            for i in range(self.option_num):
+                qf1_pi_list[:, :, i], qf2_pi_list[:, :, i] = self.critic(state, action_list[:, :, i])
             log_pi = torch.matmul(log_pi_list, p_normalized[:, :, None])[:, :, 0]
-            # print('p_normalized:::', p_normalized[:, :, None].shape)
             log_weights = torch.log(p_normalized[:, :, None]).transpose(1, 2)
-            # print('log weights:::', log_weights)
-            # print('p_normalize:::', p_normalized[:, :, None])
             mean_log_weight = torch.matmul(log_weights, p_normalized[:, :, None])[:, :, 0]
-            # print('log weights:::', mean_log_weight)
             qf1_pi = torch.matmul(qf1_pi_list, p_normalized[:, :, None])[:, :, 0]
             qf2_pi = torch.matmul(qf2_pi_list, p_normalized[:, :, None])[:, :, 0]
         else:
@@ -230,6 +213,25 @@ class HRLSAC(object):
             action_pi = action_list[torch.arange(state.shape[0]), :, max_option_idx]
             log_pi = log_pi_list[torch.arange(state.shape[0]), :, max_option_idx]
             qf1_pi, qf2_pi = self.critic(state, action_pi)
+
+        # matrix version
+        # if self.weighted_action:
+        #     # batch_size x option_num x 1
+        #     qf1_pi_list, qf2_pi_list = self.critic.cal_list_actor(state, action_list, self.option_num)
+        #     log_pi = torch.matmul(log_pi_list, p_normalized[:, :, None])[:, :, 0]
+        #     # print('p_normalized:::', p_normalized[:, :, None].shape)
+        #     log_weights = torch.log(p_normalized[:, :, None]).transpose(1, 2)
+        #     # print('log weights:::', log_weights)
+        #     # print('p_normalize:::', p_normalized[:, :, None])
+        #     mean_log_weight = torch.matmul(log_weights, p_normalized[:, :, None])[:, :, 0]
+        #     # print('log weights:::', mean_log_weight)
+        #     qf1_pi = torch.matmul(qf1_pi_list, p_normalized[:, :, None])[:, :, 0]
+        #     qf2_pi = torch.matmul(qf2_pi_list, p_normalized[:, :, None])[:, :, 0]
+        # else:
+        #     max_option_idx = torch.argmax(p_normalized, dim=1)
+        #     action_pi = action_list[torch.arange(state.shape[0]), :, max_option_idx]
+        #     log_pi = log_pi_list[torch.arange(state.shape[0]), :, max_option_idx]
+        #     qf1_pi, qf2_pi = self.critic(state, action_pi)
 
         # old version
         # if self.weighted_action:

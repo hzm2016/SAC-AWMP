@@ -51,8 +51,8 @@ if __name__ == "__main__":
     parser.add_argument("--tau", default=0.005, type=float)  # Target network update rate
 
     # para for entropy
-    parser.add_argument("--entropy_alpha", default=0.2, type=float)
-    parser.add_argument("--entropy_alpha_h", default=0.01, type=float)
+    parser.add_argument("--entropy_alpha", default=0.2, type=float) # for gaussian policy
+    parser.add_argument("--entropy_alpha_h", default=0.01, type=float) # for option policy
 
     # para for HRL
     parser.add_argument("--weighted_action", default=True)
