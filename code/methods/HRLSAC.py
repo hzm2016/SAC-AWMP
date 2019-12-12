@@ -62,7 +62,7 @@ class HRLSAC(object):
         self.weighted_action = self.args.weighted_action
 
     def train(self, replay_buffer, batch_size=100, discount=0.99, tau=0.005,
-              policy_noise=0.2, noise_clip=0.5, policy_freq=1):
+              policy_noise=0.2, noise_clip=0.5, policy_freq=2):
 
         self.it += 1
         state, action, target_q, phi_val_target, phi_q_value_target, sampling_prob = \
@@ -176,7 +176,8 @@ class HRLSAC(object):
         option_loss.backward(retain_graph=True)  # 2. Back propagation
         self.option_optimizer.step()  # 3. Update the parameters of the net
 
-    def calc_target_phi(self, replay_buffer, batch_size=100, discount=0.99, is_on_poliy=True):
+    def calc_target_phi(self, replay_buffer, batch_size=100, discount=0.99,
+                        is_on_poliy=True):
         if is_on_poliy:
             x, y, u, r, d, p = \
                 replay_buffer.sample_on_policy(batch_size, self.option_buffer_size)
@@ -203,6 +204,7 @@ class HRLSAC(object):
             qf2_pi_list = torch.zeros((action_list.shape[0], 1, self.option_num)).to(device)
             for i in range(self.option_num):
                 qf1_pi_list[:, :, i], qf2_pi_list[:, :, i] = self.critic(state, action_list[:, :, i])
+
             qf1_pi = torch.matmul(qf1_pi_list, p_normalized[:, :, None])[:, :, 0]
             qf2_pi = torch.matmul(qf2_pi_list, p_normalized[:, :, None])[:, :, 0]
 
