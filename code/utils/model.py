@@ -185,6 +185,7 @@ class GaussianPolicy(nn.Module):
         log_prob -= torch.log(self.action_scale * (1 - y_t.pow(2)) + epsilon)
         log_prob = log_prob.sum(1, keepdim=True)
         mean = torch.tanh(mean) * self.action_scale + self.action_bias
+
         return action, log_prob, mean
 
     def to(self, device):
@@ -287,15 +288,18 @@ class GaussianPolicy1D(nn.Module):
         x = x.view(x.shape[0], -1, 1).repeat(1, self.option_num, 1)
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
+
         # (batch_num, action_dim * self.option_num, 1) -> (batch_num, action_dim, option_num)
         mean_mat = self.mean_linear(x)
         mean_mat = mean_mat.view(x.shape[0], self.option_num, -1)
         mean_mat = mean_mat.transpose(dim0=1, dim1=2)
+
         # (batch_num, action_dim * self.option_num, 1) -> (batch_num, action_dim, option_num)
         log_std_mat = self.log_std_linear(x)
         log_std_mat = torch.clamp(log_std_mat, min=LOG_SIG_MIN, max=LOG_SIG_MAX)
         log_std_mat = log_std_mat.view(x.shape[0], self.option_num, -1)
         log_std_mat = log_std_mat.transpose(dim0=1, dim1=2)
+
         return mean_mat, log_std_mat
 
     def sample(self, state):
@@ -309,15 +313,23 @@ class GaussianPolicy1D(nn.Module):
         std_mat = log_std_mat.exp()
         normal = Normal(mean_mat, std_mat)
         x_t = normal.rsample()  # for reparameterization trick (mean + std * N(0,1))
+
+        # print('x_t', x_t.shape)
+
         y_t = torch.tanh(x_t)
         action = y_t * self.action_scale + self.action_bias
         log_prob = normal.log_prob(x_t)  # log(pi(at|st))
 
         # Enforcing Action Bound, because the Gaussian distribution changes from (-inf, inf) to (-1, 1)
         log_prob -= torch.log(self.action_scale * (1 - y_t.pow(2)) + epsilon)
+
+        # print('log_prob', log_prob.shape)
+
         log_prob = log_prob.sum(1, keepdim=True)
+        # print('log_prob_sum', log_prob.shape)
 
         mean_mat = torch.tanh(mean_mat) * self.action_scale + self.action_bias
+
         return action, log_prob, mean_mat
 
     def to(self, device):
@@ -414,11 +426,12 @@ class Actor1D(nn.Module):
         self.option_num = option_num
 
     def forward(self, x):
-        #(batch_num, state_dim) -> (batch_num, channel = state_dim * option_num, length = 1)
+        # (batch_num, state_dim) -> (batch_num, channel = state_dim * option_num, length = 1)
         x = x.view(x.shape[0], -1, 1).repeat(1, self.option_num, 1)
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
         x = self.max_action * torch.tanh(self.conv3(x))
+
         # (batch_num, action_dim * self.option_num) -> (batch_num, action_dim, option_num)
         x = x.view(x.shape[0], self.option_num, -1)
         x = x.transpose(dim0=1, dim1=2)

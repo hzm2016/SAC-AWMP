@@ -65,7 +65,7 @@ class HRLSAC(object):
               policy_noise=0.2, noise_clip=0.5, policy_freq=1):
 
         self.it += 1
-        state, action, target_q, phi_val_target, _, sampling_prob = \
+        state, action, target_q, phi_val_target, phi_q_value_target, sampling_prob = \
             self.calc_target_phi(replay_buffer, self.args.critic_batch_size, discount, is_on_poliy=False)
 
         # ================ Train the critic =============================================#
@@ -78,16 +78,16 @@ class HRLSAC(object):
         if self.it % policy_freq == 0:
 
             # ================ Train the actor =============================================#
-            self.train_actor(phi_val_target)
+            self.train_actor(phi_q_value_target)
             # ===============================================================================#
 
             # Update the frozen target models
             for param, target_param in zip(self.value_net.parameters(), self.value_net_target.parameters()):
                 target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
 
-            # Update the frozen target models
+            # Update the frozen critic target models
             for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
-                target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
+                target_param.data.copy_(tau/5.0 * param.data + (1 - tau/5.0) * target_param.data)
         # ==================================================================================#
 
         # Delayed policy updates
@@ -203,16 +203,30 @@ class HRLSAC(object):
             qf2_pi_list = torch.zeros((action_list.shape[0], 1, self.option_num)).to(device)
             for i in range(self.option_num):
                 qf1_pi_list[:, :, i], qf2_pi_list[:, :, i] = self.critic(state, action_list[:, :, i])
+            qf1_pi = torch.matmul(qf1_pi_list, p_normalized[:, :, None])[:, :, 0]
+            qf2_pi = torch.matmul(qf2_pi_list, p_normalized[:, :, None])[:, :, 0]
+
             log_pi = torch.matmul(log_pi_list, p_normalized[:, :, None])[:, :, 0]
             log_weights = torch.log(p_normalized[:, :, None]).transpose(1, 2)
             mean_log_weight = torch.matmul(log_weights, p_normalized[:, :, None])[:, :, 0]
-            qf1_pi = torch.matmul(qf1_pi_list, p_normalized[:, :, None])[:, :, 0]
-            qf2_pi = torch.matmul(qf2_pi_list, p_normalized[:, :, None])[:, :, 0]
+
+            # target v-value
+            phi_val_target = torch.min(qf1_pi, qf2_pi) - self.alpha * log_pi - self.alpha_h * mean_log_weight
+
+            # actor learning value
+            phi_q_value_target = qf1_pi - self.alpha * log_pi - self.alpha_h * mean_log_weight
         else:
+
             max_option_idx = torch.argmax(p_normalized, dim=1)
             action_pi = action_list[torch.arange(state.shape[0]), :, max_option_idx]
             log_pi = log_pi_list[torch.arange(state.shape[0]), :, max_option_idx]
             qf1_pi, qf2_pi = self.critic(state, action_pi)
+
+            # target v-value
+            phi_val_target = torch.min(qf1_pi, qf2_pi) - self.alpha * log_pi
+
+            # actor learning value
+            phi_q_value_target = qf1_pi - self.alpha * log_pi
 
         # matrix version
         # if self.weighted_action:
@@ -251,17 +265,13 @@ class HRLSAC(object):
         # 	action_pi = action_list[torch.arange(state.shape[0]),:,option_batch]
         # 	log_pi = log_pi_list[torch.arange(state.shape[0]),:,option_batch]
 
-        # target v-value
-        # print('target_q', qf1_pi.shape)
-        phi_val_target = torch.min(qf1_pi, qf2_pi) - self.alpha * log_pi - self.alpha_h * mean_log_weight
-
         # target q-value
         target_q = reward + not_done * discount * self.value_net_target(next_state)
 
         # predicted_v = self.value_func(state)
         # predicted_v = self.value_net_target(state)
 
-        return state, action, target_q, phi_val_target, _, sampling_prob
+        return state, action, target_q, phi_val_target, phi_q_value_target, sampling_prob
 
     def calc_target_q(self, replay_buffer, batch_size=100, discount=0.99, is_on_poliy=True):
         if is_on_poliy:
