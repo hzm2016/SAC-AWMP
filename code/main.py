@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
     # para for entropy
     parser.add_argument("--entropy_alpha", default=0.2, type=float) # for gaussian policy
-    parser.add_argument("--entropy_alpha_h", default=0.01, type=float) # for option policy
+    parser.add_argument("--entropy_alpha_h", default=0.005, type=float) # for option policy
 
     # para for HRL
     parser.add_argument("--weighted_action", default=True)
@@ -88,14 +88,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     env_name_vec = [
-        # 'Walker2d-v2',
+        'Walker2d-v2',
         # 'Hopper-v2',
         # 'Ant-v2',
         # 'HalfCheetah-v2',
         # 'RoboschoolWalker2d-v1',
         # 'RoboschoolHalfCheetah-v1',
         # 'RoboschoolHopper-v1',
-        'RoboschoolAnt-v1',
+        # 'RoboschoolAnt-v1',
         # 'RoboschoolHumanoid-v1',
         # 'RoboschoolInvertedPendulum-v1',
         # 'RoboschoolInvertedPendulumSwingup-v1',

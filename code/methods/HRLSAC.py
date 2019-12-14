@@ -276,6 +276,7 @@ class HRLSAC(object):
         return state, action, target_q, phi_val_target, phi_q_value_target, sampling_prob
 
     def calc_target_q(self, replay_buffer, batch_size=100, discount=0.99, is_on_poliy=True):
+        
         if is_on_poliy:
             x, y, u, r, d, p = \
                 replay_buffer.sample_on_policy(batch_size, self.option_buffer_size)
