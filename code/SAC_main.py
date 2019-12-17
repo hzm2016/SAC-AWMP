@@ -39,7 +39,7 @@ if __name__ == "__main__":
     # path, env and policy
     parser.add_argument("--policy_name", default='ATD3_RNN')  # Policy name
     parser.add_argument("--env_name", default="HopperBulletEnv-v0")  # OpenAI gym environment name
-    parser.add_argument("--log_path", default='runs/mujoco_1e6_option_2')
+    parser.add_argument("--log_path", default='runs/mujoco_sac_1e6')
 
     # basic settings
     parser.add_argument("--learning_rate", default=3e-4, type=float)
@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
     # para for HRL
     parser.add_argument("--weighted_action", default=True)
-    parser.add_argument("--option_num", default=2, type=int)
+    parser.add_argument("--option_num", default=4, type=int)
 
     parser.add_argument("--option_buffer_size", default=5000, type=int)  # Batch size for both actor and critic
     parser.add_argument("--option_batch_size", default=50, type=int)  # Batch size for both actor and critic
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     ]
 
     # policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
-    policy_name_vec = ['HRLSAC']
+    policy_name_vec = ['SAC']
     # for i in range(5):
     #     args.seed = i
     for env_name in env_name_vec:
