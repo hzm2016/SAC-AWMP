@@ -39,7 +39,7 @@ if __name__ == "__main__":
     # path, env and policy
     parser.add_argument("--policy_name", default='ATD3_RNN')  # Policy name
     parser.add_argument("--env_name", default="HopperBulletEnv-v0")  # OpenAI gym environment name
-    parser.add_argument("--log_path", default='runs/mujoco_1e6')
+    parser.add_argument("--log_path", default='runs/mujoco_1e6_option_4')
 
     # basic settings
     parser.add_argument("--learning_rate", default=3e-4, type=float)

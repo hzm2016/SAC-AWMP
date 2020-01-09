@@ -44,15 +44,15 @@ if __name__ == "__main__":
     # basic settings
     parser.add_argument("--learning_rate", default=3e-4, type=float)
     parser.add_argument("--seed", default=0, type=int)  # Sets Gym, PyTorch and Numpy seeds
-    parser.add_argument("--start_timesteps", default=1e2, type=int)  # How many time steps purely random policy is run for
+    parser.add_argument("--start_timesteps", default=1e4, type=int)  # How many time steps purely random policy is run for
     parser.add_argument("--eval_freq", default=5e3, type=int)  # How often (time steps) we evaluate
     parser.add_argument("--max_timesteps", default=1e6, type=int)  # Max time steps to run environment for
     parser.add_argument("--discount", default=0.99, type=float)  # Discount factor
     parser.add_argument("--tau", default=0.005, type=float)  # Target network update rate
 
     # para for entropy
-    parser.add_argument("--entropy_alpha", default=0.2, type=float) # for gaussian policy
-    parser.add_argument("--entropy_alpha_h", default=0.005, type=float) # for option policy
+    parser.add_argument("--entropy_alpha", default=0.2, type=float)  # for gaussian policy
+    parser.add_argument("--entropy_alpha_h", default=0.005, type=float)  # for option policy
 
     # para for HRL
     parser.add_argument("--weighted_action", default=True)
@@ -88,9 +88,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     env_name_vec = [
-        'Walker2d-v2',
+        # 'Walker2d-v2',
         # 'Hopper-v2',
-        # 'Ant-v2',
+        'Ant-v2',
         # 'HalfCheetah-v2',
         # 'RoboschoolWalker2d-v1',
         # 'RoboschoolHalfCheetah-v1',
