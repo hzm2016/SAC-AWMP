@@ -92,7 +92,7 @@ class Solver(object):
             if self.args.evaluate_Q_value:
                 self.writer_train.add_scalar('ave_reward', self.episode_reward, self.total_timesteps)
             self.policy.train(self.replay_buffer, self.args.batch_size, self.args.discount,
-                              self.args.tau, self.args.policy_noise, self.args.noise_clip,
+                              self.args.tau, self.args.tau_o, self.args.policy_noise, self.args.noise_clip,
                               self.args.policy_freq)
 
     def eval_once(self):
@@ -347,9 +347,6 @@ def evaluate_policy(env, policy, args, eval_episodes=10):
                 obs_vec = utils.fifo_data(obs_vec, obs)
             avg_reward += reward
     avg_reward /= eval_episodes
-    # print ("---------------------------------------"                      )
-    # print ("Evaluation over %d episodes: %f" % (eval_episodes, avg_reward))
-    # print ("---------------------------------------"                      )
     return avg_reward
 
 

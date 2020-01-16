@@ -9,8 +9,7 @@ from roboschool import gym_forward_walker, gym_mujoco_walkers
 # import pybullet as p
 import argparse
 import numpy as np
-from utils.solver import utils, Solver
-from utils.solver_gait_rewards import SolverGait
+from utils.solver_new import Solver
 
 
 def test_env(env):
@@ -39,7 +38,7 @@ if __name__ == "__main__":
     # path, env and policy
     parser.add_argument("--policy_name", default='ATD3_RNN')  # Policy name
     parser.add_argument("--env_name", default="HopperBulletEnv-v0")  # OpenAI gym environment name
-    parser.add_argument("--log_path", default='runs/mujoco_1e6_option_2')
+    parser.add_argument("--log_path", default='runs/mujoco_1e6_option_8_target_tau_005')
 
     # basic settings
     parser.add_argument("--learning_rate", default=3e-4, type=float)
@@ -49,19 +48,20 @@ if __name__ == "__main__":
     parser.add_argument("--max_timesteps", default=1e6, type=int)  # Max time steps to run environment for
     parser.add_argument("--discount", default=0.99, type=float)  # Discount factor
     parser.add_argument("--tau", default=0.005, type=float)  # Target network update rate
-
+    parser.add_argument("--tau_o", default=0.0005, type=float)  # Target network update rate
+    
     # para for entropy
-    parser.add_argument("--entropy_alpha", default=0.2, type=float) # for gaussian policy
-    parser.add_argument("--entropy_alpha_h", default=0.005, type=float) # for option policy
+    parser.add_argument("--entropy_alpha", default=0.2, type=float)  # for gaussian policy
+    parser.add_argument("--entropy_alpha_h", default=0.005, type=float)  # for option policy
 
     # para for HRL
     parser.add_argument("--weighted_action", default=True)
-    parser.add_argument("--option_num", default=2, type=int)
+    parser.add_argument("--option_num", default=8, type=int)
 
     parser.add_argument("--option_buffer_size", default=5000, type=int)  # Batch size for both actor and critic
     parser.add_argument("--option_batch_size", default=50, type=int)  # Batch size for both actor and critic
     parser.add_argument("--policy_batch_size", default=100, type=int)  # Batch size for both actor and critic
-    parser.add_argument("--critic_batch_size", default=200, type=int)  # Batch size for both actor and critic
+    parser.add_argument("--critic_batch_size", default=400, type=int)  # Batch size for both actor and critic
 
     # save and load policy
     parser.add_argument("--load_policy", default=False)
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     ]
 
     # policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
-    policy_name_vec = ['HRLSAC']
+    policy_name_vec = ['HRLSAC_Target']
     # for i in range(5):
     #     args.seed = i
     for env_name in env_name_vec:

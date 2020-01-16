@@ -39,33 +39,33 @@ if __name__ == "__main__":
     # path, env and policy
     parser.add_argument("--policy_name", default='ATD3_RNN')  # Policy name
     parser.add_argument("--env_name", default="HopperBulletEnv-v0")  # OpenAI gym environment name
-    parser.add_argument("--log_path", default='runs/mujoco_1e6_option_4')
+    parser.add_argument("--log_path", default='runs/mujoco_1e6_option_8')
 
     # basic settings
     parser.add_argument("--learning_rate", default=3e-4, type=float)
     parser.add_argument("--seed", default=0, type=int)  # Sets Gym, PyTorch and Numpy seeds
-    parser.add_argument("--start_timesteps", default=1e2, type=int)  # How many time steps purely random policy is run for
+    parser.add_argument("--start_timesteps", default=1e4, type=int)  # How many time steps purely random policy is run for
     parser.add_argument("--eval_freq", default=5e3, type=int)  # How often (time steps) we evaluate
-    parser.add_argument("--max_timesteps", default=1e6, type=int)  # Max time steps to run environment for
+    parser.add_argument("--max_timesteps", default=2e5, type=int)  # Max time steps to run environment for
     parser.add_argument("--discount", default=0.99, type=float)  # Discount factor
     parser.add_argument("--tau", default=0.005, type=float)  # Target network update rate
 
     # para for entropy
-    parser.add_argument("--entropy_alpha", default=0.2, type=float) # for gaussian policy
-    parser.add_argument("--entropy_alpha_h", default=0.005, type=float) # for option policy
+    parser.add_argument("--entropy_alpha", default=0.2, type=float)  # for gaussian policy
+    parser.add_argument("--entropy_alpha_h", default=0.005, type=float)  # for option policy
 
     # para for HRL
     parser.add_argument("--weighted_action", default=True)
-    parser.add_argument("--option_num", default=4, type=int)
+    parser.add_argument("--option_num", default=8, type=int)
 
     parser.add_argument("--option_buffer_size", default=5000, type=int)  # Batch size for both actor and critic
     parser.add_argument("--option_batch_size", default=50, type=int)  # Batch size for both actor and critic
     parser.add_argument("--policy_batch_size", default=100, type=int)  # Batch size for both actor and critic
-    parser.add_argument("--critic_batch_size", default=200, type=int)  # Batch size for both actor and critic
+    parser.add_argument("--critic_batch_size", default=400, type=int)  # Batch size for both actor and critic
 
     # save and load policy
-    parser.add_argument("--load_policy", default=False)
-    parser.add_argument("--load_policy_idx", default=100000, type=int)
+    parser.add_argument("--load_policy", default=True)
+    parser.add_argument("--load_policy_idx", default=875000, type=int)
     parser.add_argument("--save_all_policy", default=True)
     parser.add_argument("--save_policy_inx", default=100000, type=int)
 

@@ -89,8 +89,8 @@ if __name__ == "__main__":
 
     env_name_vec = [
         # 'Walker2d-v2',
-        # 'Hopper-v2',
-        'Ant-v2',
+        'Hopper-v2',
+        # 'Ant-v2',
         # 'HalfCheetah-v2',
         # 'RoboschoolWalker2d-v1',
         # 'RoboschoolHalfCheetah-v1',
