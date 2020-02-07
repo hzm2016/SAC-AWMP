@@ -2,10 +2,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 import glob
-from torch.autograd import Variable
 import torch.nn.functional as F
 from torch.distributions import Categorical
-from utils.model import Actor1D
+from code.utils.model import Actor1D
 if torch.cuda.is_available():
 	torch.cuda.empty_cache()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -189,6 +188,7 @@ class HRLAC(object):
 				max_option_idx = torch.argmax(option_prob, dim=1)
 
 			action = self.actor(state)[torch.arange(state.shape[0]), :, max_option_idx]
+			
 			# ================ Train the actor =============================================#
 			self.train_actor(state, action)
 			# ===============================================================================#
@@ -210,7 +210,6 @@ class HRLAC(object):
 						self.calc_target_q(replay_buffer, batch_size, discount, is_on_poliy=True)
 					for _ in range(int(self.option_num)):
 						self.train_option(state, action, target_q, predicted_v, sampling_prob)
-			# ===============================================================================#
 
 	def train_critic(self, state, action, target_q):
 		'''
@@ -342,6 +341,7 @@ class HRLAC(object):
 
 	def select_action(self, state, eval=True):
 		state = torch.FloatTensor(state.reshape(1, -1)).to(device)
+		# select option
 		option_batch, _, q_predict = self.softmax_option_target(state)
 		if eval:
 			option_batch = torch.argmax(q_predict, dim=-1)
@@ -414,7 +414,6 @@ def softmax(x):
 	e_x_sum = torch.sum(e_x, dim=1, keepdim=True)
 	out = e_x / e_x_sum
 	return out
-
 
 def weighted_entropy(p, w_norm):
 	return torch.sum(w_norm * p * torch.log(p + 1e-8))

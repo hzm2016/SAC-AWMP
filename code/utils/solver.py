@@ -5,14 +5,12 @@ import cv2
 import torch
 import glob
 import roboschool, gym
-from utils import utils
+from code.utils import utils
 from tqdm import tqdm
 from scipy.stats import multivariate_normal
 from tensorboardX import SummaryWriter
 from scipy import signal
-from methods import ATD3, ATD3_RNN, Average_TD3, DDPG, \
-    TD3, SAC, DDPG_RNN, TD3_RNN, ATD3_IM, SAAC, AAC, \
-    HRLAC, HRLSAC, HRLAAC, HRLLAC, SHRLAAC, MATD3, HRLSAC_Target
+from code.methods import DDPG, TD3, SAC, TD3_RNN, HRLAC, SAC_AWMP
 
 
 class Solver(object):
@@ -38,40 +36,14 @@ class Solver(object):
         print('action_space_high', max_action)
 
         # Initialize policy
-        if 'ATD3' == args.policy_name:
-            policy = ATD3.ATD3(state_dim, action_dim, max_action)
-        elif 'MATD3' == args.policy_name:
-            policy = MATD3.MATD3(state_dim, action_dim, max_action)
-        elif 'ATD3_IM' == args.policy_name:
-            policy = ATD3_IM.ATD3_IM(state_dim, action_dim, max_action)
-        elif 'ATD3_RNN' == args.policy_name:
-            policy = ATD3_RNN.ATD3_RNN(state_dim, action_dim, max_action)
-        elif 'DDPG_RNN' == args.policy_name:
-            policy = DDPG_RNN.DDPG_RNN(state_dim, action_dim, max_action)
+        if 'SAC_AWMP' == args.policy_name:
+            policy = SAC_AWMP.SAC_AWMP(args, state_dim, action_dim, max_action)
         elif 'TD3_RNN' == args.policy_name:
             policy = TD3_RNN.TD3_RNN(state_dim, action_dim, max_action)
-        elif 'Average_TD3' == args.policy_name:
-            policy = Average_TD3.Average_TD3(state_dim, action_dim, max_action)
         elif 'DDPG' == args.policy_name:
             policy = DDPG.DDPG(state_dim, action_dim, max_action)
         elif 'SAC' == args.policy_name:
             policy = SAC.SAC(args, state_dim, action_dim, max_action, self.env.action_space)
-        elif 'AAC' == args.policy_name:
-            policy = AAC.AAC(state_dim, action_dim, max_action)
-        elif 'SAAC' == args.policy_name:
-            policy = SAAC.SAAC(state_dim, action_dim, max_action)
-        elif 'HRLAC' == args.policy_name:
-            policy = HRLAC.HRLAC(state_dim, action_dim, max_action)
-        elif 'HRLSAC' == args.policy_name:
-            policy = HRLSAC.HRLSAC(args, state_dim, action_dim, max_action)
-        elif 'HRLSAC_Target' == args.policy_name:
-            policy = HRLSAC_Target.HRLSAC(args, state_dim, action_dim, max_action)
-        elif 'HRLAAC' == args.policy_name:
-            policy = HRLAAC.HRLAAC(state_dim, action_dim, max_action)
-        elif 'HRLLAC' == args.policy_name:
-            policy = HRLLAC.HRLLAC(state_dim, action_dim, max_action)
-        elif 'SHRLAAC' == args.policy_name:
-            policy = SHRLAAC.SHRLAAC(state_dim, action_dim, max_action)
         else:
             policy = TD3.TD3(state_dim, action_dim, max_action)
 
@@ -159,6 +131,12 @@ class Solver(object):
 
         if self.args.load_policy:
             self.policy.load(self.file_name + str(self.args.load_policy_idx), self.log_dir)
+            self.log_dir = self.log_dir + '_transfer'
+            print("---------------------------------------")
+            print("Settings: %s" % self.log_dir)
+            print("---------------------------------------")
+            if not os.path.exists(self.log_dir):
+                os.makedirs(self.log_dir)
 
         # TesnorboardX
         if self.args.evaluate_Q_value:
@@ -203,12 +181,6 @@ class Solver(object):
                     else:
                         p = (p_noise * utils.softmax(self.policy.q_predict)[self.policy.option_val])[0]
 
-            if 'IM' in self.args.policy_name:
-                action_im = np.copy(action)
-                action = utils.calc_torque_from_impedance(action_im,
-                                                          np.asarray(self.obs)[8:-2]).clip(
-                        self.env.action_space.low, self.env.action_space.high)
-
             # Perform action
             new_obs, reward, done, _ = self.env.step(action)
 
@@ -216,8 +188,6 @@ class Solver(object):
 
             done_bool = 0 if self.episode_timesteps + 1 == self.env._max_episode_steps else float(done)
 
-            if 'IM' in self.args.policy_name:
-                action = action_im
             if 'RNN' in self.args.policy_name:
                 # Store data in replay buffer
                 new_obs_vec = utils.fifo_data(np.copy(self.obs_vec), new_obs)
@@ -335,6 +305,8 @@ def evaluate_policy(env, policy, args, eval_episodes=10):
         while not done:
             if 'RNN' in args.policy_name:
                 action = policy.select_action(np.array(obs_vec))
+            elif 'HRL' in args.policy_name:
+                action = policy.select_action(np.array(obs))
             else:
                 action = policy.select_action(np.array(obs))
 

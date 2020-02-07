@@ -5,12 +5,9 @@ project_path = '../'
 sys.path.insert(0, project_path + 'code')
 print(sys.path)
 import roboschool, gym
-from roboschool import gym_forward_walker, gym_mujoco_walkers
-# import pybullet as p
 import argparse
 import numpy as np
-from utils.solver import utils, Solver
-from utils.solver_gait_rewards import SolverGait
+from code.utils.solver import Solver
 
 
 def test_env(env):
@@ -37,16 +34,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # path, env and policy
-    parser.add_argument("--policy_name", default='ATD3_RNN')  # Policy name
+    parser.add_argument("--policy_name", default='TD3')  # Policy name
     parser.add_argument("--env_name", default="HopperBulletEnv-v0")  # OpenAI gym environment name
-    parser.add_argument("--log_path", default='runs/mujoco_1e6_option_2')
+    parser.add_argument("--log_path", default='runs/mujoco_1e6')
 
     # basic settings
     parser.add_argument("--learning_rate", default=3e-4, type=float)
     parser.add_argument("--seed", default=0, type=int)  # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--start_timesteps", default=1e4, type=int)  # How many time steps purely random policy is run for
     parser.add_argument("--eval_freq", default=5e3, type=int)  # How often (time steps) we evaluate
-    parser.add_argument("--max_timesteps", default=1e6, type=int)  # Max time steps to run environment for
+    parser.add_argument("--max_timesteps", default=5e5, type=int)  # Max time steps to run environment for
     parser.add_argument("--discount", default=0.99, type=float)  # Discount factor
     parser.add_argument("--tau", default=0.005, type=float)  # Target network update rate
 
@@ -56,7 +53,7 @@ if __name__ == "__main__":
 
     # para for HRL
     parser.add_argument("--weighted_action", default=True)
-    parser.add_argument("--option_num", default=2, type=int)
+    parser.add_argument("--option_num", default=4, type=int)
 
     parser.add_argument("--option_buffer_size", default=5000, type=int)  # Batch size for both actor and critic
     parser.add_argument("--option_batch_size", default=50, type=int)  # Batch size for both actor and critic
@@ -66,7 +63,7 @@ if __name__ == "__main__":
     # save and load policy
     parser.add_argument("--load_policy", default=False)
     parser.add_argument("--load_policy_idx", default=100000, type=int)
-    parser.add_argument("--save_all_policy", default=True)
+    parser.add_argument("--save_all_policy", default=False)
     parser.add_argument("--save_policy_inx", default=100000, type=int)
 
     parser.add_argument("--eval_only", default=False)
@@ -89,9 +86,9 @@ if __name__ == "__main__":
 
     env_name_vec = [
         # 'Walker2d-v2',
-        'Hopper-v2',
+        # 'Hopper-v2',
         # 'Ant-v2',
-        # 'HalfCheetah-v2',
+        'HalfCheetah-v2',
         # 'RoboschoolWalker2d-v1',
         # 'RoboschoolHalfCheetah-v1',
         # 'RoboschoolHopper-v1',
@@ -103,8 +100,7 @@ if __name__ == "__main__":
         # 'RoboschoolAtlasForwardWalk-v1'
     ]
 
-    # policy_name_vec = ['TD3', 'ATD3', 'ATD3_RNN']
-    policy_name_vec = ['HRLSAC']
+    policy_name_vec = ['SAC-AWMP', 'TD3', 'SAC']
     # for i in range(5):
     #     args.seed = i
     for env_name in env_name_vec:

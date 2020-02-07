@@ -4,16 +4,16 @@ import torch.nn as nn
 import glob
 from torch.autograd import Variable
 import torch.nn.functional as F
-from utils.utils import soft_update, hard_update
+from code.utils.utils import soft_update, hard_update
 from torch.distributions import Categorical
-from utils.model import GaussianPolicy1D, ActorList, Critic, Option, ValueNetwork, QNetwork
+from code.utils.model import GaussianPolicy1D, ActorList, Critic, Option, ValueNetwork, QNetwork
 
 if torch.cuda.is_available():
     torch.cuda.empty_cache()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-class HRLSAC(object):
+class SAC_AWMP(object):
     def __init__(self, args, state_dim, action_dim, max_action,
                  entropy_coeff=0.1, c_reg=1.0, c_ent=4,
                  action_noise=0.2, policy_noise=0.2, noise_clip=0.5,

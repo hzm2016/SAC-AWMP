@@ -1,28 +1,18 @@
-# PyTorch implementation of ATD3
+# PyTorch implementation of TD3, HRLAC and SAC-AWMP
 
-### Roboschool
-The paper results can be reproduced exactly by running:
+### environment set up
+The environment for this paper can be installed by running:
 
 ```
-pip install roboschool==1.0.48
+pip install -r requirment.txt
 ```
-```
-cd code
-```
-**Change the path in the run.sh file to the path of your Roboschool package**!
 
 Then run the code:
 ```
-./run.sh
-```
-### Webots
-
-```
-cd code/webots/atlas_boom/controllers/rl
+./run.sh or python main.py --seed 0 
 ```
 
-Open the webots world file.
+HRLAC is the implementation of paper adInfoHRL
 ```
-./run.sh
+[HIERARCHICAL REINFORCEMENT LEARNING VIA ADVANTAGE-WEIGHTED INFORMATION MAXIMIZATION].(https://arxiv.org/pdf/1901.01365.pdf)
 ```
-
