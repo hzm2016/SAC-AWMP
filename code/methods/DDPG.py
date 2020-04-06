@@ -51,7 +51,8 @@ class DDPG(object):
 
         self.critic = Critic(state_dim, action_dim).to(device)
         self.critic_target = copy.deepcopy(self.critic)
-        self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), weight_decay=1e-2)
+        self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=1e-3,
+                                                 weight_decay=1e-2)
 
         self.discount = discount
         self.tau = tau
@@ -62,6 +63,7 @@ class DDPG(object):
 
     def train(self, replay_buffer, batch_size=100, discount=0.99, tau=0.005, policy_noise=0.2,
               noise_clip=0.5, policy_freq=2):
+        
         # Sample replay buffer
         x, y, u, r, d = replay_buffer.sample(batch_size)
         state = torch.FloatTensor(x).to(device)

@@ -166,9 +166,12 @@ class Solver(object):
                 else:
                     action = self.policy.select_action(np.array(self.obs))
 
-                noise = np.random.normal(0, self.args.expl_noise,
-                                         size=self.env.action_space.shape[0])
+                # p_noise = multivariate_normal.pdf(
+                #     noise, np.zeros(shape=self.env.action_space.shape[0]),
+                #     self.args.expl_noise * self.args.expl_noise * np.identity(noise.shape[0]))
                 if self.args.expl_noise != 0:
+                    noise = np.random.normal(0, self.args.expl_noise,
+                                             size=self.env.action_space.shape[0])
                     action = (action + noise).clip(
                         self.env.action_space.low, self.env.action_space.high)
 
