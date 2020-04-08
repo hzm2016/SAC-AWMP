@@ -298,7 +298,7 @@ class Solver(object):
 
 
 # Runs policy for X episodes and returns average reward
-def evaluate_policy(env, policy, args, eval_episodes=10):
+def evaluate_policy(env, policy, args, eval_episodes=5):
     avg_reward = 0.
     for _ in range(eval_episodes):
         obs = env.reset()
@@ -322,9 +322,6 @@ def evaluate_policy(env, policy, args, eval_episodes=10):
                 obs_vec = utils.fifo_data(obs_vec, obs)
             avg_reward += reward
     avg_reward /= eval_episodes
-    # print ("---------------------------------------"                      )
-    # print ("Evaluation over %d episodes: %f" % (eval_episodes, avg_reward))
-    # print ("---------------------------------------"                      )
     return avg_reward
 
 
