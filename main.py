@@ -42,7 +42,7 @@ if __name__ == "__main__":
     parser.add_argument("--learning_rate", default=1e-3, type=float)
     parser.add_argument("--seed", default=0, type=int)  # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--start_timesteps", default=1e4, type=int)  # How many time steps purely random policy is run for
-    parser.add_argument("--eval_freq", default=5e3, type=int)  # How often (time steps) we evaluate
+    parser.add_argument("--eval_freq", default=1e4, type=int)  # How often (time steps) we evaluate
     parser.add_argument("--max_timesteps", default=1e6, type=int)  # Max time steps to run environment for
     parser.add_argument("--discount", default=0.99, type=float)  # Discount factor
     parser.add_argument("--tau", default=0.001, type=float)  # Target network update rate
